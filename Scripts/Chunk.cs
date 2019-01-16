@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class Chunk
 {
-    public static Vector3Int size = new Vector3Int(16, 32, 16);
+    public static Vector3Int size = new Vector3Int(16, 256, 16);
     public Mesh mesh;
     public Vector3Int position;
     public bool ready = false;
 
     public Block[] blocks;
+    public byte[] faces;
 
     public Chunk(Vector3Int pos) => position = pos;
 
@@ -17,18 +18,37 @@ public class Chunk
     {
         blocks = new Block[size.x * size.y * size.z];
         int index = 0;
-        
+
+        int[,] height = new int[Chunk.size.x, Chunk.size.z];
+
+        for(int x = 0; x < size.x; x++)
+        {
+            for(int z = 0; z < Chunk.size.x; z++)
+            {
+                int value = Mathf.CeilToInt(
+                    Mathf.PerlinNoise((x + position.x + 84) / 32f, (z + position.z) / 32f) * 15f +
+                    Mathf.PerlinNoise((x + position.x) / 64f, (z + position.z + 84) / 64f) * 27f + 
+                    Mathf.PerlinNoise((x + position.x - 612) / 16f, (z+ position.z) / 16f) * 5f +
+                    Mathf.PerlinNoise((x + position.x) / 4f, (z + position.z) / 4f + 64) +
+                    Mathf.PerlinNoise((x + position.x + 8) / 24f, (z + position.z) / 24f - 8) * 12f +
+                    Mathf.PerlinNoise((x + position.x + 80) / 64f, (z + position.z) / 64f - 80) * 40f +
+                    Mathf.PerlinNoise((x + position.x + 8) / 128f, (z + position.z) / 128f - 12) * 80f +
+                    64f
+                    );
+                height[x, z] = value;
+            }
+        }
+
         for(int x = 0; x < size.x; x++)
         {
             for(int y = 0; y < size.y; y++)
             {
                 for(int z = 0; z < size.z; z++)
                 {
-                    int value = Mathf.CeilToInt((Mathf.PerlinNoise((x + position.x) / 32f, (z + position.z) / 32f) * 15f) + 20f);
 
-                    if(y + position.y > value)
+                    if(y + position.y > height[x, z])
                     {
-                        if(y + position.y == value + 7 && Random.Range(0, 15) == 1)
+                        if(y + position.y == height[x, z] + 7 && Random.Range(0, 487) == 1)
                         {
                             StructureGenerator.GenerateWoodenPlatform(position, x, y, z, blocks);
                         }
@@ -36,13 +56,13 @@ public class Chunk
                         continue;
                     }
 
-                    if(y + position.y == value)
+                    if(y + position.y == height[x, z])
                         blocks[index] = Block.Grass;
 
-                    if(y + position.y < value && y + position.y > value - 3)
+                    if(y + position.y < height[x, z] && y + position.y > height[x, z] - 3)
                         blocks[index] = Block.Dirt;
 
-                    if(y + position.y <= value - 3)
+                    if(y + position.y <= height[x, z] - 3)
                         blocks[index] = Block.Stone;
 
                     index++;
@@ -60,8 +80,12 @@ public class Chunk
         yield return new WaitUntil(() => builder.Update());
 
         mesh = builder.GetMesh(ref mesh);
-        ready = true;
+        faces = builder.GetFaces(ref faces);
 
+        //if(GameController.instance.IsChunkNearPlayer())
+            //ColliderController.SetColliderRegion(this);
+
+        ready = true;
         builder = null;
     }
 

@@ -62,7 +62,7 @@ public class World : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    public void Update()
     {
         foreach(Chunk ch in chunkPosMap.Values)
         {
