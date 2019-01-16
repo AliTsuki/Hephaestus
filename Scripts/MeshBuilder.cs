@@ -216,9 +216,9 @@ public class MeshBuilder : ThreadedProcess
                     if ((faces[index] & (byte)Direction.West) != 0)
                     {
                         vertices[vertexIndex + 0] = new Vector3(x + position.x, y + position.y, z + position.z);
-                        vertices[vertexIndex + 1] = new Vector3(x + position.x, y + position.y + 1, z + position.z);
-                        vertices[vertexIndex + 2] = new Vector3(x + position.x, y + position.y, z + position.z + 1);
-                        vertices[vertexIndex + 3] = new Vector3(x + position.x + 1, y + position.y + 1, z + position.z + 1);
+                        vertices[vertexIndex + 2] = new Vector3(x + position.x, y + position.y + 1, z + position.z);
+                        vertices[vertexIndex + 1] = new Vector3(x + position.x, y + position.y, z + position.z + 1);
+                        vertices[vertexIndex + 3] = new Vector3(x + position.x, y + position.y + 1, z + position.z + 1);
 
                         triangles[triangleIndex + 0] = vertexIndex + 1;
                         triangles[triangleIndex + 1] = vertexIndex + 2;

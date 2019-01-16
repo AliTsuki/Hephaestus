@@ -21,7 +21,7 @@ public class Chunk
         blocks = new Block[size.x * size.y * size.z];
         int index = 0;
         
-        for(int x = 0; x < size.z; x++)
+        for(int x = 0; x < size.x; x++)
         {
             for(int y = 0; y < size.y; y++)
             {
