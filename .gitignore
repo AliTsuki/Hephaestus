@@ -28,6 +28,7 @@ ExportedObj/
 *.pidb.meta
 
 *.meta
+*.asset
 
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
@@ -62,3 +63,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+
+*.7z
