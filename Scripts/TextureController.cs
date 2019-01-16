@@ -54,14 +54,17 @@ public static class TextureController
         if(block == Block.Dirt)
             return "Dirt";
 
-        if (block == Block.Grass)
+        if(block == Block.Grass)
         {
-            if (direction == Direction.Up)
+            if(direction == Direction.Up)
                 return "Grass_Up";
-            if (direction == Direction.Down)
+            if(direction == Direction.Down)
                 return "Dirt";
             return "Grass_Side";
         }
+
+        if(block == Block.WoodPlanks)
+            return "Wood_Planks";
 
         return "default";
     }

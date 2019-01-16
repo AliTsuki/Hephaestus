@@ -9,7 +9,7 @@ public class Chunk
     public Vector3Int position;
     public bool ready = false;
 
-    Block[] blocks;
+    public Block[] blocks;
 
     public Chunk(Vector3Int pos) => position = pos;
 
@@ -28,6 +28,10 @@ public class Chunk
 
                     if(y + position.y > value)
                     {
+                        if(y + position.y == value + 7 && Random.Range(0, 15) == 1)
+                        {
+                            StructureGenerator.GenerateWoodenPlatform(position, x, y, z, blocks);
+                        }
                         index++;
                         continue;
                     }
@@ -45,6 +49,7 @@ public class Chunk
                 }
             }
         }
+        StructureGenerator.GetWaitingBlocks(position, blocks);
     }
 
     public IEnumerator GenerateMesh()
