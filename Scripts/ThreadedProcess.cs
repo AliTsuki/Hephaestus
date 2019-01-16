@@ -5,7 +5,7 @@ using System.Threading;
 public class ThreadedProcess
 {
     bool m_IsDone = false;
-    object m_Handle = new object();
+    readonly object m_Handle = new object();
     Thread m_Thread = null;
 
     public bool IsDone
@@ -34,10 +34,7 @@ public class ThreadedProcess
         m_Thread.Start();
     }
 
-    public virtual void Abort()
-    {
-        m_Thread.Abort();
-    }
+    public virtual void Abort() => m_Thread.Abort();
 
     public virtual void ThreadFunction() { }
 

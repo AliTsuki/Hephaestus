@@ -11,10 +11,7 @@ public class Chunk
 
     Block[] blocks;
 
-    public Chunk(Vector3Int pos)
-    {
-        position = pos;
-    }
+    public Chunk(Vector3Int pos) => position = pos;
 
     public void GenerateBlockArray()
     {
@@ -27,8 +24,23 @@ public class Chunk
             {
                 for(int z = 0; z < size.z; z++)
                 {
-                    if(Mathf.PerlinNoise(x / 32f, z / 32f) * 5f + 20f < y)
-                        blocks[index] = Block.Filled;
+                    int value = Mathf.CeilToInt((Mathf.PerlinNoise((x + position.x) / 32f, (z + position.z) / 32f) * 15f) + 20f);
+
+                    if(y + position.y > value)
+                    {
+                        index++;
+                        continue;
+                    }
+
+                    if(y + position.y == value)
+                        blocks[index] = Block.Grass;
+
+                    if(y + position.y < value && y + position.y > value - 3)
+                        blocks[index] = Block.Dirt;
+
+                    if(y + position.y <= value - 3)
+                        blocks[index] = Block.Stone;
+
                     index++;
                 }
             }
@@ -46,5 +58,22 @@ public class Chunk
         ready = true;
 
         builder = null;
+    }
+
+    public Block GetBlockAt(int x, int y, int z)
+    {
+        x -= position.x;
+        y -= position.y;
+        z -= position.z;
+
+        if(IsPointWithinBounds(x, y, z))
+            return blocks[(x * size.y * size.z) + (y * size.z) + z];
+
+        return Block.Air;
+    }
+
+    bool IsPointWithinBounds(int x, int y, int z)
+    {
+        return x >= 0 && y >= 0 && z >= 0 && z < Chunk.size.z && y < Chunk.size.y && x < Chunk.size.x;
     }
 }
