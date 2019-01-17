@@ -6,6 +6,7 @@ public class ColliderController
 {
     public ColliderController() { }
 
+    GameObject parent;
     BoxCollider[] colliders;
     Vector3 position;
 
@@ -13,7 +14,7 @@ public class ColliderController
     {
         int index = 0;
 
-        GameObject colliderParent = new GameObject("Collider Parent");
+        parent = new GameObject("Collider Parent");
 
         colliders = new BoxCollider[Chunk.size.x * Chunk.size.y * Chunk.size.z];
 
@@ -32,7 +33,7 @@ public class ColliderController
 
                     colliders[index].transform.position = position;
 
-                    go.transform.SetParent(colliderParent.transform);
+                    go.transform.SetParent(parent.transform);
                     go.SetActive(false);
 
                     index++;
@@ -47,6 +48,12 @@ public class ColliderController
 
         yield return new WaitUntil(() => World.instance.GetChunkAt(x, y, z, out chunk));
         yield return new WaitUntil(() => chunk.ready);
+
+        position.x = chunk.position.x;
+        position.y = chunk.position.y;
+        position.z = chunk.position.z;
+
+        parent.transform.position = position;
 
         int index = 0;
 

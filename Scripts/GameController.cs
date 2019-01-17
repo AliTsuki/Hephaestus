@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//TODO: add MoveCollider function, add EditCollider function
 public class GameController : MonoBehaviour
 {
     public static GameController instance;
@@ -28,16 +27,7 @@ public class GameController : MonoBehaviour
 
         TextureController.Initialize(texturePath, texture);
 
-        UnityEngine.Profiling.Profiler.BeginSample("Create GO Pool");
-
-        colliderController = new ColliderController();
-        colliderController.CreateGameObjectPool();
-
-        UnityEngine.Profiling.Profiler.EndSample();
-
-        Instantiate(playerPrefab, new Vector3(0, blocksTall, 0), Quaternion.identity);
-
-        StartCoroutine(colliderController.SetCollidersAtChunk(0, 0, 0));
+        Instantiate(playerPrefab, new Vector3(8, blocksTall, 8), Quaternion.identity);
     }
 
     // Update is called once per frame

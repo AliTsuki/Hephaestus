@@ -94,17 +94,6 @@ public class PlayerController : MonoBehaviour
 
         loader.Initialize(currentChunkUnderPlayer, chunkRenderDistance);
     }
-
-    IEnumerator WaitForWorld()
-    {
-        Chunk chunk = null;
-
-        yield return new WaitUntil(() => World.instance.GetChunkAt(currentChunkUnderPlayer.x, 0, currentChunkUnderPlayer.z, out chunk));
-        if(chunk != null)
-        {
-            yield return new WaitUntil(() => chunk.ready);
-        }
-    }
     
     // Update is called once per frame
     void Update()
@@ -114,26 +103,18 @@ public class PlayerController : MonoBehaviour
 
         if(Input.GetKeyDown(movementSettings.JumpButton) && !jump)
             jump = true;
-    }
 
-    void LateUpdate()
-    {
-        Vector3Int previousChunkUnderPlayer = World.WorldCoordsToChunkCoords(transform.position.x, transform.position.y, transform.position.z);
+        Vector3Int previousPosition = World.WorldCoordsToChunkCoords(transform.position.x, transform.position.y, transform.position.z);
 
-        if(previousChunkUnderPlayer != currentChunkUnderPlayer)
+        if(previousPosition != currentChunkUnderPlayer)
         {
-            GameController.instance.MoveCollider(previousChunkUnderPlayer.x, previousChunkUnderPlayer.y, previousChunkUnderPlayer.z);
-
-            currentChunkUnderPlayer.x = previousChunkUnderPlayer.x;
-            currentChunkUnderPlayer.y = previousChunkUnderPlayer.y;
-            currentChunkUnderPlayer.z = previousChunkUnderPlayer.z;
+            currentChunkUnderPlayer = previousPosition;
         }
     }
 
     void FixedUpdate()
     {
-        if (interaction.InteractWithBlocks(cam.transform))
-            GameController.instance.MoveCollider(currentChunkUnderPlayer.x, currentChunkUnderPlayer.y, currentChunkUnderPlayer.z);
+        interaction.InteractWithBlocks(cam.transform);
 
         GroundCheck();
         Vector2 input = GetInput();
