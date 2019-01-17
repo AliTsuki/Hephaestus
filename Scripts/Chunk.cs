@@ -82,9 +82,6 @@ public class Chunk
         mesh = builder.GetMesh(ref mesh);
         faces = builder.GetFaces(ref faces);
 
-        //if(GameController.instance.IsChunkNearPlayer())
-            //ColliderController.SetColliderRegion(this);
-
         ready = true;
         builder = null;
     }
@@ -99,6 +96,59 @@ public class Chunk
             return blocks[(x * size.y * size.z) + (y * size.z) + z];
 
         return Block.Air;
+    }
+
+    public bool SetBlockAt(Vector3 point, Vector3 normal, Block block, bool setBlockMode = false)
+    {
+        if(ready == false)
+            return false;
+
+        if(setBlockMode == false)
+        {
+            int x = Mathf.FloorToInt(point.x) - position.x;
+            int y = Mathf.FloorToInt(point.y) - position.y;
+            int z = Mathf.FloorToInt(point.z) - position.z;
+
+            if (normal.x > 0.5)
+                y -= 1;
+            if (normal.y > 0.5)
+                y -= 1;
+            if (normal.z > 0.5)
+                y -= 1;
+
+            if (IsPointWithinBounds(x, y, z))
+            {
+                blocks[x * Chunk.size.y * Chunk.size.z + y * Chunk.size.z + z] = block;
+                ready = false;
+                GameController.instance.StartCoroutine(GenerateMesh());
+
+                return true;
+            }
+        }
+        if(setBlockMode == true)
+        {
+            int x = Mathf.FloorToInt(point.x) - position.x;
+            int y = Mathf.FloorToInt(point.y) - position.y;
+            int z = Mathf.FloorToInt(point.z) - position.z;
+
+            if (normal.x < 0.5)
+                y += 1;
+            if (normal.y < 0.5)
+                y += 1;
+            if (normal.z < 0.5)
+                y += 1;
+
+            if (IsPointWithinBounds(x, y, z))
+            {
+                blocks[x * Chunk.size.y * Chunk.size.z + y * Chunk.size.z + z] = block;
+                ready = false;
+                GameController.instance.StartCoroutine(GenerateMesh());
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     bool IsPointWithinBounds(int x, int y, int z)

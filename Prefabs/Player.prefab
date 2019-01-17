@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3900804654673757417}
   - component: {fileID: 3900804654673757416}
   - component: {fileID: 3900804654673757419}
-  - component: {fileID: 3900804654673757418}
+  - component: {fileID: 6306339009839358309}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -27,7 +27,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3900804654673757413}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -25.605743, y: 29.422241, z: -24.656425}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3900804655520275596}
@@ -64,7 +64,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 84
   m_CollisionDetection: 0
---- !u!114 &3900804654673757418
+--- !u!114 &6306339009839358309
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86,6 +86,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3900804655520275596}
   - component: {fileID: 3900804655520275599}
+  - component: {fileID: 6060490339744621941}
   - component: {fileID: 3900804655520275598}
   m_Layer: 0
   m_Name: Main Camera
@@ -150,6 +151,14 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!124 &6060490339744621941
+Behaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3900804655520275593}
+  m_Enabled: 1
 --- !u!81 &3900804655520275598
 AudioListener:
   m_ObjectHideFlags: 0
@@ -168,7 +177,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3900804656118301934}
   m_Layer: 0
-  m_Name: Player Graphics
+  m_Name: Player_Graphics
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

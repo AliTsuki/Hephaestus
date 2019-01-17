@@ -2,76 +2,102 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class World : MonoBehaviour
+public class World
 {
     public static World instance;
     public static Matrix4x4 id = Matrix4x4.identity;
-    public Texture texture;
-    public Material material;
 
     Dictionary<Vector3Int, Chunk> chunkPosMap;
 
-    public int radius = 2;
-    public int height = 8;
+    public Material material;
+    public Texture texture;
 
-    void Awake()
+    public int chunksTall;
+    public int blocksTall;
+
+    public World(int blocksTall, Material material)
     {
-        TextureController.Initialize("", texture);
-        chunkPosMap = new Dictionary<Vector3Int, Chunk>();
-
         instance = this;
+
+        this.material = material;
+        this.blocksTall = blocksTall;
+
+        chunksTall = blocksTall / Chunk.size.y;
+
+        chunkPosMap = new Dictionary<Vector3Int, Chunk>();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public bool CreateChunkDataAt(int x, int y, int z, out Chunk chunk)
     {
-        for(int x = -radius; x < radius + 1; x++)
-        {
-            for(int y = 0; y < height; y++)
-            {
-                for(int z = -radius; z < radius + 1; z++)
-                {
-                    Chunk chunk = new Chunk(new Vector3Int(x * Chunk.size.x, y * Chunk.size.y, z * Chunk.size.z));
-                    chunk.GenerateBlockArray();
+        Vector3Int pos = WorldCoordsToChunkCoords(x, y, z);
 
-                    chunkPosMap.Add(chunk.position, chunk);
-                }
-            }
+        if(chunkPosMap.ContainsKey(pos) == false)
+        {
+            chunk = new Chunk(pos);
+            chunk.GenerateBlockArray();
+
+            chunkPosMap.Add(pos, chunk);
+
+            return true;
         }
 
-        foreach(Chunk ch in chunkPosMap.Values)
-        {
-            StartCoroutine(GenerateChunkMeshes());
-        }
+        chunk = null;
+        return false;
     }
 
-    IEnumerator GenerateChunkMeshes()
+    public bool RemoveChunkDataAt(int x, int y, int z)
     {
-        foreach(Chunk ch in chunkPosMap.Values)
-        {
-            StartCoroutine(ch.GenerateMesh());
-            yield return new WaitUntil(() => ch.ready);
-        }
+        Vector3Int key = WorldCoordsToChunkCoords(x, y, z);
+
+        return chunkPosMap.Remove(key);
+    }
+
+    public IEnumerator GenerateChunkMeshAt(Chunk chunk)
+    {
+        GameController.instance.StartCoroutine(chunk.GenerateMesh());
+        yield return new WaitUntil(() => chunk.ready);
     }
 
     public bool GetChunkAt(int x, int y, int z, out Chunk chunk)
     {
         Vector3Int key = WorldCoordsToChunkCoords(x, y, z);
+        return chunkPosMap.TryGetValue(key, out chunk);
+    }
 
+    public bool GetChunkAt(Vector3 point, Vector3 normal, bool getAdjacent, out Chunk chunk)
+    {
+        Vector3Int key;
+
+        if(getAdjacent)
+        {
+            key = WorldCoordsToChunkCoords(point.x + normal.x, point.y + normal.y, point.z + normal.z);
+            return chunkPosMap.TryGetValue(key, out chunk);
+        }
+
+        key = WorldCoordsToChunkCoords(point.x, point.y, point.z);
         return chunkPosMap.TryGetValue(key, out chunk);
     }
 
     // Update is called once per frame
     public void Update()
     {
-        foreach(Chunk ch in chunkPosMap.Values)
+        foreach (Chunk ch in chunkPosMap.Values)
         {
-            if (ch.ready)
+            if (ch.mesh != null)
                 Graphics.DrawMesh(ch.mesh, id, material, 0);
         }
     }
 
     public static Vector3Int WorldCoordsToChunkCoords(int x, int y, int z)
+    {
+        return new Vector3Int(
+            Mathf.FloorToInt(x / (float)Chunk.size.x) * Chunk.size.x,
+            Mathf.FloorToInt(y / (float)Chunk.size.y) * Chunk.size.y,
+            Mathf.FloorToInt(z / (float)Chunk.size.z) * Chunk.size.z
+            );
+    }
+
+    public static Vector3Int WorldCoordsToChunkCoords(float x, float y, float z)
     {
         return new Vector3Int(
             Mathf.FloorToInt(x / (float)Chunk.size.x) * Chunk.size.x,

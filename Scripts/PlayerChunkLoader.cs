@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//TODO: add Initialize function
 public class PlayerChunkLoader : MonoBehaviour
 {
     // Start is called before the first frame update
