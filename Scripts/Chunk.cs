@@ -19,20 +19,20 @@ public class Chunk
         blocks = new Block[size.x * size.y * size.z];
         int index = 0;
 
-        int[,] height = new int[Chunk.size.x, Chunk.size.z];
+        int[,] height = new int[size.x, size.z];
 
         for(int x = 0; x < size.x; x++)
         {
-            for(int z = 0; z < Chunk.size.x; z++)
+            for(int z = 0; z < size.z; z++)
             {
                 int value = Mathf.CeilToInt(
-                    Mathf.PerlinNoise((x + position.x + 84) / 32f, (z + position.z) / 32f) * 15f +
-                    Mathf.PerlinNoise((x + position.x) / 64f, (z + position.z + 84) / 64f) * 27f + 
-                    Mathf.PerlinNoise((x + position.x - 612) / 16f, (z+ position.z) / 16f) * 5f +
-                    Mathf.PerlinNoise((x + position.x) / 4f, (z + position.z) / 4f + 64) +
-                    Mathf.PerlinNoise((x + position.x + 8) / 24f, (z + position.z) / 24f - 8) * 12f +
-                    Mathf.PerlinNoise((x + position.x + 80) / 64f, (z + position.z) / 64f - 80) * 40f +
-                    Mathf.PerlinNoise((x + position.x + 8) / 128f, (z + position.z) / 128f - 12) * 80f +
+                    (Mathf.PerlinNoise((x + position.x + 84) / 32f, (z + position.z) / 32f) * 15f) +
+                    (Mathf.PerlinNoise((x + position.x) / 64f, (z + position.z + 84) / 64f) * 27f) + 
+                    (Mathf.PerlinNoise((x + position.x - 612) / 16f, (z+ position.z) / 16f) * 5f) +
+                    Mathf.PerlinNoise((x + position.x) / 4f, ((z + position.z) / 4f) + 64) +
+                    (Mathf.PerlinNoise((x + position.x + 8) / 24f, ((z + position.z) / 24f) - 8) * 12f) +
+                    (Mathf.PerlinNoise((x + position.x + 80) / 64f, ((z + position.z) / 64f) - 80) * 40f) +
+                    (Mathf.PerlinNoise((x + position.x + 8) / 128f, ((z + position.z) / 128f) - 12) * 80f) +
                     64f
                     );
                 height[x, z] = value;
@@ -45,7 +45,6 @@ public class Chunk
             {
                 for(int z = 0; z < size.z; z++)
                 {
-
                     if(y + position.y > height[x, z])
                     {
                         if(y + position.y == height[x, z] + 7 && Random.Range(0, 487) == 1)
@@ -79,7 +78,7 @@ public class Chunk
 
         yield return new WaitUntil(() => builder.Update());
 
-        mesh = builder.GetMesh(ref mesh);
+        mesh = builder.GetMeshData(ref mesh);
         faces = builder.GetFaces(ref faces);
 
         ready = true;
@@ -118,9 +117,32 @@ public class Chunk
 
             if (IsPointWithinBounds(x, y, z))
             {
-                blocks[x * Chunk.size.y * Chunk.size.z + y * Chunk.size.z + z] = block;
+                blocks[(x * Chunk.size.y * Chunk.size.z) + (y * Chunk.size.z) + z] = block;
                 ready = false;
                 GameController.instance.StartCoroutine(GenerateMesh());
+                GameController.instance.EditCollider(x, y, z, this, setBlockMode);
+
+                Chunk neighbor;
+                if(x == 0 && World.instance.GetChunkAt(position.x - 1, position.y, position.z, out neighbor))
+                {
+                    neighbor.ready = false;
+                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
+                }
+                if (x == Chunk.size.x - 1 && World.instance.GetChunkAt(position.x + Chunk.size.x, position.y, position.z, out neighbor))
+                {
+                    neighbor.ready = false;
+                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
+                }
+                if (z == 0 && World.instance.GetChunkAt(position.x, position.y, position.z - 1, out neighbor))
+                {
+                    neighbor.ready = false;
+                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
+                }
+                if (z == Chunk.size.z - 1 && World.instance.GetChunkAt(position.x, position.y, position.z + Chunk.size.z, out neighbor))
+                {
+                    neighbor.ready = false;
+                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
+                }
 
                 return true;
             }
@@ -131,18 +153,19 @@ public class Chunk
             int y = Mathf.FloorToInt(point.y) - position.y;
             int z = Mathf.FloorToInt(point.z) - position.z;
 
-            if (normal.x < 0.5)
-                y += 1;
-            if (normal.y < 0.5)
-                y += 1;
-            if (normal.z < 0.5)
-                y += 1;
+            if (normal.x < -0.5)
+                y -= 1;
+            if (normal.y < -0.5)
+                y -= 1;
+            if (normal.z < -0.5)
+                y -= 1;
 
             if (IsPointWithinBounds(x, y, z))
             {
-                blocks[x * Chunk.size.y * Chunk.size.z + y * Chunk.size.z + z] = block;
+                blocks[(x * Chunk.size.y * Chunk.size.z) + (y * Chunk.size.z) + z] = block;
                 ready = false;
                 GameController.instance.StartCoroutine(GenerateMesh());
+                GameController.instance.EditCollider(x, y, z, this, setBlockMode);
 
                 return true;
             }

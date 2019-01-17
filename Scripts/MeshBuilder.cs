@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//TODO: create GetFaces function
+//TODO: create GetFaces function, create GetMeshData function
 public class MeshBuilder : ThreadedProcess
 {
     readonly byte[] faces = new byte[Chunk.size.x * Chunk.size.y * Chunk.size.z];

@@ -20,8 +20,6 @@ public class PlayerController : MonoBehaviour
         [HideInInspector]
         public float CurrentTargetSpeed = 8f;
 
-        bool m_running;
-
         public void UpdateDesiredTargetSpeed(Vector2 input)
         {
             if (input.x == 0 && input.y == 0)
@@ -39,18 +37,12 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKey(RunButton))
             {
                 CurrentTargetSpeed *= RunMultiplier;
-                m_running = true;
+                Running = true;
             }
-            else m_running = false;
+            else Running = false;
         }
 
-        public bool Running
-        {
-            get
-            {
-                return m_running;
-            }
-        }
+        public bool Running { get; private set; }
     }
 
     [System.Serializable]
@@ -77,44 +69,19 @@ public class PlayerController : MonoBehaviour
 
     Rigidbody rb;
     BoxCollider box;
-
-    float yRotation;
+    readonly float yRotation;
     Vector3 groundContactNormal;
-    bool jump, previouslyGrounded, jumping, isGrounded;
+    bool jump, previouslyGrounded;
 
     Vector3Int currentChunkUnderPlayer;
 
-    public Vector3 Velocity
-    {
-        get
-        {
-            return rb.velocity;
-        }
-    }
+    public Vector3 Velocity => rb.velocity;
 
-    public bool Grounded
-    {
-        get
-        {
-            return isGrounded;
-        }
-    }
+    public bool Grounded { get; private set; }
 
-    public bool Jumping
-    {
-        get
-        {
-            return jumping;
-        }
-    }
+    public bool Jumping { get; private set; }
 
-    public bool Running
-    {
-        get
-        {
-            return movementSettings.Running;
-        }
-    }
+    public bool Running => movementSettings.Running;
 
     // Start is called before the first frame update
     void Start()
@@ -171,13 +138,13 @@ public class PlayerController : MonoBehaviour
         GroundCheck();
         Vector2 input = GetInput();
 
-        if((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.controlWhenInAir || isGrounded))
+        if((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.controlWhenInAir || Grounded))
         {
             // Always move along the camera forward as it is the direction taht is being aimed at
-            Vector3 desiredMove = cam.transform.forward * input.y + cam.transform.right * input.x;
+            Vector3 desiredMove = (cam.transform.forward * input.y) + (cam.transform.right * input.x);
             desiredMove = Vector3.ProjectOnPlane(desiredMove, groundContactNormal).normalized;
 
-            if(!isGrounded && advancedSettings.controlWhenInAir)
+            if(!Grounded && advancedSettings.controlWhenInAir)
             {
                 desiredMove.x = desiredMove.x * movementSettings.CurrentTargetSpeed * advancedSettings.airSpeedMultiplier;
                 desiredMove.y = desiredMove.y * movementSettings.CurrentTargetSpeed * advancedSettings.airSpeedMultiplier;
@@ -196,7 +163,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if(!isGrounded)
+        if(!Grounded)
         {
             rb.drag = 2f;
 
@@ -205,10 +172,10 @@ public class PlayerController : MonoBehaviour
                 rb.drag = 0f;
                 rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
                 rb.AddForce(new Vector3(0f, movementSettings.JumpForce, 0f), ForceMode.Impulse);
-                jumping = true;
+                Jumping = true;
             }
 
-            if(!jumping && Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && rb.velocity.magnitude < 1f)
+            if(!Jumping && Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && rb.velocity.magnitude < 1f)
             {
                 rb.Sleep();
             }
@@ -216,7 +183,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             rb.drag = 0f;
-            if(previouslyGrounded && !jumping)
+            if(previouslyGrounded && !Jumping)
             {
                 StickToGroundHelper();
             }
@@ -232,9 +199,8 @@ public class PlayerController : MonoBehaviour
 
     private void StickToGroundHelper()
     {
-        RaycastHit hitInfo;
-        if(Physics.SphereCast(transform.position, box.size.x * (1.0f - advancedSettings.shellOffset), Vector3.down, out hitInfo,
-            ((box.size.y / 2f) - box.size.x) +
+        if(Physics.SphereCast(transform.position, box.size.x * (1.0f - advancedSettings.shellOffset), Vector3.down, out RaycastHit hitInfo,
+            (box.size.y / 2f) - box.size.x +
             advancedSettings.stickToGroundHelperDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
         {
             if(Mathf.Abs(Vector3.Angle(hitInfo.normal, Vector3.up)) < 85f)
@@ -263,7 +229,7 @@ public class PlayerController : MonoBehaviour
 
         lookAt.LookRotation(transform, cam.transform);
 
-        if(isGrounded || advancedSettings.controlWhenInAir)
+        if(Grounded || advancedSettings.controlWhenInAir)
         {
             Quaternion velRotation = Quaternion.AngleAxis(transform.eulerAngles.y - oldYRotation, Vector3.up);
             rb.velocity = velRotation * rb.velocity;
@@ -272,23 +238,22 @@ public class PlayerController : MonoBehaviour
 
     private void GroundCheck()
     {
-        previouslyGrounded = isGrounded;
-        RaycastHit hitInfo;
-        if(Physics.SphereCast(transform.position, box.size.x * (1.0f - advancedSettings.shellOffset), Vector3.down, out hitInfo,
-            ((box.size.y / 2f) - box.size.x) + advancedSettings.groundCheckDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+        previouslyGrounded = Grounded;
+        if(Physics.SphereCast(transform.position, box.size.x * (1.0f - advancedSettings.shellOffset), Vector3.down, out RaycastHit hitInfo,
+            (box.size.y / 2f) - box.size.x + advancedSettings.groundCheckDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
         {
-            isGrounded = true;
+            Grounded = true;
             groundContactNormal = hitInfo.normal;
         }
         else
         {
-            isGrounded = false;
+            Grounded = false;
             groundContactNormal = Vector3.up;
         }
 
-        if(!previouslyGrounded && isGrounded && jumping)
+        if (!previouslyGrounded && Grounded && Jumping)
         {
-            jumping = false;
+            Jumping = false;
         }
     }
 }

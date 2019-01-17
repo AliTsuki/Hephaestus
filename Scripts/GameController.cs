@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//TODO: add MoveCollider function
+//TODO: add MoveCollider function, add EditCollider function
 public class GameController : MonoBehaviour
 {
     public static GameController instance;

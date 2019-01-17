@@ -25,7 +25,7 @@ public class StructureGenerator
             for(int j = -1; j < 2; j++)
             {
                 if(IsPointWithinBounds(x + i, y, j + z))
-                    blocks[((x + i) * Chunk.size.y * Chunk.size.z) + (y * Chunk.size.z) + (z + j)] = Block.WoodPlanks;
+                    blocks[((x + i) * Chunk.size.y * Chunk.size.z) + (y * Chunk.size.z) + z + j] = Block.WoodPlanks;
                 else
                 {
 

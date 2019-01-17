@@ -9,12 +9,10 @@ public class PlayerInteraction
         if(Input.GetMouseButtonDown(0))
         {
             Ray ray = new Ray(cam.position, cam.forward);
-            RaycastHit hitData;
 
-            if(Physics.Raycast(ray, out hitData))
+            if(Physics.Raycast(ray, out RaycastHit hitData))
             {
-                Chunk chunk;
-                if(World.instance.GetChunkAt(hitData.point, hitData.normal, false, out chunk))
+                if(World.instance.GetChunkAt(hitData.point, hitData.normal, false, out Chunk chunk))
                 {
                     return chunk.SetBlockAt(hitData.point, hitData.normal, Block.Air);
                 }
@@ -24,18 +22,15 @@ public class PlayerInteraction
         if (Input.GetMouseButtonDown(1))
         {
             Ray ray = new Ray(cam.position, cam.forward);
-            RaycastHit hitData;
 
-            if (Physics.Raycast(ray, out hitData))
+            if (Physics.Raycast(ray, out RaycastHit hitData))
             {
-                Chunk chunk;
-                if (World.instance.GetChunkAt(hitData.point, hitData.normal, true, out chunk))
+                if (World.instance.GetChunkAt(hitData.point, hitData.normal, true, out Chunk chunk))
                 {
                     return chunk.SetBlockAt(hitData.point, hitData.normal, Block.Stone, true);
                 }
             }
         }
-
         return false;
     }
 }
