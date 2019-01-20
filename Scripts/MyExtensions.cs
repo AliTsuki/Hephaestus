@@ -36,7 +36,7 @@ public static class MyExtensions
             {
                 for(int z = 0; z < lz; z++)
                 {
-                    ChunkData[x, y, z] = BlockRegistry.getBlockFromID(_data[x, y, z]);
+                    ChunkData[x, y, z] = BlockRegistry.GetBlockFromID(_data[x, y, z]);
                 }
             }
         }

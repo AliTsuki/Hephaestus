@@ -26,7 +26,9 @@ public class TextureAtlas
             for(int y = 0; y < atlasheight / PixelHeight; y++)
             {
                 if (count >= _Images.Length - 1)
+                {
                     goto end;
+                }
                 Texture2D temp = new Texture2D(0, 0);
                 temp.LoadImage(File.ReadAllBytes(_Images[count]));
                 Atlas.SetPixels(x * PixelWidth, y * PixelHeight, PixelWidth, PixelHeight, temp.GetPixels());

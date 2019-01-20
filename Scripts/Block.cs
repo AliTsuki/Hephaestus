@@ -13,12 +13,12 @@ public class Block : ITickable
     public static Block Air = new Block(true);
     // End of Block List
 
-    private bool IsTransparent;
-    private string name;
-    private Vector2[] _UVMap;
+    private readonly bool IsTransparent;
+    private readonly string name;
+    private readonly Vector2[] _UVMap;
     private static int CurrentID = 0;
     private int ID;
-    private string BlockName;
+    private readonly string BlockName;
 
     public Block(string BlockName, bool IsTransparent, string name)
     {
@@ -26,9 +26,9 @@ public class Block : ITickable
         this.IsTransparent = IsTransparent;
         this.name = name;
 
-        _UVMap = UVMap.getUVMap(name)._UVMAP;
+        this._UVMap = UVMap.GetUVMap(name)._UVMAP;
 
-        REGISTER();
+        this.REGISTER();
     }
 
     public Block(string name, bool IsTransparent)
@@ -36,37 +36,28 @@ public class Block : ITickable
         this.BlockName = name;
         this.IsTransparent = IsTransparent;
 
-        REGISTER();
+        this.REGISTER();
     }
 
     public Block(bool IsTransparent)
     {
         this.IsTransparent = IsTransparent;
 
-        REGISTER();
+        this.REGISTER();
     }
 
-    public bool Istransparent()
-    {
-        return IsTransparent;
-    }
+    public bool Istransparent() => this.IsTransparent;
 
     private void REGISTER()
     {
-        ID = CurrentID;
+        this.ID = CurrentID;
         CurrentID++;
         BlockRegistry.RegisterBlock(this);
     }
 
-    public string GetName()
-    {
-        return BlockName;
-    }
+    public string GetName() => this.BlockName;
 
-    public int GetID()
-    {
-        return ID;
-    }
+    public int GetID() => this.ID;
 
     public void Start()
     {
@@ -100,7 +91,7 @@ public class Block : ITickable
         }
         catch(System.Exception e)
         {
-            Debug.Log("In draw cube: " + e.StackTrace.ToString());
+            Debug.Log("Error in Drawing Cube: " + e.StackTrace.ToString());
         }
         return new MeshData();
     } 

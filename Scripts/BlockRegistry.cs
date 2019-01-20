@@ -9,10 +9,7 @@ public class BlockRegistry
 
     private static List<Block> _REGISTEREDBLOCKS = new List<Block>();
 
-    public static void RegisterBlock(Block b)
-    {
-        _REGISTEREDBLOCKS.Add(b);
-    }
+    public static void RegisterBlock(Block b) => _REGISTEREDBLOCKS.Add(b);
 
     public static void RegisterBlocks()
     {
@@ -29,7 +26,7 @@ public class BlockRegistry
         }
     }
 
-    internal static Block getBlockFromID(int v)
+    internal static Block GetBlockFromID(int v)
     {
         try
         {

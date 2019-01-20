@@ -15,12 +15,9 @@ public class UVMap
         this._UVMAP = _UVMAP;
     }
 
-    public void Register()
-    {
-        _Maps.Add(this);
-    }
+    public void Register() => _Maps.Add(this);
 
-    public static UVMap getUVMap(string name)
+    public static UVMap GetUVMap(string name)
     {
         foreach(UVMap m in _Maps)
         {
@@ -31,14 +28,16 @@ public class UVMap
         }
         Debug.Log("Cant find associated image called: " + name);
 
-        List<string> _names = new List<string>();
-        _names.Add("Broken Images");
+        List<string> _names = new List<string>
+        {
+            "Broken Images"
+        };
         foreach (UVMap m in _Maps)
         {
             _names.Add(m.name + "!=" + name);
         }
         System.IO.File.WriteAllLines("names.txt", _names.ToArray());
-        GameManager.exitGame();
+        GameManager.ExitGame();
         return _Maps[0];
     }
 }

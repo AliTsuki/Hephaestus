@@ -8,7 +8,7 @@ public class MainLoopable : ILoopable
     private static MainLoopable _Instance;
     public static MainLoopable GetInstance() => _Instance;
 
-    private List<ILoopable> _RegisteredLoops = new List<ILoopable>();
+    private readonly List<ILoopable> _RegisteredLoops = new List<ILoopable>();
 
     public static void Instantiate()
     {
@@ -19,20 +19,14 @@ public class MainLoopable : ILoopable
         BlockRegistry.RegisterBlocks();
     }
 
-    public void RegisterLoops(ILoopable l)
-    {
-        _RegisteredLoops.Add(l);
-    }
+    public void RegisterLoops(ILoopable l) => this._RegisteredLoops.Add(l);
 
-    public void DeRegisterLoops(ILoopable l)
-    {
-        _RegisteredLoops.Remove(l);
-    }
+    public void DeRegisterLoops(ILoopable l) => this._RegisteredLoops.Remove(l);
 
     // Start is called before the first frame update
     public void Start()
     {
-        foreach(ILoopable l in _RegisteredLoops)
+        foreach(ILoopable l in this._RegisteredLoops)
         {
             l.Start();
         }
@@ -42,7 +36,7 @@ public class MainLoopable : ILoopable
     public void Update()
     {
         //Logger.Log("Updating");
-        foreach (ILoopable l in _RegisteredLoops)
+        foreach (ILoopable l in this._RegisteredLoops)
         {
             l.Update();
         }
@@ -50,7 +44,7 @@ public class MainLoopable : ILoopable
 
     public void OnApplicationQuit()
     {
-        foreach (ILoopable l in _RegisteredLoops)
+        foreach (ILoopable l in this._RegisteredLoops)
         {
             l.OnApplicationQuit();
         }

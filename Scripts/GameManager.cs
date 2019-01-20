@@ -8,11 +8,12 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     // Instantiate Delegates
-    private List<Delegate> _Delegates = new List<Delegate>();
+    private readonly List<Delegate> _Delegates = new List<Delegate>();
 
     // Create objects
-    public Camera camera;
+    public Camera StartCamera;
     public Text UITEXT;
+    public GameObject PlayerObject;
     public Transform Player;
     public Vector3 playerpos;
 
@@ -37,19 +38,17 @@ public class GameManager : MonoBehaviour
     private MainLoopable main;
 
     // Register Delegates
-    public void RegisterDelegate(Delegate d)
-    {
-        _Delegates.Add(d);
-    }
+    public void RegisterDelegate(Delegate d) => this._Delegates.Add(d);
 
     // Create player in world and destroy starting UI
     public void StartPlayer(Vector3 Pos)
     {
-        GameObject.Destroy(camera);
-        GameObject.Destroy(UITEXT);
-        GameObject t = Transform.Instantiate(Resources.Load<GameObject>("Player"), Pos, Quaternion.identity) as GameObject;
-        t.transform.position = Pos;
-        Player = t.transform;
+        Debug.Log("Running StartPlayer Method from GameManager");
+        Destroy(this.StartCamera);
+        Destroy(this.UITEXT);
+        GameObject PlayerObject = Transform.Instantiate(Resources.Load<GameObject>("Player"), Pos, Quaternion.identity) as GameObject;
+        PlayerObject.transform.position = Pos;
+        this.Player = PlayerObject.transform;
     }
 
     // Start is called before the first frame update
@@ -59,17 +58,17 @@ public class GameManager : MonoBehaviour
         instance = this;
         TextureAtlas._Instance.CreateAtlas();
         MainLoopable.Instantiate();
-        main = MainLoopable.GetInstance();
-        main.Start();
+        this.main = MainLoopable.GetInstance();
+        this.main.Start();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(Player != null)
+        if(this.Player != null)
         {
-            playerpos = Player.transform.position;
-            IsPlayerLoaded = true;
+            this.playerpos = this.Player.transform.position;
+            this.IsPlayerLoaded = true;
         }
         // Uncomment the following lines for DevChunk testing
         // in World.Start() for lines   _LoadedChunk.Add(new Chunk...
@@ -82,35 +81,23 @@ public class GameManager : MonoBehaviour
         Scutoff = cutoff;
         Smul = mul;
         */
-        main.Update();
-        foreach(Delegate d in new List<Delegate>(_Delegates))
+        this.main.Update();
+        foreach(Delegate d in new List<Delegate>(this._Delegates))
         {
             d.DynamicInvoke();
-            _Delegates.Remove(d);
+            this._Delegates.Remove(d);
         }
     }
 
     // On Application Quit
-    void OnApplicationQuit()
-    {
-        main.OnApplicationQuit();
-    }
+    void OnApplicationQuit() => this.main.OnApplicationQuit();
 
     // Exit Game internal
-    internal static void exitGame()
-    {
-        instance.exitGameInstance();
-    }
+    internal static void ExitGame() => instance.ExitGameInstance();
 
     // Exit Game
-    public void exitGameInstance()
-    {
-        OnApplicationQuit();
-    }
+    public void ExitGameInstance() => this.OnApplicationQuit();
 
     // Check if Player is loaded into world
-    internal static bool PlayerLoaded()
-    {
-        return instance.IsPlayerLoaded;
-    }
+    internal static bool PlayerLoaded() => instance.IsPlayerLoaded;
 }

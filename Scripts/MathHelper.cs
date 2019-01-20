@@ -18,10 +18,7 @@ public class Int3
         this.y = (int)pos.y;
         this.z = (int)pos.z;
     }
-    public override string ToString()
-    {
-        return string.Format("X:{0},Y:{1},Z{2}", x, y, z);
-    }
+    public override string ToString() => string.Format("X:{0},Y:{1},Z{2}", this.x, this.y, this.z);
 
     internal void AddPos(Int3 int3)
     {
@@ -32,8 +29,8 @@ public class Int3
 
     internal void ToChunkCoordinates()
     {
-        this.x = Mathf.FloorToInt(x / Chunk.ChunkWidth);
-        this.z = Mathf.FloorToInt(z / Chunk.ChunkWidth);
+        this.x = Mathf.FloorToInt(this.x / Chunk.ChunkWidth);
+        this.z = Mathf.FloorToInt(this.z / Chunk.ChunkWidth);
     }
 }
 
@@ -157,7 +154,9 @@ public class MathHelper
     internal static void AddBlock(Vector3 roundedposition, Block blocks)
     {
         if(roundedposition.y >= Chunk.ChunkHeight)
+        {
             return;
+        }
 
         int Chunkposx = Mathf.FloorToInt(roundedposition.x / Chunk.ChunkWidth);
         int Chunkposz = Mathf.FloorToInt(roundedposition.z / Chunk.ChunkWidth);
@@ -173,7 +172,7 @@ public class MathHelper
                 return;
             }
             int x = (int)(roundedposition.x - (Chunkposx * Chunk.ChunkWidth));
-            int y = (int)(roundedposition.y);
+            int y = (int)roundedposition.y;
             int z = (int)(roundedposition.z - (Chunkposz * Chunk.ChunkWidth));
             currentchunk.SetBlock(x, y, z, blocks);
         }

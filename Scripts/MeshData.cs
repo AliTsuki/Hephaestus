@@ -11,9 +11,9 @@ public class MeshData
 
     public MeshData(List<Vector3> v, List<int> i, Vector2[] u)
     {
-        _Verts = v;
-        _Tris = i;
-        _UVs = new List<Vector2>(u);
+        this._Verts = v;
+        this._Tris = i;
+        this._UVs = new List<Vector2>(u);
     }
 
     public MeshData()
@@ -23,9 +23,9 @@ public class MeshData
 
     public void AddPos(Vector3 loc)
     {
-        for(int i = 0; i < _Verts.Count; i++)
+        for(int i = 0; i < this._Verts.Count; i++)
         {
-            _Verts[i] = _Verts[i] + loc;
+            this._Verts[i] = this._Verts[i] + loc;
         }
     }
 
@@ -35,28 +35,30 @@ public class MeshData
         {
             return;
         }
-        if(_Verts.Count <= 0)
+        if(this._Verts.Count <= 0)
         {
-            _Verts = m._Verts;
-            _Tris = m._Tris;
-            _UVs = m._UVs;
+            this._Verts = m._Verts;
+            this._Tris = m._Tris;
+            this._UVs = m._UVs;
             return;
         }
-        int count = _Verts.Count;
-        _Verts.AddRange(m._Verts);
+        int count = this._Verts.Count;
+        this._Verts.AddRange(m._Verts);
         for (int i = 0; i < m._Tris.Count; i++)
         {
-            _Tris.Add(m._Tris[i] + count);
+            this._Tris.Add(m._Tris[i] + count);
         }
-        _UVs.AddRange(m._UVs);
+        this._UVs.AddRange(m._UVs);
     }
 
     public Mesh ToMesh()
     {
-        Mesh mesh = new Mesh();
-        mesh.vertices = _Verts.ToArray();
-        mesh.triangles = _Tris.ToArray();
-        mesh.uv = _UVs.ToArray();
+        Mesh mesh = new Mesh
+        {
+            vertices = this._Verts.ToArray(),
+            triangles = this._Tris.ToArray(),
+            uv = this._UVs.ToArray()
+        };
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
 
