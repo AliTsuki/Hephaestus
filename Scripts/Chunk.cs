@@ -1,181 +1,224 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Chunk
+// Class containing Chunk functions
+public class Chunk : ITickable
 {
-    public static Vector3Int size = new Vector3Int(16, 256, 16);
-    public Mesh mesh;
-    public Vector3Int position;
-    public bool ready = false;
+    // Chunk variables
+    private static bool FirstChunk = false;
+    private bool IsFirstChunk = false;
+    private World world;
 
-    public Block[] blocks;
-    public byte[] faces;
+    // Chunk size in blocks
+    public static readonly int ChunkWidth = 20;
+    public static readonly int ChunkHeight = 20;
 
-    public Chunk(Vector3Int pos) => position = pos;
+    private Block[,,] _Blocks;
 
-    public void GenerateBlockArray()
+    // Chunk position getter
+    public int PosX { get; private set; }
+    public int PosZ { get; private set; }
+
+    // Chunk constructor
+    public Chunk(int px, int pz, World world)
     {
-        blocks = new Block[size.x * size.y * size.z];
-        int index = 0;
+        PosX = px;
+        PosZ = pz;
+        this.world = world;
+    }
 
-        int[,] height = new int[size.x, size.z];
+    // Chunk constructor for saved data
+    public Chunk(int px, int pz, int[,,] _data, World world)
+    {
+        HasGenerated = true;
+        PosX = px;
+        PosZ = pz;
+        LoadChunkFromData(_data);
+        this.world = world;
+    }
 
-        for(int x = 0; x < size.x; x++)
+    protected bool HasGenerated = false;
+    
+    // Get height from noise
+    public float GetHeight(float px, float py, float pz)
+    {
+        px += (PosX * ChunkWidth);
+        pz += (PosZ * ChunkWidth);
+
+        float p1 = Mathf.PerlinNoise(px / GameManager.Sdx, pz / GameManager.Sdz) * GameManager.Smul;
+        p1 *= (GameManager.Smy * py);
+        return p1;
+    }
+
+    // Generate Chunks
+    public virtual void Start()
+    {
+        if(!FirstChunk)
         {
-            for(int z = 0; z < size.z; z++)
-            {
-                int value = Mathf.CeilToInt(
-                    (Mathf.PerlinNoise((x + position.x + 84) / 32f, (z + position.z) / 32f) * 15f) +
-                    (Mathf.PerlinNoise((x + position.x) / 64f, (z + position.z + 84) / 64f) * 27f) + 
-                    (Mathf.PerlinNoise((x + position.x - 612) / 16f, (z+ position.z) / 16f) * 5f) +
-                    Mathf.PerlinNoise((x + position.x) / 4f, ((z + position.z) / 4f) + 64) +
-                    (Mathf.PerlinNoise((x + position.x + 8) / 24f, ((z + position.z) / 24f) - 8) * 12f) +
-                    (Mathf.PerlinNoise((x + position.x + 80) / 64f, ((z + position.z) / 64f) - 80) * 40f) +
-                    (Mathf.PerlinNoise((x + position.x + 8) / 128f, ((z + position.z) / 128f) - 12) * 80f) +
-                    64f
-                    );
-                height[x, z] = value;
-            }
+            FirstChunk = true;
+            IsFirstChunk = true;
         }
-
-        for(int x = 0; x < size.x; x++)
+        if(HasGenerated)
+            return;
+        _Blocks = new Block[ChunkWidth, ChunkHeight, ChunkWidth];
+        for(int x = 0; x < ChunkWidth; x++)
         {
-            for(int y = 0; y < size.y; y++)
+            for(int y = 0; y < ChunkHeight; y++)
             {
-                for(int z = 0; z < size.z; z++)
+                for(int z = 0; z < ChunkWidth; z++)
                 {
-                    if(y + position.y > height[x, z])
+                    float perlin = GetHeight(x, y, z);
+                    if(perlin > GameManager.Scutoff)
                     {
-                        if(y + position.y == height[x, z] + 7 && Random.Range(0, 487) == 1)
-                        {
-                            StructureGenerator.GenerateWoodenPlatform(position, x, y, z, blocks);
-                        }
-                        index++;
-                        continue;
+                        _Blocks[x, y, z] = Block.Air;
                     }
+                    else
+                    {
+                        if(perlin > GameManager.Scutoff / 1.15f)
+                        {
+                            _Blocks[x, y, z] = Block.Grass;
+                        }
+                        else if(perlin > GameManager.Scutoff / 2)
+                        {
+                            _Blocks[x, y, z] = Block.Dirt;
+                        }
+                        else
+                        {
+                            _Blocks[x, y, z] = Block.Stone;
+                        }
 
-                    if(y + position.y == height[x, z])
-                        blocks[index] = Block.Grass;
-
-                    if(y + position.y < height[x, z] && y + position.y > height[x, z] - 3)
-                        blocks[index] = Block.Dirt;
-
-                    if(y + position.y <= height[x, z] - 3)
-                        blocks[index] = Block.Stone;
-
-                    index++;
+                    }
+                    if(y <= 1)
+                    {
+                        _Blocks[x, y, z] = Block.Bedrock;
+                    }
                 }
             }
         }
-        StructureGenerator.GetWaitingBlocks(position, blocks);
+        HasGenerated = true;
     }
 
-    public IEnumerator GenerateMesh()
+    public void Tick()
     {
-        MeshBuilder builder = new MeshBuilder(position, blocks);
-        builder.Start();
 
-        yield return new WaitUntil(() => builder.Update());
-
-        mesh = builder.GetMeshData(ref mesh);
-        faces = builder.GetFaces(ref faces);
-
-        ready = true;
-        builder = null;
     }
 
-    public Block GetBlockAt(int x, int y, int z)
+    // Remove Chunks
+    public void Degenerate()
     {
-        x -= position.x;
-        y -= position.y;
-        z -= position.z;
-
-        if(IsPointWithinBounds(x, y, z))
-            return blocks[(x * size.y * size.z) + (y * size.z) + z];
-
-        return Block.Air;
-    }
-
-    public bool SetBlockAt(Vector3 point, Vector3 normal, Block block, bool setBlockMode = false)
-    {
-        if(ready == false)
-            return false;
-
-        if(setBlockMode == false)
+        // First: save unloading chunks to file
+        try
         {
-            int x = Mathf.FloorToInt(point.x) - position.x;
-            int y = Mathf.FloorToInt(point.y) - position.y;
-            int z = Mathf.FloorToInt(point.z) - position.z;
-
-            if (normal.x > 0.5)
-                y -= 1;
-            if (normal.y > 0.5)
-                y -= 1;
-            if (normal.z > 0.5)
-                y -= 1;
-
-            if (IsPointWithinBounds(x, y, z))
-            {
-                blocks[(x * Chunk.size.y * Chunk.size.z) + (y * Chunk.size.z) + z] = block;
-                ready = false;
-                GameController.instance.StartCoroutine(GenerateMesh());
-                GameController.instance.EditCollider(x, y, z, this, setBlockMode);
-
-                Chunk neighbor;
-                if(x == 0 && World.instance.GetChunkAt(position.x - 1, position.y, position.z, out neighbor))
-                {
-                    neighbor.ready = false;
-                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
-                }
-                if (x == Chunk.size.x - 1 && World.instance.GetChunkAt(position.x + Chunk.size.x, position.y, position.z, out neighbor))
-                {
-                    neighbor.ready = false;
-                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
-                }
-                if (z == 0 && World.instance.GetChunkAt(position.x, position.y, position.z - 1, out neighbor))
-                {
-                    neighbor.ready = false;
-                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
-                }
-                if (z == Chunk.size.z - 1 && World.instance.GetChunkAt(position.x, position.y, position.z + Chunk.size.z, out neighbor))
-                {
-                    neighbor.ready = false;
-                    GameController.instance.StartCoroutine(neighbor.GenerateMesh());
-                }
-
-                return true;
-            }
+            Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(PosX, PosZ), GetChunkSaveData());
         }
-        if(setBlockMode == true)
+        catch(System.Exception e)
         {
-            int x = Mathf.FloorToInt(point.x) - position.x;
-            int y = Mathf.FloorToInt(point.y) - position.y;
-            int z = Mathf.FloorToInt(point.z) - position.z;
-
-            if (normal.x < -0.5)
-                y -= 1;
-            if (normal.y < -0.5)
-                y -= 1;
-            if (normal.z < -0.5)
-                y -= 1;
-
-            if (IsPointWithinBounds(x, y, z))
-            {
-                blocks[(x * Chunk.size.y * Chunk.size.z) + (y * Chunk.size.z) + z] = block;
-                ready = false;
-                GameController.instance.StartCoroutine(GenerateMesh());
-                GameController.instance.EditCollider(x, y, z, this, setBlockMode);
-
-                return true;
-            }
+            Debug.Log(e.ToString());
         }
-
-        return false;
+        // Second: Destroy Chunk GameObject
+        GameManager.instance.RegisterDelegate(new Action(() =>
+        {
+            GameObject.Destroy(go);
+            Debug.Log(new Int3(PosX, 0, PosZ).ToString());
+        }));
+        // Third: Remove chunk from World
+        world.RemoveChunk(this);
     }
 
-    bool IsPointWithinBounds(int x, int y, int z)
+    // Get ChunkData as array of Ints
+    public int[,,] GetChunkSaveData()
     {
-        return x >= 0 && y >= 0 && z >= 0 && z < Chunk.size.z && y < Chunk.size.y && x < Chunk.size.x;
+        return _Blocks.ToIntArray();
+    }
+
+    // Get ChunkData as array of Blocks
+    public void LoadChunkFromData(int[,,] _data)
+    {
+        _Blocks = _data.ToBlockArray();
+    }
+
+    protected bool HasDrawn = false;
+    private MeshData data;
+    protected bool Drawnlock = false;
+    bool NeedToUpdate = false;
+
+    // Draw Chunks
+    public virtual void Update()
+    {
+        if(NeedToUpdate)
+        {
+            if(!Drawnlock && !Renderinglock)
+            {
+                HasDrawn = false;
+                HasRendered = false;
+                NeedToUpdate = false;
+            }
+        }
+
+        if(!HasDrawn && HasGenerated && !Drawnlock)
+        {
+            Drawnlock = true;
+            data = new MeshData();
+            for(int x = 0; x < ChunkWidth; x++)
+            {
+                for(int y = 0; y < ChunkHeight; y++)
+                {
+                    for(int z = 0; z < ChunkWidth; z++)
+                    {
+                        data.Merge(_Blocks[x, y, z].Draw(this, _Blocks, x, y, z));
+                    }
+                }
+            }
+            Drawnlock = false;
+            HasDrawn = true;
+        }
+    }
+
+    protected bool HasRendered = false;
+    private GameObject go;
+    private bool Renderinglock = false;
+
+    // Render Chunks
+    public virtual void OnUnityUpdate()
+    {
+        if(HasGenerated && !HasRendered && HasDrawn && !Renderinglock)
+        {
+            Renderinglock = true;
+            HasRendered = true;
+            Mesh mesh = data.ToMesh();
+            if(go == null)
+            {
+                go = new GameObject();
+            }
+            Transform t = go.transform;
+            if(t.gameObject.GetComponent<MeshFilter>() == null)
+            {
+                t.gameObject.AddComponent<MeshFilter>();
+                t.gameObject.AddComponent<MeshRenderer>();
+                t.gameObject.AddComponent<MeshCollider>();
+                t.transform.position = new Vector3(PosX * ChunkWidth, 0, PosZ * ChunkWidth);
+                Texture2D tmp = new Texture2D(0, 0);
+                tmp.LoadImage(System.IO.File.ReadAllBytes("atlas.png"));
+                tmp.filterMode = FilterMode.Point;
+                t.gameObject.GetComponent<MeshRenderer>().material.mainTexture = tmp;
+                t.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Glossiness", 0.0f);
+            }
+            t.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
+            t.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
+            Renderinglock = false;
+            if(IsFirstChunk)
+            {
+                GameManager.instance.StartPlayer(new Vector3(PosX * ChunkWidth, 100, PosZ * ChunkWidth));
+            }
+        }
+    }
+
+    // Set Block at position
+    internal void SetBlock(int x, int y, int z, Block blocks)
+    {
+        _Blocks[x, y, z] = blocks;
+        NeedToUpdate = true;
     }
 }

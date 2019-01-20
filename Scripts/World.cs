@@ -1,108 +1,187 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
-public class World
+// Class containing World functions
+public class World : ILoopable
 {
-    public static World instance;
-    public static Matrix4x4 id = Matrix4x4.identity;
+    public static World _instance { get; private set; }
+    private bool IsRunning;
+    private Thread worldthread;
+    private static Int3 Playerpos;
+    private static readonly int RenderDistanceChunks = 3;
 
-    Dictionary<Vector3Int, Chunk> chunkPosMap;
-
-    public Material material;
-    public Texture texture;
-
-    public int chunksTall;
-    public int blocksTall;
-
-    public World(int blocksTall, Material material)
+    public static void Instantiate()
     {
-        instance = this;
-
-        this.material = material;
-        this.blocksTall = blocksTall;
-
-        chunksTall = blocksTall / Chunk.size.y;
-
-        chunkPosMap = new Dictionary<Vector3Int, Chunk>();
+        _instance = new World();
+        MainLoopable.GetInstance().RegisterLoops(_instance);
+        System.Random r = new System.Random();
+        Playerpos = new Int3(r.Next(-1000,1000),100, r.Next(-1000, 1000));
     }
 
-    public bool CreateChunkDataAt(int x, int y, int z, out Chunk chunk)
+    private bool RanOnce = false;
+    private List<Chunk> _LoadedChunks = new List<Chunk>();
+
+    // Start is called before the first frame update
+    public void Start()
     {
-        Vector3Int pos = WorldCoordsToChunkCoords(x, y, z);
-
-        if(chunkPosMap.ContainsKey(pos) == false)
+        IsRunning = true;
+        worldthread = new Thread(() =>
         {
-            chunk = new Chunk(pos);
-            chunk.GenerateBlockArray();
+            Logger.Log("Initalizing world thread");
+            while(IsRunning)
+            {
+                try
+                {
+                    if(!RanOnce)
+                    {
+                        RanOnce = true;
+                        for(int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
+                        {
+                            for(int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
+                            {
+                                Int3 newchunkpos = new Int3(Playerpos.x, Playerpos.y, Playerpos.z);
+                                newchunkpos.AddPos(new Int3(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth));
+                                newchunkpos.ToChunkCoordinates();
 
-            chunkPosMap.Add(pos, chunk);
+                                if (System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
+                                {
+                                    try
+                                    {
+                                        _LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this));
+                                    }
+                                    catch(System.Exception e)
+                                    {
+                                        Debug.Log(e.ToString());
+                                    }
+                                }
+                                else
+                                {
+                                    _LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, this));
+                                    Debug.Log("Can't find: " + "Data/C" + x + "_" + z + ".CHK");
+                                }
+                            }
+                        }
+                        foreach(Chunk c in _LoadedChunks)
+                        {
+                            c.Start();
+                        }
+                    }
+                    if(GameManager.PlayerLoaded())
+                    {
+                        Playerpos = new Int3(GameManager.instance.playerpos);
+                    }
+                    foreach(Chunk c in _LoadedChunks)
+                    {
+                        if(Vector2.Distance(new Vector2(c.PosX * Chunk.ChunkWidth, c.PosZ * Chunk.ChunkWidth), new Vector2(Playerpos.x, Playerpos.z)) > ((RenderDistanceChunks * 2) * Chunk.ChunkWidth))
+                        {
+                            c.Degenerate();
+                        }
+                    }
 
-            return true;
+                    for (int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
+                    {
+                        for (int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
+                        {
+                            Int3 newchunkpos = new Int3(Playerpos.x, Playerpos.y, Playerpos.z);
+                            newchunkpos.AddPos(new Int3(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth));
+                            newchunkpos.ToChunkCoordinates();
+                            if(!ChunkExists(newchunkpos.x, newchunkpos.z))
+                            {
+                                if (System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
+                                {
+                                    try
+                                    {
+                                        Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this);
+                                        c.Start();
+                                        _LoadedChunks.Add(c);
+                                    }
+                                    catch (System.Exception e)
+                                    {
+                                        Debug.Log(e.ToString());
+                                    }
+                                }
+                                else
+                                {
+                                    Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, this);
+                                    c.Start();
+                                    _LoadedChunks.Add(c);
+                                    Debug.Log("Can't find: " + "Data/C" + x + "_" + z + ".CHK");
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (Chunk c in new List<Chunk>(_LoadedChunks))
+                    {
+                        c.Update();
+                    }
+                }
+                catch(System.Exception e)
+                {
+                    UnityEngine.Debug.Log(e.StackTrace);
+                    Logger.Log(e);
+                }
+            }
+            Logger.Log("World thread successfully stopped");
+            Logger.MainLog.Update(); // Rerun last log; FIX IN FUTURE, BAD PRACTICE
+        });
+        worldthread.Start();
+    }
+
+    internal void RemoveChunk(Chunk chunk)
+    {
+        _LoadedChunks.Remove(chunk);
+    }
+
+    public bool ChunkExists(int posx, int posz)
+    {
+        foreach (Chunk c in new List<Chunk>(_LoadedChunks))
+        {
+            if (c.PosX.Equals(posx) && c.PosZ.Equals(posz))
+            {
+                return true;
+            }
         }
-
-        chunk = null;
         return false;
     }
 
-    public bool RemoveChunkDataAt(int x, int y, int z)
+    public Chunk GetChunk(int posx, int posz)
     {
-        Vector3Int key = WorldCoordsToChunkCoords(x, y, z);
-
-        return chunkPosMap.Remove(key);
-    }
-
-    public IEnumerator GenerateChunkMeshAt(Chunk chunk)
-    {
-        GameController.instance.StartCoroutine(chunk.GenerateMesh());
-        yield return new WaitUntil(() => chunk.ready);
-    }
-
-    public bool GetChunkAt(int x, int y, int z, out Chunk chunk)
-    {
-        Vector3Int key = WorldCoordsToChunkCoords(x, y, z);
-        return chunkPosMap.TryGetValue(key, out chunk);
-    }
-
-    public bool GetChunkAt(Vector3 point, Vector3 normal, bool getAdjacent, out Chunk chunk)
-    {
-        Vector3Int key;
-
-        if(getAdjacent)
+        foreach(Chunk c in new List<Chunk>(_LoadedChunks))
         {
-            key = WorldCoordsToChunkCoords(point.x + normal.x, point.y + normal.y, point.z + normal.z);
-            return chunkPosMap.TryGetValue(key, out chunk);
+            if(c.PosX.Equals(posx) && c.PosZ.Equals(posz))
+            {
+                return c;
+            }
         }
-
-        key = WorldCoordsToChunkCoords(point.x, point.y, point.z);
-        return chunkPosMap.TryGetValue(key, out chunk);
+        return new ErroredChunk(0, 0, this);
     }
 
     // Update is called once per frame
     public void Update()
     {
-        foreach (Chunk ch in chunkPosMap.Values)
+        foreach(Chunk c in _LoadedChunks)
         {
-            if (ch.mesh != null)
-                Graphics.DrawMesh(ch.mesh, id, material, 0);
+            c.OnUnityUpdate();
         }
     }
 
-    public static Vector3Int WorldCoordsToChunkCoords(int x, int y, int z)
+    public void OnApplicationQuit()
     {
-        return new Vector3Int(
-            Mathf.FloorToInt(x / (float)Chunk.size.x) * Chunk.size.x,
-            Mathf.FloorToInt(y / (float)Chunk.size.y) * Chunk.size.y,
-            Mathf.FloorToInt(z / (float)Chunk.size.z) * Chunk.size.z
-            );
-    }
-
-    public static Vector3Int WorldCoordsToChunkCoords(float x, float y, float z)
-    {
-        return new Vector3Int(
-            Mathf.FloorToInt(x / (float)Chunk.size.x) * Chunk.size.x,
-            Mathf.FloorToInt(y / (float)Chunk.size.y) * Chunk.size.y,
-            Mathf.FloorToInt(z / (float)Chunk.size.z) * Chunk.size.z
-            );
+        foreach(Chunk c in _LoadedChunks)
+        {
+            try
+            {
+                Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(c.PosX, c.PosZ), c.GetChunkSaveData());
+            }
+            catch(System.Exception e)
+            {
+                Debug.Log(e.ToString());
+            }
+        }
+        IsRunning = false;
+        Logger.Log("Stopping world thread");
     }
 }
