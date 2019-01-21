@@ -59,6 +59,7 @@ public class World : ILoopable
                                 {
                                     try
                                     {
+                                        Debug.Log("Reading Chunk from File: C_" + newchunkpos.x + "_" + newchunkpos.z);
                                         this._LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this));
                                     }
                                     catch(System.Exception e)
@@ -68,6 +69,7 @@ public class World : ILoopable
                                 }
                                 else
                                 {
+                                    Debug.Log("First Time Generation of Chunk: C_" + newchunkpos.x + "_" + newchunkpos.z);
                                     this._LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, this));
                                 }
                             }
@@ -106,6 +108,7 @@ public class World : ILoopable
                                     {
                                         try
                                         {
+                                            Debug.Log("Reading Chunk from File: C_" + newchunkpos.x + "_" + newchunkpos.z);
                                             Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this);
                                             c.Start();
                                             this._LoadedChunks.Add(c);
@@ -117,6 +120,7 @@ public class World : ILoopable
                                     }
                                     else
                                     {
+                                        Debug.Log("First Time Generation of Chunk: C_" + newchunkpos.x + "_" + newchunkpos.z);
                                         Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, this);
                                         c.Start();
                                         this._LoadedChunks.Add(c);

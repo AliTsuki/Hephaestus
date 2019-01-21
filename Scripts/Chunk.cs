@@ -161,7 +161,7 @@ public class Chunk : ITickable
                 t.gameObject.AddComponent<MeshCollider>();
                 t.transform.position = new Vector3(this.PosX * ChunkWidth, 0, this.PosZ * ChunkWidth);
                 Texture2D tmp = new Texture2D(0, 0);
-                tmp.LoadImage(System.IO.File.ReadAllBytes("atlas.png"));
+                tmp.LoadImage(System.IO.File.ReadAllBytes("Assets/Resources/Textures/Atlas/atlas.png"));
                 tmp.filterMode = FilterMode.Point;
                 t.gameObject.GetComponent<MeshRenderer>().material.mainTexture = tmp;
                 t.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Glossiness", 0.0f);

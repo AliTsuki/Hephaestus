@@ -58,6 +58,6 @@ public class TextureAtlas
         }
     end:;
         _ATLAS = Atlas;
-        File.WriteAllBytes("atlas.png", Atlas.EncodeToPNG());
+        File.WriteAllBytes("Assets/Resources/Textures/Atlas/atlas.png", Atlas.EncodeToPNG());
     }
 }
