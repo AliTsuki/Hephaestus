@@ -54,7 +54,6 @@ public class World : ILoopable
                                 Int3 newchunkpos = new Int3(Playerpos.x, 0, Playerpos.z);
                                 newchunkpos.AddPos(new Int3(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth));
                                 newchunkpos.ToChunkCoordinates();
-                                Debug.Log("During First Run: newchunkpos in Chunk Coords is: " + newchunkpos.ToString());
                                 // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
                                 if(System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
                                 {
@@ -70,7 +69,6 @@ public class World : ILoopable
                                 else
                                 {
                                     this._LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, this));
-                                    Debug.Log("During First Run: Can't find FILE for CHUNK: " + "C_" + newchunkpos.x + "_" + newchunkpos.z + ".CHK -> Creating CHUNK now...");
                                 }
                             }
                         }
@@ -80,57 +78,57 @@ public class World : ILoopable
                         }
                         Debug.Log("World.RanOnce in World.Start()");
                     }
-                    // After ran once, keep going
+                    // After ran once, continuously update
+                    // If Player has been loaded in, keep generating chunks around player and degenerating chunks that are too far
                     if(GameManager.PlayerLoaded())
                     {
-                        Debug.Log("NOT FIRST RUN: GM.i.playerpos = " + GameManager.instance.playerpos);
+                        // Iterate through Loaded Chunks and Degenerate if they are too far from player position
                         Playerpos = new Int3(GameManager.instance.playerpos);
-                        Debug.Log("NOT FIRST RUN: Playerpos = " + Playerpos);
-                    }
-                    // Iterate through Loaded Chunks and Degenerate if they are too far from player position
-                    for(int i = 0; i < this._LoadedChunks.Count; i++)
-                    {
-                        if (Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(Playerpos.x, Playerpos.z)) > (RenderDistanceChunks * 2 * Chunk.ChunkWidth))
+                        for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            this._LoadedChunks[i].Degenerate();
-                        }
-                    }
-                    for(int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
-                    {
-                        for(int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
-                        {
-                            Int3 newchunkpos = new Int3(Playerpos.x, 0, Playerpos.z);
-                            newchunkpos.AddPos(new Int3(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth));
-                            newchunkpos.ToChunkCoordinates();
-                            Debug.Log("NOT FIRST RUN: newchunkpos in Chunk Coords is: " + newchunkpos.ToString());
-                            if(!this.ChunkExists(newchunkpos.x, newchunkpos.z))
+                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(Playerpos.x, Playerpos.z)) > (RenderDistanceChunks * 2 * Chunk.ChunkWidth))
                             {
-                                if(System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
+                                this._LoadedChunks[i].Degenerate();
+                            }
+                        }
+                        // TODO: I THINK THE MEMORY LEAK IS HERE
+                        for(int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
+                        {
+                            for(int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
+                            {
+                                Int3 newchunkpos = new Int3(Playerpos.x, 0, Playerpos.z);
+                                newchunkpos.AddPos(new Int3(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth));
+                                newchunkpos.ToChunkCoordinates();
+                                //Debug.Log("NOT FIRST RUN: newchunkpos in Chunk Coords is: " + newchunkpos.ToString());
+                                if(!this.ChunkExists(newchunkpos.x, newchunkpos.z))
                                 {
-                                    try
+                                    if(System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
                                     {
-                                        Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this);
+                                        try
+                                        {
+                                            Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this);
+                                            c.Start();
+                                            this._LoadedChunks.Add(c);
+                                        }
+                                        catch(System.Exception e)
+                                        {
+                                            Debug.Log(e.ToString());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, this);
                                         c.Start();
                                         this._LoadedChunks.Add(c);
+                                        //Debug.Log("NOT FIRST RUN: Can't find FILE for CHUNK: " + "C_" + newchunkpos.x + "_" + newchunkpos.z + ".CHK -> Creating CHUNK now.");
                                     }
-                                    catch(System.Exception e)
-                                    {
-                                        Debug.Log(e.ToString());
-                                    }
-                                }
-                                else
-                                {
-                                    Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, this);
-                                    c.Start();
-                                    this._LoadedChunks.Add(c);
-                                    Debug.Log("NOT FIRST RUN: Can't find FILE for CHUNK: " + "C_" + newchunkpos.x + "_" + newchunkpos.z + ".CHK -> Creating CHUNK now.");
                                 }
                             }
                         }
-                    }
-                    for(int i = 0; i < this._LoadedChunks.Count; i++)
-                    {
-                        this._LoadedChunks[i].Update();
+                        for(int i = 0; i < this._LoadedChunks.Count; i++)
+                        {
+                            this._LoadedChunks[i].Update();
+                        }
                     }
                 }
                 catch(System.Exception e)

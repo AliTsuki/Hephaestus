@@ -55,7 +55,12 @@ public class Chunk : ITickable
             this.IsFirstChunk = true;
             Debug.Log("Chunk C_" + this.PosX + "_" + this.PosZ + " : IsFirstChunk = " + this.IsFirstChunk.ToString());
         }
-        if(this.HasGenerated)
+        if (this.IsFirstChunk)
+        {
+            Debug.Log("Starting Player");
+            GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
+        }
+        if (this.HasGenerated)
         {
             return;
         }
@@ -148,7 +153,6 @@ public class Chunk : ITickable
                     name = "C_" + this.PosX + "_" + this.PosZ
                 };
             }
-            Debug.Log("Created GO for Chunk: C_" + PosX + "_" + PosZ);
             Transform t = this.go.transform;
             if(t.gameObject.GetComponent<MeshFilter>() == null)
             {
@@ -164,12 +168,6 @@ public class Chunk : ITickable
             }
             t.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
             t.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
-            Debug.Log("///////////////////////////////////////////////////////// IsFirstChunk for C_" + PosX +"_" + PosZ + " = " + IsFirstChunk);
-            if(this.IsFirstChunk)
-            {
-                Debug.Log("Calling StartPlayer from Chunk.OnUnityUpdate() for Chunk: C_" + this.PosX + "_" + this.PosZ);
-                GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
-            }
             this.Renderinglock = false;
         }
     }

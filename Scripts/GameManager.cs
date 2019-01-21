@@ -9,8 +9,8 @@ public class GameManager : MonoBehaviour
 {
     // GameManager variables/objects
     private bool IsPlayerLoaded = false;
-    public Camera StartCamera;
-    public Text UITEXT;
+    public GameObject StartCamera;
+    public GameObject UITEXT;
     public GameObject Player;
     public Vector3 playerpos { get; private set; }
     public static GameManager instance;
@@ -109,12 +109,23 @@ public class GameManager : MonoBehaviour
     public void StartPlayer(Vector3 Pos)
     {
         Debug.Log("Running StartPlayer Method from GameManager");
+        this.MainThreadCall(Pos);
+    }
+
+    // Queue up actions on Unity Main Thread
+    public void MainThreadCall(Vector3 Pos)
+    {
+        UnityMainThreadDispatcher.Instance().Enqueue(this.ToDoOnMainThread(Pos));
+    }
+
+    // Send actions that must be done on Unity Main Thread
+    public IEnumerator ToDoOnMainThread(Vector3 Pos)
+    {
         Destroy(this.StartCamera);
         Destroy(this.UITEXT);
-        //GameObject PlayerObject = GameObject.Instantiate(Resources.Load<GameObject>("Prefab/Player"), Pos, Quaternion.identity) as GameObject;
-        Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
-        //t.position = new Vector3(Pos.x, Pos.y, Pos.z);
-        Player.SetActive(true);
-        playerpos = Player.transform.position;
+        this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
+        this.Player.SetActive(true);
+        this.playerpos = this.Player.transform.position;
+        yield return null;
     }
 }
