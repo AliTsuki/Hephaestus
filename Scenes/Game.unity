@@ -460,7 +460,6 @@ MonoBehaviour:
   StartCamera: {fileID: 577647973}
   UITEXT: {fileID: 2093888588}
   PlayerObject: {fileID: 1288354558, guid: fefd57af9611fc2498e2639a945eb8e8, type: 3}
-  Player: {fileID: 1288354564, guid: fefd57af9611fc2498e2639a945eb8e8, type: 3}
   playerpos: {x: 0, y: 0, z: 0}
   dx: 1
   dz: 1

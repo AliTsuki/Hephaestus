@@ -23,7 +23,7 @@ public class Serializer
             }
             catch(System.Exception e)
             {
-                Logger.MainLog.log(e.StackTrace.ToString());
+                Logger.MainLog.log(e.ToString());
             }
         }
         return false;
@@ -44,7 +44,7 @@ public class Serializer
             }
             catch(System.Exception e)
             {
-                Logger.Log(e.StackTrace.ToString());
+                Logger.Log(e.ToString());
             }
         }
         else
@@ -66,7 +66,7 @@ public class Serializer
         }
         catch(System.Exception e)
         {
-            Logger.Log(e.StackTrace.ToString());
+            Logger.Log(e.ToString());
         }
     }
 
@@ -85,12 +85,12 @@ public class Serializer
             }
             catch(System.Exception e)
             {
-                Logger.Log(e.StackTrace.ToString() + "Error in Deserialization");
+                Logger.Log(e.ToString() + "Error in Deserialization of: " + path);
             }
         }
         else
         {
-            throw new System.Exception("File cannot be found");
+            throw new System.Exception("File cannot be found at: " + path);
         }
         return null;
     }

@@ -6,7 +6,7 @@ using UnityEngine;
 // Class containing Chunk functions
 public class Chunk : ITickable
 {
-    // Chunk variables
+    // Chunk variables/objects
     private static bool FirstChunk = false;
     private bool IsFirstChunk = false;
     protected bool HasGenerated = false;
@@ -18,14 +18,13 @@ public class Chunk : ITickable
     private readonly World world;
     private MeshData data;
     private GameObject go;
-    
+    private Block[,,] _Blocks;
+
     // Chunk size in blocks
     public static readonly int ChunkWidth = 20;
     public static readonly int ChunkHeight = 20;
 
-    private Block[,,] _Blocks;
-
-    // Chunk position getter
+    // Chunk position getter/setter
     public int PosX { get; private set; }
     public int PosZ { get; private set; }
 
@@ -47,34 +46,19 @@ public class Chunk : ITickable
         this.world = world;
     }
 
-    // Get height from noise
-    public float GetHeight(float px, float py, float pz)
-    {
-        px += this.PosX * ChunkWidth;
-        pz += this.PosZ * ChunkWidth;
-
-        float p1 = Mathf.PerlinNoise(px / GameManager.Sdx, pz / GameManager.Sdz) * GameManager.Smul;
-        p1 *= GameManager.Smy * py;
-        return p1;
-    }
-
-    // Generate Chunks
+    // Chunk Start: Generate Chunks
     public virtual void Start()
     {
-        Debug.Log("Chunk.Start() says FirstChunk =" + FirstChunk);
-        Debug.Log("Chunk.Start() says IsFirstChunk =" + this.IsFirstChunk);
-        if (!FirstChunk)
+        if(!FirstChunk)
         {
             FirstChunk = true;
             this.IsFirstChunk = true;
-            Debug.Log("Chunk.Start() changed FirstChunk to =" + FirstChunk);
-            Debug.Log("Chunk.Start() changed IsFirstChunk to =" + this.IsFirstChunk);
+            Debug.Log("Chunk.Start() changed IsFirstChunk to = " + this.IsFirstChunk.ToString() + " for C_" + this.PosX + "_" + this.PosZ);
         }
         if(this.HasGenerated)
         {
             return;
         }
-
         this._Blocks = new Block[ChunkWidth, ChunkHeight, ChunkWidth];
         for(int x = 0; x < ChunkWidth; x++)
         {
@@ -101,7 +85,6 @@ public class Chunk : ITickable
                         {
                             this._Blocks[x, y, z] = Block.Stone;
                         }
-
                     }
                     if(y <= 1)
                     {
@@ -113,40 +96,13 @@ public class Chunk : ITickable
         this.HasGenerated = true;
     }
 
+    // Chunk Tick
     public void Tick()
     {
 
     }
 
-    // Remove Chunks
-    public void Degenerate()
-    {
-        // First: save unloading chunks to file
-        try
-        {
-            Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.PosX, this.PosZ), this.GetChunkSaveData());
-        }
-        catch(System.Exception e)
-        {
-            Debug.Log(e.ToString());
-        }
-        // Second: Destroy Chunk GameObject
-        GameManager.instance.RegisterDelegate(new Action(() =>
-        {
-            GameObject.Destroy(this.go);
-            Debug.Log(new Int3(this.PosX, 0, this.PosZ).ToString());
-        }));
-        // Third: Remove chunk from World
-        this.world.RemoveChunk(this);
-    }
-
-    // Get ChunkData as array of Ints
-    public int[,,] GetChunkSaveData() => this._Blocks.ToIntArray();
-
-    // Get ChunkData as array of Blocks
-    public void LoadChunkFromData(int[,,] _data) => this._Blocks = _data.ToBlockArray();
-
-    // Draw Chunks
+    // Chunk Update: Draw Chunks
     public virtual void Update()
     {
         if(this.NeedToUpdate)
@@ -178,7 +134,7 @@ public class Chunk : ITickable
         }
     }
 
-    // Render Chunks
+    // Chunk On Unity Update: Render Chunks
     public virtual void OnUnityUpdate()
     {
         if(this.HasGenerated && !this.HasRendered && this.HasDrawn && !this.Renderinglock)
@@ -190,7 +146,7 @@ public class Chunk : ITickable
             {
                 this.go = new GameObject
                 {
-                    name = "C" + this.PosX + "_" + this.PosZ
+                    name = "C_" + this.PosX + "_" + this.PosZ
                 };
             }
             Transform t = this.go.transform;
@@ -209,13 +165,24 @@ public class Chunk : ITickable
             t.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
             t.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
             this.Renderinglock = false;
-            Debug.Log("IsFirstChunk = " + this.IsFirstChunk.ToString());
             if(this.IsFirstChunk)
             {
-                Debug.Log("Calling StartPlayer Method from Chunk");
+                Debug.Log("Chunk.OnUnityUpdate().IsFirstChunk = " + this.IsFirstChunk.ToString() + " for C_" + this.PosX + "_" + this.PosZ);
+                Debug.Log("Calling StartPlayer from Chunk.OnUnityUpdate()");
                 GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
             }
         }
+    }
+
+    // Get height from noise
+    public float GetHeight(float px, float py, float pz)
+    {
+        px += this.PosX * ChunkWidth;
+        pz += this.PosZ * ChunkWidth;
+
+        float p1 = Mathf.PerlinNoise(px / GameManager.Sdx, pz / GameManager.Sdz) * GameManager.Smul;
+        p1 *= GameManager.Smy * py;
+        return p1;
     }
 
     // Set Block at position
@@ -223,5 +190,40 @@ public class Chunk : ITickable
     {
         this._Blocks[x, y, z] = blocks;
         this.NeedToUpdate = true;
+    }
+
+    // Degenerate Chunks
+    public void Degenerate()
+    {
+        // First: save unloading chunks to file
+        try
+        {
+            Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.PosX, this.PosZ), this.GetChunkSaveData());
+            Debug.Log("Saving CHUNK to FILE: C_" + this.PosX + "_" + this.PosZ);
+        }
+        catch(System.Exception e)
+        {
+            Debug.Log(e.ToString());
+        }
+        // Second: Destroy Chunk GameObject
+        GameManager.instance.RegisterDelegate(new Action(() =>
+        {
+            GameObject.Destroy(this.go);
+            Debug.Log("Degenerating CHUNK at: " + new Int3(this.PosX, 0, this.PosZ).ToString());
+        }));
+        // Third: Remove chunk from World
+        this.world.RemoveChunk(this);
+    }
+
+    // Get ChunkData as array of Ints
+    public int[,,] GetChunkSaveData()
+    {
+        return this._Blocks.ToIntArray();
+    }
+
+    // Get ChunkData as array of Blocks
+    public void LoadChunkFromData(int[,,] _data)
+    {
+        this._Blocks = _data.ToBlockArray();
     }
 }

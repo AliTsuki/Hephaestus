@@ -5,6 +5,7 @@ using UnityEngine;
 // Class of extensions for swapping types in array from int block IDs to Blocks
 public static class MyExtensions
 {
+    // Get int array from Block array
     public static int[,,] ToIntArray(this Block[,,] _ChunkData)
     {
         int lx = _ChunkData.GetLength(0);
@@ -24,6 +25,7 @@ public static class MyExtensions
         return data;
     }
 
+    // Get Block array from int array
     public static Block[,,] ToBlockArray(this int[,,] _data)
     {
         int lx = _data.GetLength(0);

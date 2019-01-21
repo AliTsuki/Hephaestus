@@ -6,8 +6,13 @@ using UnityEngine;
 // Class containg TextureAtlas creation
 public class TextureAtlas
 {
+    // TextureAtlas objects
     public static readonly TextureAtlas _Instance = new TextureAtlas();
+
+    // Atlas getter
     public static Texture2D _ATLAS { get; private set; }
+
+    // Creates Texture Atlas from all textures in /Blocks/ FOLDER
     public void CreateAtlas()
     {
         string[] _Images = Directory.GetFiles("Assets/Resources/Textures/Blocks/", "*.png");
@@ -25,7 +30,7 @@ public class TextureAtlas
         {
             for(int y = 0; y < atlasheight / PixelHeight; y++)
             {
-                if (count >= _Images.Length - 1)
+                if(count >= _Images.Length - 1)
                 {
                     goto end;
                 }

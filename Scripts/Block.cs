@@ -13,13 +13,15 @@ public class Block : ITickable
     public static Block Air = new Block(true);
     // End of Block List
 
+    //Block variables/objects
+    private static int CurrentID = 0;
     private readonly bool IsTransparent;
     private readonly string name;
-    private readonly Vector2[] _UVMap;
-    private static int CurrentID = 0;
-    private int ID;
     private readonly string BlockName;
+    private int ID;
+    private readonly Vector2[] _UVMap;
 
+    // Block constructor for BlockName, IsTransparent, name (All but Air blocks)
     public Block(string BlockName, bool IsTransparent, string name)
     {
         this.BlockName = BlockName;
@@ -31,6 +33,7 @@ public class Block : ITickable
         this.REGISTER();
     }
 
+    // Block constructor for: name, IsTransparent (UNUSED??)
     public Block(string name, bool IsTransparent)
     {
         this.BlockName = name;
@@ -39,6 +42,7 @@ public class Block : ITickable
         this.REGISTER();
     }
 
+    // Block constructor for: IsTransparent (Air block only)
     public Block(bool IsTransparent)
     {
         this.IsTransparent = IsTransparent;
@@ -46,8 +50,34 @@ public class Block : ITickable
         this.REGISTER();
     }
 
+    // Block Start
+    public void Start()
+    {
+
+    }
+
+    // Block Tick
+    public void Tick()
+    {
+
+    }
+
+    // Block Update
+    public void Update()
+    {
+
+    }
+
+    // Block On Unity Update
+    public void OnUnityUpdate()
+    {
+
+    }
+
+    // Get if block is transparent
     public bool Istransparent() => this.IsTransparent;
 
+    // Register block to Block Registry
     private void REGISTER()
     {
         this.ID = CurrentID;
@@ -55,43 +85,28 @@ public class Block : ITickable
         BlockRegistry.RegisterBlock(this);
     }
 
+    // Get Block name
     public string GetName() => this.BlockName;
 
+    // Get Block ID
     public int GetID() => this.ID;
 
-    public void Start()
-    {
-
-    }
-
-    public void Tick()
-    {
-
-    }
-
-    public void Update()
-    {
-
-    }
-
-    public void OnUnityUpdate()
-    {
-
-    }
-
+    // Draw Block using MathHelper DrawCube
     public virtual MeshData Draw(Chunk chunk, Block[,,] _Blocks, int x, int y, int z)
     {
+        // If block is air, don't bother drawing
         if (this.Equals(Air))
         {
             return new MeshData();
         }
+        // If block is NOT air, Draw Cube
         try
         {
             return MathHelper.DrawCube(chunk, _Blocks, this, x, y, z, this._UVMap);
         }
         catch(System.Exception e)
         {
-            Debug.Log("Error in Drawing Cube: " + e.StackTrace.ToString());
+            Debug.Log("Error in Drawing Cube at: " + x + y + z + e.ToString());
         }
         return new MeshData();
     } 

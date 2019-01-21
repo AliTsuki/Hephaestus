@@ -5,10 +5,12 @@ using UnityEngine;
 // Class for Character Controller
 public class Character : MonoBehaviour
 {
+    // Character objects
     public Transform Add;
     public Transform Delete;
 
     // Start is called before the first frame update
+    // Character Start: Instantiate Add and Delete GameObjects as Transforms
     void Start()
     {
         this.Add = Transform.Instantiate(Resources.Load<Transform>("Prefabs/Add")) as Transform;
@@ -16,15 +18,16 @@ public class Character : MonoBehaviour
     }
 
     // Update is called once per frame
+    // Character Update: Check Mouse clicks and Add or Delete Blocks
+    // TODO: Add code for accepting tool and blocktype for adding/deleting, change ADD/DELETE object to be a cube highlighting block pointed at
     void Update()
     {
         //Place Block : Right Click
-        if(Input.GetMouseButtonUp(1))
+        if(Input.GetMouseButtonDown(1))
         {
             this.Add.transform.GetComponent<MeshRenderer>().enabled = true;
-
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if(Physics.Raycast(ray, out RaycastHit hit))
             {
                 Vector3 rawposition = hit.point + hit.normal;
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
@@ -37,7 +40,7 @@ public class Character : MonoBehaviour
         }
         else
         {
-            if (this.Add.transform.GetComponent<MeshRenderer>().enabled == true)
+            if(this.Add.transform.GetComponent<MeshRenderer>().enabled == true)
             {
 
             }
@@ -45,12 +48,11 @@ public class Character : MonoBehaviour
         }
 
         // Remove Block : Left Click
-        if (Input.GetMouseButtonUp(0))
+        if(Input.GetMouseButtonDown(0))
         {
             this.Delete.transform.GetComponent<MeshRenderer>().enabled = true;
-
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if(Physics.Raycast(ray, out RaycastHit hit))
             {
                 Vector3 rawposition = hit.point - hit.normal;
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
