@@ -55,12 +55,12 @@ public class Chunk : ITickable
             this.IsFirstChunk = true;
             Debug.Log("Chunk C_" + this.PosX + "_" + this.PosZ + " : IsFirstChunk = " + this.IsFirstChunk.ToString());
         }
-        if (this.IsFirstChunk)
+        if(this.IsFirstChunk)
         {
             Debug.Log("Starting Player");
             GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
         }
-        if (this.HasGenerated)
+        if(this.HasGenerated)
         {
             return;
         }
@@ -110,7 +110,7 @@ public class Chunk : ITickable
     // Chunk Update: Draw Chunks
     public virtual void Update()
     {
-        if (this.NeedToUpdate)
+        if(this.NeedToUpdate)
         {
             if(!this.Drawnlock && !this.Renderinglock)
             {
@@ -160,10 +160,11 @@ public class Chunk : ITickable
                 t.gameObject.AddComponent<MeshRenderer>();
                 t.gameObject.AddComponent<MeshCollider>();
                 t.transform.position = new Vector3(this.PosX * ChunkWidth, 0, this.PosZ * ChunkWidth);
-                Texture2D tmp = new Texture2D(0, 0);
-                tmp.LoadImage(System.IO.File.ReadAllBytes("Assets/Resources/Textures/Atlas/atlas.png"));
-                tmp.filterMode = FilterMode.Point;
-                t.gameObject.GetComponent<MeshRenderer>().material.mainTexture = tmp;
+                Texture2D Atlas = new Texture2D(0, 0, TextureFormat.RGB24, false);
+                Atlas.LoadImage(System.IO.File.ReadAllBytes("Assets/Resources/Textures/Atlas/atlas.png"));
+                Atlas.filterMode = FilterMode.Point;
+                Atlas.wrapMode = TextureWrapMode.Repeat;
+                t.gameObject.GetComponent<MeshRenderer>().material.mainTexture = Atlas;
                 t.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Glossiness", 0.0f);
             }
             t.transform.GetComponent<MeshFilter>().sharedMesh = mesh;

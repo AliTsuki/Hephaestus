@@ -18,7 +18,7 @@ public class Character : MonoBehaviour
 
     // Update is called once per frame
     // Character Update: Check Mouse clicks and Add or Delete Blocks
-    // TODO: Add code for accepting tool and blocktype for adding/deleting, change ADD/DELETE object to be a cube highlighting block pointed at
+    // TODO: FIX ray not working close to player, Limit placing blocks to not be inside player getting stuck, Add code for accepting tool and blocktype for adding/deleting
     void Update()
     {
         // Block Selector Cube
@@ -28,7 +28,6 @@ public class Character : MonoBehaviour
             this.BlockSelector.SetActive(true);
             this.BlockSelector.transform.GetComponent<MeshRenderer>().enabled = true;
             Vector3 rawposition = BlockSelectorRayHit.point - (BlockSelectorRayHit.normal * 0.5f);
-            //Vector3 roundedposition = MathHelper.RoundVec3ForRays(rawposition);
             Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
             this.BlockSelector.transform.position = roundedposition;
         }
@@ -41,34 +40,32 @@ public class Character : MonoBehaviour
             }
         }
 
-        // Place Block : Right Click
+        // On Right Click Down: Place Block
         if(Input.GetMouseButtonDown(1))
         {
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
             if(Physics.Raycast(ray, out RaycastHit hit, this.MaxInteractableDistance))
             {
                 Vector3 rawposition = hit.point + (hit.normal * 0.5f);
-                //Vector3 roundedposition = MathHelper.RoundVec3ForRays(rawposition);
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
-                Debug.Log("Placing block: hit.point = " + hit.point.ToString());
-                Debug.Log("Placing block: hit.normal = " + hit.normal.ToString());
-                Debug.Log("Placing block: roundedposition = " + roundedposition.ToString());
+                Debug.Log("hit.point       = " + hit.point);
+                Debug.Log("rawposition     = " + rawposition);
+                Debug.Log("roundedposition = " + roundedposition);
                 MathHelper.AddBlock(roundedposition, Block.Stone);
             }
         }
 
-        // Remove Block : Left Click
+        // On Left Click Down Remove Block (set to Air)
         if(Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
             if(Physics.Raycast(ray, out RaycastHit hit, this.MaxInteractableDistance))
             {
                 Vector3 rawposition = hit.point - (hit.normal * 0.5f);
-                //Vector3 roundedposition = MathHelper.RoundVec3ForRays(rawposition);
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
-                Debug.Log("Removing block: hit.point = " + hit.point.ToString());
-                Debug.Log("Removing block: hit.normal = " + hit.normal.ToString());
-                Debug.Log("Removing block: roundedposition = " + roundedposition.ToString());
+                Debug.Log("hit.point       = " + hit.point);
+                Debug.Log("rawposition     = " + rawposition);
+                Debug.Log("roundedposition = " + roundedposition);
                 MathHelper.AddBlock(roundedposition, Block.Air);
             }
         }

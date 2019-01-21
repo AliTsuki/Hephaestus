@@ -39,7 +39,6 @@ public class World : ILoopable
             Logger.Log("Initalizing world thread...");
             while(this.IsRunning)
             {
-                // TODO: ERROR IN CHUNK CREATION/DEGENERATION IS IN THIS LOOP SOMEWHERE!! HAPPENS AFTER RANONCE LOOP
                 try
                 {
                     if(!this.RanOnce)
@@ -93,7 +92,6 @@ public class World : ILoopable
                                 this._LoadedChunks[i].Degenerate();
                             }
                         }
-                        // TODO: I THINK THE MEMORY LEAK IS HERE
                         for(int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
                         {
                             for(int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
@@ -101,7 +99,6 @@ public class World : ILoopable
                                 Int3 newchunkpos = new Int3(Playerpos.x, 0, Playerpos.z);
                                 newchunkpos.AddPos(new Int3(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth));
                                 newchunkpos.ToChunkCoordinates();
-                                //Debug.Log("NOT FIRST RUN: newchunkpos in Chunk Coords is: " + newchunkpos.ToString());
                                 if(!this.ChunkExists(newchunkpos.x, newchunkpos.z))
                                 {
                                     if(System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
@@ -124,7 +121,6 @@ public class World : ILoopable
                                         Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, this);
                                         c.Start();
                                         this._LoadedChunks.Add(c);
-                                        //Debug.Log("NOT FIRST RUN: Can't find FILE for CHUNK: " + "C_" + newchunkpos.x + "_" + newchunkpos.z + ".CHK -> Creating CHUNK now.");
                                     }
                                 }
                             }

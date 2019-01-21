@@ -20,6 +20,7 @@ public class MainLoopable : ILoopable
         //register
         Logger.Instantiate();
         World.Instantiate();
+        Block.Instantiate();
         BlockRegistry.RegisterBlocks();
     }
 
@@ -27,7 +28,7 @@ public class MainLoopable : ILoopable
     // Main Loopable Start: Start Registered Loops
     public void Start()
     {
-        foreach(ILoopable l in _RegisteredLoops)
+        foreach(ILoopable l in this._RegisteredLoops)
         {
             l.Start();
         }
@@ -37,7 +38,7 @@ public class MainLoopable : ILoopable
     // Main Loopable Update: Update Registered Loops
     public void Update()
     {
-        foreach(ILoopable l in _RegisteredLoops)
+        foreach(ILoopable l in this._RegisteredLoops)
         {
             l.Update();
         }
@@ -46,7 +47,7 @@ public class MainLoopable : ILoopable
     // Main Loopable On Application Quit
     public void OnApplicationQuit()
     {
-        foreach(ILoopable l in _RegisteredLoops)
+        foreach(ILoopable l in this._RegisteredLoops)
         {
             l.OnApplicationQuit();
         }

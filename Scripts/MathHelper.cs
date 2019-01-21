@@ -194,27 +194,4 @@ public class MathHelper
             Debug.Log(e.Message.ToString());
         }
     }
-
-    // Rounded Vec3 for Raycast
-    public static Vector3 RoundVec3ForRays(Vector3 vec3)
-    {
-        int x, y, z;
-        // if value is positive return ceiling, if negative return floor
-        if(vec3.x >= 0)
-            x = Mathf.CeilToInt(vec3.x);
-        else
-            x = Mathf.FloorToInt(vec3.x);
-
-        if(vec3.y >= 0)
-            y = Mathf.CeilToInt(vec3.y);
-        else
-            y = Mathf.FloorToInt(vec3.y);
-
-        if(vec3.z >= 0)
-            z = Mathf.CeilToInt(vec3.z);
-        else
-            z = Mathf.FloorToInt(vec3.z);
-
-        return new Vector3(x, y, z);
-    }
 }
