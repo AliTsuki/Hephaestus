@@ -13,8 +13,8 @@ public class Character : MonoBehaviour
     // Character Start: Instantiate Add and Delete GameObjects as Transforms
     void Start()
     {
-        this.Add = Transform.Instantiate(Resources.Load<Transform>("Prefabs/Add")) as Transform;
-        this.Delete = Transform.Instantiate(Resources.Load<Transform>("Prefabs/Delete")) as Transform;
+        //this.Add = Transform.Instantiate(Resources.Load<Transform>("Prefabs/Add")) as Transform;
+        //this.Delete = Transform.Instantiate(Resources.Load<Transform>("Prefabs/Delete")) as Transform;
     }
 
     // Update is called once per frame

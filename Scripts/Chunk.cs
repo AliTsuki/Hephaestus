@@ -53,7 +53,7 @@ public class Chunk : ITickable
         {
             FirstChunk = true;
             this.IsFirstChunk = true;
-            Debug.Log("Chunk.Start() changed IsFirstChunk to = " + this.IsFirstChunk.ToString() + " for C_" + this.PosX + "_" + this.PosZ);
+            Debug.Log("Chunk C_" + this.PosX + "_" + this.PosZ + " : IsFirstChunk = " + this.IsFirstChunk.ToString());
         }
         if(this.HasGenerated)
         {
@@ -105,7 +105,7 @@ public class Chunk : ITickable
     // Chunk Update: Draw Chunks
     public virtual void Update()
     {
-        if(this.NeedToUpdate)
+        if (this.NeedToUpdate)
         {
             if(!this.Drawnlock && !this.Renderinglock)
             {
@@ -114,7 +114,6 @@ public class Chunk : ITickable
                 this.NeedToUpdate = false;
             }
         }
-
         if(!this.HasDrawn && this.HasGenerated && !this.Drawnlock)
         {
             this.Drawnlock = true;
@@ -137,7 +136,7 @@ public class Chunk : ITickable
     // Chunk On Unity Update: Render Chunks
     public virtual void OnUnityUpdate()
     {
-        if(this.HasGenerated && !this.HasRendered && this.HasDrawn && !this.Renderinglock)
+        if (this.HasGenerated && !this.HasRendered && this.HasDrawn && !this.Renderinglock)
         {
             this.Renderinglock = true;
             this.HasRendered = true;
@@ -149,6 +148,7 @@ public class Chunk : ITickable
                     name = "C_" + this.PosX + "_" + this.PosZ
                 };
             }
+            Debug.Log("Created GO for Chunk: C_" + PosX + "_" + PosZ);
             Transform t = this.go.transform;
             if(t.gameObject.GetComponent<MeshFilter>() == null)
             {
@@ -164,13 +164,13 @@ public class Chunk : ITickable
             }
             t.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
             t.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
-            this.Renderinglock = false;
+            Debug.Log("///////////////////////////////////////////////////////// IsFirstChunk for C_" + PosX +"_" + PosZ + " = " + IsFirstChunk);
             if(this.IsFirstChunk)
             {
-                Debug.Log("Chunk.OnUnityUpdate().IsFirstChunk = " + this.IsFirstChunk.ToString() + " for C_" + this.PosX + "_" + this.PosZ);
-                Debug.Log("Calling StartPlayer from Chunk.OnUnityUpdate()");
+                Debug.Log("Calling StartPlayer from Chunk.OnUnityUpdate() for Chunk: C_" + this.PosX + "_" + this.PosZ);
                 GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
             }
+            this.Renderinglock = false;
         }
     }
 

@@ -56,7 +56,7 @@ public class World : ILoopable
                                 newchunkpos.ToChunkCoordinates();
                                 Debug.Log("During First Run: newchunkpos in Chunk Coords is: " + newchunkpos.ToString());
                                 // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
-                                if (System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
+                                if(System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
                                 {
                                     try
                                     {
@@ -83,12 +83,14 @@ public class World : ILoopable
                     // After ran once, keep going
                     if(GameManager.PlayerLoaded())
                     {
+                        Debug.Log("NOT FIRST RUN: GM.i.playerpos = " + GameManager.instance.playerpos);
                         Playerpos = new Int3(GameManager.instance.playerpos);
                         Debug.Log("NOT FIRST RUN: Playerpos = " + Playerpos);
                     }
+                    // Iterate through Loaded Chunks and Degenerate if they are too far from player position
                     for(int i = 0; i < this._LoadedChunks.Count; i++)
                     {
-                        if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(Playerpos.x, Playerpos.z)) > (RenderDistanceChunks * 2 * Chunk.ChunkWidth))
+                        if (Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(Playerpos.x, Playerpos.z)) > (RenderDistanceChunks * 2 * Chunk.ChunkWidth))
                         {
                             this._LoadedChunks[i].Degenerate();
                         }
@@ -111,7 +113,7 @@ public class World : ILoopable
                                         c.Start();
                                         this._LoadedChunks.Add(c);
                                     }
-                                    catch (System.Exception e)
+                                    catch(System.Exception e)
                                     {
                                         Debug.Log(e.ToString());
                                     }

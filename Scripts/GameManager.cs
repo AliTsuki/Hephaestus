@@ -11,9 +11,8 @@ public class GameManager : MonoBehaviour
     private bool IsPlayerLoaded = false;
     public Camera StartCamera;
     public Text UITEXT;
-    public GameObject PlayerObject = null;
-    //public Transform PlayerTransform = null;
-    public Vector3 playerpos;
+    public GameObject Player;
+    public Vector3 playerpos { get; private set; }
     public static GameManager instance;
     private MainLoopable main;
     private readonly List<Delegate> _Delegates = new List<Delegate>();
@@ -48,14 +47,14 @@ public class GameManager : MonoBehaviour
     // GameManager Update: Set Player position if Player exists, Update MainLoopable Instance, Invoke Delegates and Remove them
     void Update()
     {
-        if(this.PlayerObject != null)
+        if(this.Player.activeSelf)
         {
-            this.playerpos = this.PlayerObject.transform.position;
+            this.playerpos = this.Player.transform.position;
             this.IsPlayerLoaded = true;
         }
         else
         {
-            Debug.Log("Player is null. playerpos = " + playerpos);
+            Debug.Log("Player is not active. playerpos = " + this.playerpos);
         }
         // Uncomment the following lines for DevChunk testing
         // in World.Start() for lines   _LoadedChunk.Add(new Chunk...
@@ -112,7 +111,10 @@ public class GameManager : MonoBehaviour
         Debug.Log("Running StartPlayer Method from GameManager");
         Destroy(this.StartCamera);
         Destroy(this.UITEXT);
-        GameObject PlayerObject = GameObject.Instantiate(Resources.Load<GameObject>("Prefab/Player"), Pos, Quaternion.identity) as GameObject;
-        playerpos = PlayerObject.transform.position;
+        //GameObject PlayerObject = GameObject.Instantiate(Resources.Load<GameObject>("Prefab/Player"), Pos, Quaternion.identity) as GameObject;
+        Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
+        //t.position = new Vector3(Pos.x, Pos.y, Pos.z);
+        Player.SetActive(true);
+        playerpos = Player.transform.position;
     }
 }
