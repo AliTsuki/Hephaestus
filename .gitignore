@@ -67,3 +67,7 @@ $RECYCLE.BIN/
 
 
 *.7z
+
+*.dll
+*.xml
+*.mdb
