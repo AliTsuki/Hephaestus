@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-// Class for BlockData
+﻿// Class for BlockData
 [System.Serializable]
 public class BlockData
 {

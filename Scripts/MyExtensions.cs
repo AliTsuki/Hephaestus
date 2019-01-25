@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-// Class of extensions for swapping types in array from int block IDs to Blocks
+﻿// Class of extensions for swapping types in array from int block IDs to Blocks
 public static class MyExtensions
 {
     // Get int array from Block array

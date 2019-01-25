@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-// Interface for Loopables
+﻿// Interface for Loopables
 public interface ILoopable
 {
     void Start();

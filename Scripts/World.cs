@@ -1,6 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
+
 using UnityEngine;
 
 // Class containing World functions
@@ -192,7 +192,11 @@ public class World : ILoopable
         {
             try
             {
-                Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ), this._LoadedChunks[i].GetChunkSaveData());
+                if(this._LoadedChunks[i].HasBeenModified)
+                {
+                    Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ), this._LoadedChunks[i].GetChunkSaveData());
+                    Debug.Log("Saving CHUNK to FILE: C_" + this._LoadedChunks[i].PosX + "_" + this._LoadedChunks[i].PosZ);
+                }
             }
             catch(System.Exception e)
             {

@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-// Class for handling errored chunks, exceptions thrown when trying to update errored chunks
+﻿// Class for handling errored chunks, exceptions thrown when trying to update errored chunks
 public class ErroredChunk : Chunk
 {
     // ErroredChunk constructor

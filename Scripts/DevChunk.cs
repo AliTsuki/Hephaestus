@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-// Class for testing noise values of chunks
+﻿// Class for testing noise values of chunks
 public class DevChunk : Chunk
 {
     // DevChunk constructor

@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
+
 using UnityEngine;
 
 // Class containg TextureAtlas creation
@@ -16,6 +15,7 @@ public class TextureAtlas
     public void CreateAtlas()
     {
         string[] _Images = Directory.GetFiles("Assets/Resources/Textures/Blocks/", "*.png");
+        Debug.Log(_Images);
         foreach(string s in _Images)
         {
             Debug.Log("Image Found for Atlas: " + s);
@@ -30,7 +30,7 @@ public class TextureAtlas
         {
             for(int y = 0; y < atlasheight / PixelHeight; y++)
             {
-                if(count >= _Images.Length - 1)
+                if(count > _Images.Length - 1)
                 {
                     goto end;
                 }

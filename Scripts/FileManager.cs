@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-// Class for managing save files
+﻿// Class for managing save files
 public class FileManager
 {
     // FileManager variables

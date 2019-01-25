@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
 // Class containing Chunk functions
@@ -11,10 +10,11 @@ public class Chunk : ITickable
     private bool IsFirstChunk = false;
     protected bool HasGenerated = false;
     protected bool HasDrawn = false;
+    protected bool HasRendered = false;
     protected bool Drawnlock = false;
     private bool Renderinglock = false;
     bool NeedToUpdate = false;
-    protected bool HasRendered = false;
+    public bool HasBeenModified = false;
     private readonly World world;
     private MeshData data;
     private GameObject go;
@@ -28,7 +28,7 @@ public class Chunk : ITickable
     public int PosX { get; private set; }
     public int PosZ { get; private set; }
 
-    // Chunk constructor
+    // Chunk constructor for new chunks
     public Chunk(int px, int pz, World world)
     {
         this.PosX = px;
@@ -189,6 +189,7 @@ public class Chunk : ITickable
     {
         this._Blocks[x, y, z] = blocks;
         this.NeedToUpdate = true;
+        this.HasBeenModified = true;
     }
 
     // Degenerate Chunks
@@ -197,8 +198,12 @@ public class Chunk : ITickable
         // First: save unloading chunks to file
         try
         {
-            Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.PosX, this.PosZ), this.GetChunkSaveData());
-            Debug.Log("Saving CHUNK to FILE: C_" + this.PosX + "_" + this.PosZ);
+            // Only save chunks that have been modified by player to save disk space of save files
+            if(HasBeenModified)
+            {
+                Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.PosX, this.PosZ), this.GetChunkSaveData());
+                Debug.Log("Saving CHUNK to FILE: C_" + this.PosX + "_" + this.PosZ);
+            }
         }
         catch(System.Exception e)
         {
