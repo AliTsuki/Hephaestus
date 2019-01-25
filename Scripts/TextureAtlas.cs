@@ -22,7 +22,7 @@ public class TextureAtlas
         }
         int PixelWidth = 32;
         int PixelHeight = 32;
-        int atlaswidth = Mathf.CeilToInt((Mathf.Sqrt(_Images.Length)+ 1) * PixelWidth);
+        int atlaswidth = Mathf.CeilToInt((Mathf.Sqrt(_Images.Length) + 1) * PixelWidth);
         int atlasheight = Mathf.CeilToInt((Mathf.Sqrt(_Images.Length) + 1) * PixelHeight);
         Texture2D Atlas = new Texture2D(atlaswidth, atlasheight);
         int count = 0;

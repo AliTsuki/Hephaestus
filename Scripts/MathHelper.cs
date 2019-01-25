@@ -49,9 +49,162 @@ public class Int3
 // Class for Mesh maths
 public class MathHelper
 {
+    // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
+    // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
+    // Draw Grass Block
+    public static MeshData DrawCube(Chunk chunk, Block[,,] _Blocks, Block block, int x, int y, int z, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3)
+    {
+        MeshData d = new MeshData();
+        // If Air don't bother looping through draw below
+        if(block.Equals(Block.Air))
+        {
+            return new MeshData();
+        }
+        // Bottom Face
+        if(y - 1 < 0 || _Blocks[x, y - 1, z].Istransparent())
+        {
+            d.Merge(new MeshData( // Bottom Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(0,0,1),
+                    new Vector3(1,0,0),
+                    new Vector3(1,0,1)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap3[0],
+                    _uvmap3[1],
+                    _uvmap3[2],
+                    _uvmap3[3]
+                }));
+        }
+        // Top Face
+        if(y + 1 >= Chunk.ChunkHeight || _Blocks[x, y + 1, z].Istransparent())
+        {
+            d.Merge(new MeshData( // Top Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,1,0),
+                    new Vector3(0,1,1),
+                    new Vector3(1,1,0),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap[0],
+                    _uvmap[1],
+                    _uvmap[2],
+                    _uvmap[3]
+                }));
+        }
+        // Front Face
+        if(x - 1 < 0 || _Blocks[x - 1, y, z].Istransparent())
+        {
+            d.Merge(new MeshData( // Front Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(0,0,1),
+                    new Vector3(0,1,0),
+                    new Vector3(0,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+        }
+        // Back Face
+        if(x + 1 >= Chunk.ChunkWidth || _Blocks[x + 1, y, z].Istransparent())
+        {
+            d.Merge(new MeshData( // Back Face
+                new List<Vector3>()
+                {
+                    new Vector3(1,0,0),
+                    new Vector3(1,0,1),
+                    new Vector3(1,1,0),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+        }
+        // Left Face
+        if(z - 1 < 0 || _Blocks[x, y, z - 1].Istransparent())
+        {
+            d.Merge(new MeshData( // Left Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(1,0,0),
+                    new Vector3(0,1,0),
+                    new Vector3(1,1,0)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+        }
+        // Right Face
+        if(z + 1 >= Chunk.ChunkWidth || _Blocks[x, y, z + 1].Istransparent())
+        {
+            d.Merge(new MeshData( // Right Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,1),
+                    new Vector3(1,0,1),
+                    new Vector3(0,1,1),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+        }
+        d.AddPos(new Vector3(x - 0.5f, y - 0.5f, z - 0.5f));
+        return d;
+    }
+
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMap
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
-    // TODO: Add code for blocks having different texture per side
+    // Draw block with all sides the same
     public static MeshData DrawCube(Chunk chunk, Block[,,] _Blocks, Block block, int x, int y, int z, Vector2[] _uvmap)
     {
         MeshData d = new MeshData();
@@ -75,7 +228,13 @@ public class MathHelper
                 {
                     0,2,1,3,1,2
                 },
-                _uvmap));
+                new Vector2[]
+                {
+                    _uvmap[0],
+                    _uvmap[1],
+                    _uvmap[2],
+                    _uvmap[3]
+                }));
         }
         // Top Face
         if(y + 1 >= Chunk.ChunkHeight || _Blocks[x, y + 1, z].Istransparent())
@@ -92,7 +251,13 @@ public class MathHelper
                 {
                     0,1,2,3,2,1
                 },
-                _uvmap));
+                new Vector2[]
+                {
+                    _uvmap[0],
+                    _uvmap[1],
+                    _uvmap[2],
+                    _uvmap[3]
+                }));
         }
         // Front Face
         if(x - 1 < 0 || _Blocks[x - 1, y, z].Istransparent())
@@ -109,7 +274,13 @@ public class MathHelper
                 {
                     0,1,2,3,2,1
                 },
-                _uvmap));
+                new Vector2[]
+                {
+                    _uvmap[2],
+                    _uvmap[0],
+                    _uvmap[3],
+                    _uvmap[1]
+                }));
         }
         // Back Face
         if(x + 1 >= Chunk.ChunkWidth || _Blocks[x + 1, y, z].Istransparent())
@@ -126,7 +297,13 @@ public class MathHelper
                 {
                     0,2,1,3,1,2
                 },
-                _uvmap));
+                new Vector2[]
+                {
+                    _uvmap[2],
+                    _uvmap[0],
+                    _uvmap[3],
+                    _uvmap[1]
+                }));
         }
         // Left Face
         if(z - 1 < 0 || _Blocks[x, y, z - 1].Istransparent())
@@ -143,7 +320,13 @@ public class MathHelper
                 {
                     0,2,1,3,1,2
                 },
-                _uvmap));
+                new Vector2[]
+                {
+                    _uvmap[2],
+                    _uvmap[0],
+                    _uvmap[3],
+                    _uvmap[1]
+                }));
         }
         // Right Face
         if(z + 1 >= Chunk.ChunkWidth || _Blocks[x, y, z + 1].Istransparent())
@@ -160,7 +343,13 @@ public class MathHelper
                 {
                     0,1,2,3,2,1
                 },
-                _uvmap));
+                new Vector2[]
+                {
+                    _uvmap[2],
+                    _uvmap[0],
+                    _uvmap[3],
+                    _uvmap[1]
+                }));
         }
         d.AddPos(new Vector3(x - 0.5f, y - 0.5f, z - 0.5f));
         return d;

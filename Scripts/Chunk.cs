@@ -55,14 +55,14 @@ public class Chunk : ITickable
             this.IsFirstChunk = true;
             Debug.Log("Chunk C_" + this.PosX + "_" + this.PosZ + " : IsFirstChunk = " + this.IsFirstChunk.ToString());
         }
-        if(this.IsFirstChunk)
-        {
-            Debug.Log("Starting Player");
-            GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
-        }
         if(this.HasGenerated)
         {
             return;
+        }
+        if(this.IsFirstChunk)
+        {
+            Debug.Log($@"Starting Player at C_{this.PosX}_{this.PosZ} location X:{this.PosX * ChunkWidth}, Y:100, Z:{this.PosZ * ChunkWidth}");
+            GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
         }
         this._Blocks = new Block[ChunkWidth, ChunkHeight, ChunkWidth];
         for(int x = 0; x < ChunkWidth; x++)
@@ -208,7 +208,7 @@ public class Chunk : ITickable
         GameManager.instance.RegisterDelegate(new Action(() =>
         {
             GameObject.Destroy(this.go);
-            Debug.Log("Degenerating CHUNK at: " + new Int3(this.PosX, 0, this.PosZ).ToString());
+            Debug.Log("Degenerating CHUNK at: " + this.PosX + "_" + this.PosZ);
         }));
         // Third: Remove chunk from World
         this.world.RemoveChunk(this);

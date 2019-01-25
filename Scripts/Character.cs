@@ -7,7 +7,7 @@ public class Character : MonoBehaviour
 {
     // Character objects
     public GameObject BlockSelector;
-    public float MaxInteractableDistance = 5f;
+    public float MaxInteractableDistance = 8f;
 
     // Start is called before the first frame update
     // Character Start
@@ -48,10 +48,7 @@ public class Character : MonoBehaviour
             {
                 Vector3 rawposition = hit.point + (hit.normal * 0.5f);
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
-                Debug.Log("hit.point       = " + hit.point);
-                Debug.Log("rawposition     = " + rawposition);
-                Debug.Log("roundedposition = " + roundedposition);
-                MathHelper.AddBlock(roundedposition, Block.Stone);
+                MathHelper.AddBlock(roundedposition, Block.Grass);
             }
         }
 
@@ -63,9 +60,6 @@ public class Character : MonoBehaviour
             {
                 Vector3 rawposition = hit.point - (hit.normal * 0.5f);
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
-                Debug.Log("hit.point       = " + hit.point);
-                Debug.Log("rawposition     = " + rawposition);
-                Debug.Log("roundedposition = " + roundedposition);
                 MathHelper.AddBlock(roundedposition, Block.Air);
             }
         }
