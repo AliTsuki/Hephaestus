@@ -12,8 +12,8 @@ public class BlockRegistry
     // Register Block
     public static void RegisterBlock(Block b)
     {
+        Debug.Log($@"Registering Block: {b.GetName()}, with ID: {b.GetID()}");
         _REGISTEREDBLOCKS.Add(b);
-        Debug.Log("Registering Block: " + b.GetName() + " ID: " + b.GetID());
     }
 
     // Register All Blocks to BlockRegistry.txt FILE

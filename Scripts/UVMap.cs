@@ -30,8 +30,7 @@ public class UVMap
                 return m;
             }
         }
-        Debug.Log("Cant find associated image called: " + name);
-
+        Debug.Log($@"Can't find associated image: {name}");
         List<string> _names = new List<string>
         {
             "Broken Images"

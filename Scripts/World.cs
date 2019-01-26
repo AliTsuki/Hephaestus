@@ -13,7 +13,7 @@ public class World : ILoopable
     private static readonly int RenderDistanceChunks = 3;
     private Thread worldthread;
     private static Int3 Playerpos;
-    private readonly List<Chunk> _LoadedChunks = new List<Chunk>();
+    public readonly List<Chunk> _LoadedChunks = new List<Chunk>();
 
     // World instance getter/setter
     public static World _instance { get; private set; }
@@ -26,7 +26,7 @@ public class World : ILoopable
         MainLoopable.GetInstance().RegisterLoops(_instance);
         System.Random r = new System.Random();
         Playerpos = new Int3(r.Next(-1000, 1000), 100, r.Next(-1000, 1000));
-        Debug.Log("Starting Playerpos in WORLD set to: " + Playerpos.ToString());
+        Debug.Log($@"Starting Player Position in WORLD set to: {Playerpos.ToString()}");
     }
 
     // Start is called before the first frame update
@@ -58,7 +58,7 @@ public class World : ILoopable
                                 {
                                     try
                                     {
-                                        Debug.Log("Reading Chunk from File: C_" + newchunkpos.x + "_" + newchunkpos.z);
+                                        Debug.Log($@"Reading CHUNK from FILE: C_{newchunkpos.x}_{newchunkpos.z}");
                                         this._LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this));
                                     }
                                     catch(System.Exception e)
@@ -68,7 +68,7 @@ public class World : ILoopable
                                 }
                                 else
                                 {
-                                    Debug.Log("First Time Generation of Chunk: C_" + newchunkpos.x + "_" + newchunkpos.z);
+                                    Debug.Log($@"First Time Generation of CHUNK: C_{newchunkpos.x}_{newchunkpos.z}");
                                     this._LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, this));
                                 }
                             }
@@ -77,21 +77,16 @@ public class World : ILoopable
                         {
                             this._LoadedChunks[i].Start();
                         }
+                        for(int i = 0; i < this._LoadedChunks.Count; i++)
+                        {                            
+                            this._LoadedChunks[i].Update();
+                        }
                         Debug.Log("World.RanOnce in World.Start()");
                     }
                     // After ran once, continuously update
-                    // If Player has been loaded in, keep generating chunks around player and degenerating chunks that are too far
+                    // If Player has been loaded in, keep generating chunks around player and degenerating chunks that are too far from player
                     if(GameManager.PlayerLoaded())
                     {
-                        // Iterate through Loaded Chunks and Degenerate if they are too far from player position
-                        Playerpos = new Int3(GameManager.instance.playerpos);
-                        for(int i = 0; i < this._LoadedChunks.Count; i++)
-                        {
-                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(Playerpos.x, Playerpos.z)) > (RenderDistanceChunks * 2 * Chunk.ChunkWidth))
-                            {
-                                this._LoadedChunks[i].Degenerate();
-                            }
-                        }
                         for(int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
                         {
                             for(int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
@@ -105,7 +100,7 @@ public class World : ILoopable
                                     {
                                         try
                                         {
-                                            Debug.Log("Reading Chunk from File: C_" + newchunkpos.x + "_" + newchunkpos.z);
+                                            Debug.Log($@"Reading CHUNK from FILE: C_{newchunkpos.x}_{newchunkpos.z}");
                                             Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this);
                                             c.Start();
                                             this._LoadedChunks.Add(c);
@@ -117,7 +112,7 @@ public class World : ILoopable
                                     }
                                     else
                                     {
-                                        Debug.Log("First Time Generation of Chunk: C_" + newchunkpos.x + "_" + newchunkpos.z);
+                                        Debug.Log($@"First Time Generation of CHUNK: C_{newchunkpos.x}_{newchunkpos.z}");
                                         Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, this);
                                         c.Start();
                                         this._LoadedChunks.Add(c);
@@ -125,9 +120,41 @@ public class World : ILoopable
                                 }
                             }
                         }
+                        // Loop through loaded chunks and run Chunk.Update(): Draw/Update meshes to render
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
+                            // Before update, if chunk has been set that it's neighbors need to update, tell those neighbors they need to update
+                            // Neighbors will need to update meshes if a block is changed at the intersection of chunks to ensure no extra tris are rendered unseen
+                            if(this._LoadedChunks[i].NeedToUpdateNegXNeighbor && ChunkExists(this._LoadedChunks[i].PosX - 1, this._LoadedChunks[i].PosZ))
+                            {
+                                this._LoadedChunks[GetChunkIndex(this._LoadedChunks[i].PosX - 1, this._LoadedChunks[i].PosZ)].NeedToUpdate = true;
+                                this._LoadedChunks[i].NeedToUpdateNegXNeighbor = false;
+                            }
+                            if(this._LoadedChunks[i].NeedToUpdatePosXNeighbor && ChunkExists(this._LoadedChunks[i].PosX + 1, this._LoadedChunks[i].PosZ))
+                            {
+                                this._LoadedChunks[GetChunkIndex(this._LoadedChunks[i].PosX + 1, this._LoadedChunks[i].PosZ)].NeedToUpdate = true;
+                                this._LoadedChunks[i].NeedToUpdatePosXNeighbor = false;
+                            }
+                            if(this._LoadedChunks[i].NeedToUpdateNegZNeighbor && ChunkExists(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ - 1))
+                            {
+                                this._LoadedChunks[GetChunkIndex(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ - 1)].NeedToUpdate = true;
+                                this._LoadedChunks[i].NeedToUpdateNegZNeighbor = false;
+                            }
+                            if(this._LoadedChunks[i].NeedToUpdatePosZNeighbor && ChunkExists(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ + 1))
+                            {
+                                this._LoadedChunks[GetChunkIndex(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ + 1)].NeedToUpdate = true;
+                                this._LoadedChunks[i].NeedToUpdateNegZNeighbor = false;
+                            }
                             this._LoadedChunks[i].Update();
+                        }
+                        // Iterate through Loaded Chunks and Degenerate if they are too far from player position
+                        Playerpos = new Int3(GameManager.instance.playerpos);
+                        for(int i = 0; i < this._LoadedChunks.Count; i++)
+                        {
+                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(Playerpos.x, Playerpos.z)) > (RenderDistanceChunks * 2 * Chunk.ChunkWidth))
+                            {
+                                this._LoadedChunks[i].Degenerate();
+                            }
                         }
                     }
                 }
@@ -172,7 +199,20 @@ public class World : ILoopable
                 return this._LoadedChunks[i];
             }
         }
-        return new ErroredChunk(0, 0, this);
+        return new ErroredChunk(posx, posz, this);
+    }
+
+    // Get Chunk index position in Loaded Chunks
+    public int GetChunkIndex(int posx, int posz)
+    {
+        for(int i = 0; i < this._LoadedChunks.Count; i++)
+        {
+            if(this._LoadedChunks[i].PosX.Equals(posx) && this._LoadedChunks[i].PosZ.Equals(posz))
+            {
+                return i;
+            }
+        }
+        return 0; // TODO: Fix this... ChunkExists() is always called before this, so it should never be trying to find an index for a chunk that isn't loaded... but if it does, i gots problems
     }
 
     // Update is called once per frame
@@ -192,10 +232,11 @@ public class World : ILoopable
         {
             try
             {
+                // Only bother saving chunks which have been modified by player
                 if(this._LoadedChunks[i].HasBeenModified)
                 {
+                    Debug.Log($@"Saving CHUNK to FILE: C_{this._LoadedChunks[i].PosX}_{this._LoadedChunks[i].PosZ}");
                     Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ), this._LoadedChunks[i].GetChunkSaveData());
-                    Debug.Log("Saving CHUNK to FILE: C_" + this._LoadedChunks[i].PosX + "_" + this._LoadedChunks[i].PosZ);
                 }
             }
             catch(System.Exception e)

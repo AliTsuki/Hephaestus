@@ -139,7 +139,7 @@ public class Block : ITickable
             }
             catch(System.Exception e)
             {
-                Debug.Log("Error in Drawing Cube at: " + x + y + z + e.ToString());
+                Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }
@@ -151,7 +151,7 @@ public class Block : ITickable
             }
             catch(System.Exception e)
             {
-                Debug.Log("Error in Drawing Cube at: " + x + y + z + e.ToString());
+                Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }

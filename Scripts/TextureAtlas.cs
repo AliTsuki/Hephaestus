@@ -18,7 +18,7 @@ public class TextureAtlas
         Debug.Log(_Images);
         foreach(string s in _Images)
         {
-            Debug.Log("Image Found for Atlas: " + s);
+            Debug.Log($@"Image Found for Atlas: {s}");
         }
         int PixelWidth = 32;
         int PixelHeight = 32;

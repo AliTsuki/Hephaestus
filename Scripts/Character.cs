@@ -16,7 +16,7 @@ public class Character : MonoBehaviour
 
     // Update is called once per frame
     // Character Update: Check Mouse clicks and Add or Delete Blocks
-    // TODO: FIX ray not working close to player, Limit placing blocks to not be inside player getting stuck, Add code for accepting tool and blocktype for adding/deleting
+    // TODO: Limit placing blocks to not be inside player getting stuck, Add code for accepting tool and blocktype for adding/deleting
     void Update()
     {
         // Block Selector Cube

@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Player is not active. playerpos = " + this.playerpos);
+            Debug.Log($@"Player is not ACTIVE. Player Position = {this.playerpos}");
         }
         // Uncomment the following lines for DevChunk testing
         // in World.Start() for lines   _LoadedChunk.Add(new Chunk...
@@ -68,7 +68,7 @@ public class GameManager : MonoBehaviour
         Smul = mul;
         */
         this.main.Update();
-        for(int i = this._Delegates.Count - 1; i >= 0; i--)
+        for(int i = 0; i < this._Delegates.Count; i++)
         {
             this._Delegates[i].DynamicInvoke();
             this._Delegates.Remove(this._Delegates[i]);
@@ -108,24 +108,14 @@ public class GameManager : MonoBehaviour
     // Create player in world and destroy starting UI
     public void StartPlayer(Vector3 Pos)
     {
-        Debug.Log("Running StartPlayer Method from GameManager");
-        this.MainThreadCall(Pos);
-    }
-
-    // Queue up actions on Unity Main Thread
-    public void MainThreadCall(Vector3 Pos)
-    {
-        UnityMainThreadDispatcher.Instance().Enqueue(this.ToDoOnMainThread(Pos));
-    }
-
-    // Send actions that must be done on Unity Main Thread
-    public IEnumerator ToDoOnMainThread(Vector3 Pos)
-    {
-        Destroy(this.StartCamera);
-        Destroy(this.UITEXT);
-        this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
-        this.Player.SetActive(true);
-        this.playerpos = this.Player.transform.position;
-        yield return null;
+        instance.RegisterDelegate(new Action(() =>
+        {
+            Debug.Log("Running StartPlayer Method from GameManager");
+            Destroy(this.StartCamera);
+            Destroy(this.UITEXT);
+            this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
+            this.Player.SetActive(true);
+            this.playerpos = this.Player.transform.position;
+        }));
     }
 }
