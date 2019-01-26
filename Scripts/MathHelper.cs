@@ -30,12 +30,20 @@ public class Int3
         return string.Format("X:{0}, Y:{1}, Z:{2}", this.x, this.y, this.z);
     }
 
-    // Add x,y,z position
-    internal void AddPos(Int3 int3)
+    // Sets x,y,z position
+    internal void SetPos(int x, int y, int z)
     {
-        this.x += int3.x;
-        this.y += int3.y;
-        this.z += int3.z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    // Add x,y,z position
+    internal void AddPos(int x, int y, int z)
+    {
+        this.x += x;
+        this.y += y;
+        this.z += z;
     }
 
     // Get Chunk coords from given block coords

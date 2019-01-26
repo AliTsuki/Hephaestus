@@ -146,6 +146,11 @@ public class Chunk : ITickable
             }
             this.Drawnlock = false;
             this.HasDrawn = true;
+            if(this.IsFirstChunk)
+            {
+                Debug.Log($@"Starting Player at C_{this.PosX}_{this.PosZ} at location X:{this.PosX * ChunkWidth}, Y:100, Z:{this.PosZ * ChunkWidth}");
+                GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
+            }
         }
     }
 
@@ -181,11 +186,6 @@ public class Chunk : ITickable
             t.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
             this.Renderinglock = false;
             this.HasRendered = true;
-            if(this.IsFirstChunk)
-            {
-                Debug.Log($@"Starting Player at C_{this.PosX}_{this.PosZ} at location X:{this.PosX * ChunkWidth}, Y:100, Z:{this.PosZ * ChunkWidth}");
-                GameManager.instance.StartPlayer(new Vector3(this.PosX * ChunkWidth, 100, this.PosZ * ChunkWidth));
-            }
         }
     }
 
@@ -208,21 +208,29 @@ public class Chunk : ITickable
     }
 
     // Set Block at position
-    internal void SetBlock(int x, int y, int z, Block blocks)
+    internal void SetBlock(int x, int y, int z, Block block)
     {
-        this._Blocks[x, y, z] = blocks;
+        this._Blocks[x, y, z] = block;
         this.NeedToUpdate = true;
         this.HasBeenModified = true;
         // TODO: if block modified is on chunk x/z edge, 
         // TODO: inform neighbors to update, write code to let chunks know their neighbors, if neighbors have been generated, and if neighbors need to be updated
         if(x == 0)
-            NeedToUpdateNegXNeighbor = true;
-        else if(x == ChunkWidth - 1)
-            NeedToUpdatePosXNeighbor = true;
-        else if(z == 0)
-            NeedToUpdateNegZNeighbor = true;
-        else if(z == ChunkWidth - 1)
-          NeedToUpdatePosZNeighbor = true;
+        {
+            this.NeedToUpdateNegXNeighbor = true;
+        }
+        if(x == ChunkWidth - 1)
+        {
+            this.NeedToUpdatePosXNeighbor = true;
+        }
+        if(z == 0)
+        {
+            this.NeedToUpdateNegZNeighbor = true;
+        }
+        if(z == ChunkWidth - 1)
+        {
+            this.NeedToUpdatePosZNeighbor = true;
+        }
     }
 
     // Degenerate Chunks
@@ -232,7 +240,7 @@ public class Chunk : ITickable
         try
         {
             // Only save chunks that have been modified by player to save disk space of save files
-            if(HasBeenModified)
+            if(this.HasBeenModified)
             {
                 Debug.Log($@"Saving CHUNK to FILE: C_{this.PosX}_{this.PosZ}");
                 Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.PosX, this.PosZ), this.GetChunkSaveData());

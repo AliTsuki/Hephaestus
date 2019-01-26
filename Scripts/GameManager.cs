@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public GameObject StartCamera;
     public GameObject UITEXT;
     public GameObject Player;
-    public Vector3 playerpos { get; private set; }
+    public Vector3 Playerpos { get; private set; }
     public static GameManager instance;
     private MainLoopable main;
     private readonly List<Delegate> _Delegates = new List<Delegate>();
@@ -49,12 +49,12 @@ public class GameManager : MonoBehaviour
     {
         if(this.Player.activeSelf)
         {
-            this.playerpos = this.Player.transform.position;
-            this.IsPlayerLoaded = true;
+            this.Playerpos = this.Player.transform.position;
+            instance.IsPlayerLoaded = true;
         }
         else
         {
-            Debug.Log($@"Player is not ACTIVE. Player Position = {this.playerpos}");
+            Debug.Log($@"Player is not ACTIVE. Player Position = {this.Playerpos}");
         }
         // Uncomment the following lines for DevChunk testing
         // in World.Start() for lines   _LoadedChunk.Add(new Chunk...
@@ -110,12 +110,14 @@ public class GameManager : MonoBehaviour
     {
         instance.RegisterDelegate(new Action(() =>
         {
-            Debug.Log("Running StartPlayer Method from GameManager");
-            Destroy(this.StartCamera);
-            Destroy(this.UITEXT);
-            this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
-            this.Player.SetActive(true);
-            this.playerpos = this.Player.transform.position;
+            {
+                Debug.Log("Running StartPlayer Method from GameManager");
+                Destroy(this.StartCamera);
+                Destroy(this.UITEXT);
+                this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
+                this.Player.SetActive(true);
+                this.Playerpos = this.Player.transform.position;
+            }
         }));
     }
 }

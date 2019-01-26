@@ -39,7 +39,9 @@ public class BlockRegistry
         try
         {
             if(_REGISTEREDBLOCKS == null)
+            {
                 Debug.Log("Trying to GetBlockFromID with NULL BlockRegistry!!");
+            }
             return _REGISTEREDBLOCKS[v];
         }
         catch(System.Exception e)
