@@ -6,7 +6,7 @@ using UnityEngine;
 public class TextureAtlas
 {
     // TextureAtlas objects
-    public static readonly TextureAtlas _Instance = new TextureAtlas();
+    public static readonly TextureAtlas Instance = new TextureAtlas();
 
     // Atlas getter
     public static Texture2D _ATLAS { get; private set; }
@@ -15,11 +15,6 @@ public class TextureAtlas
     public void CreateAtlas()
     {
         string[] _Images = Directory.GetFiles("Assets/Resources/Textures/Blocks/", "*.png");
-        Debug.Log(_Images);
-        foreach(string s in _Images)
-        {
-            Debug.Log($@"Image Found for Atlas: {s}");
-        }
         int PixelWidth = 32;
         int PixelHeight = 32;
         int atlaswidth = Mathf.CeilToInt((Mathf.Sqrt(_Images.Length) + 1) * PixelWidth);

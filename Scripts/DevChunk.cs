@@ -10,13 +10,13 @@ public class DevChunk : Chunk
     // DevChunk On Unity Update: Set HasGenerated, HasDrawn, and HasRendered to false so chunks continuously update to reflect noise changes
     public override void OnUnityUpdate()
     {
-        if(HasGenerated && !HasRendered && HasDrawn)
+        if(this.HasGenerated && !this.hasRendered && this.hasDrawn)
         {
             base.OnUnityUpdate();
-            HasGenerated = false;
-            HasDrawn = false;
-            HasRendered = false;
-            Start();
+            this.HasGenerated = false;
+            this.hasDrawn = false;
+            this.hasRendered = false;
+            this.Start();
         }
     }
 }

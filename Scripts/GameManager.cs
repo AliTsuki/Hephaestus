@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
@@ -8,36 +7,55 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     // GameManager variables/objects
-    private bool IsPlayerLoaded = false;
+    private bool isPlayerLoaded = false;
     public GameObject StartCamera;
     public GameObject UITEXT;
     public GameObject Player;
-    public Vector3 Playerpos { get; private set; }
-    public static GameManager instance;
+    public Vector3 PlayerPos { get; private set; }
+    public static GameManager Instance;
     private MainLoopable main;
     private readonly List<Delegate> _Delegates = new List<Delegate>();
 
     // Noise variables
-    public float dx = 1;
-    public float dz = 1;
-    public float my = 1;
-    public float cutoff = 1;
-    public float mul = 1;
+    public float dx = 30f;
+    public float dz = 30f;
+    public float dy = 10f;
+    public float my = 0.72f;
+    public float mul = 0.06f;
+    public float cutoff = 0.86f;
+    public float dcutoffgrass = 1.04f;
+    public float dcutoffdirt = 1.2f;
+    // Underground noise variables
+    public float UGdx = 10f;
+    public float UGdz = 10f;
+    public float UGdy = 10f;
+    public float UGmul = 1.21f;
+    public float UGcutoff = 0.63f;
+    
     // Static noise variables
-    public static float Sdx = 50;
-    public static float Sdz = 50;
-    public static float Smy = 0.23f;
-    public static float Scutoff = 1.8f;
-    public static float Smul = 1;
+    public static float Sdx = 30f;
+    public static float Sdz = 30f;
+    public static float Sdy = 10f;
+    public static float Smy = 0.72f;
+    public static float Smul = 0.06f;
+    public static float Scutoff = 0.86f;
+    public static float Sdcutoffgrass = 1.04f;
+    public static float Sdcutoffdirt = 1.2f;
+    // Static underground noise variables
+    public static float SUGdx = 10f;
+    public static float SUGdz = 10f;
+    public static float SUGdy = 10f;
+    public static float SUGmul = 1.21f;
+    public static float SUGcutoff = 0.63f;
+
 
     // Start is called before the first frame update
     // GameManager Start: Register Files, Create Texture Atlas
     void Start()
     {
-        Debug.Log("GameManager.Start() executing...");
+        Instance = this;
         FileManager.RegisterFiles();
-        instance = this;
-        TextureAtlas._Instance.CreateAtlas();
+        TextureAtlas.Instance.CreateAtlas();
         MainLoopable.Instantiate();
         this.main = MainLoopable.GetInstance();
         this.main.Start();
@@ -49,25 +67,36 @@ public class GameManager : MonoBehaviour
     {
         if(this.Player.activeSelf)
         {
-            this.Playerpos = this.Player.transform.position;
-            instance.IsPlayerLoaded = true;
+            this.PlayerPos = this.Player.transform.position;
+            Instance.isPlayerLoaded = true;
         }
-        else
-        {
-            Debug.Log($@"Player is not ACTIVE. Player Position = {this.Playerpos}");
-        }
-        // Uncomment the following lines for DevChunk testing
-        // in World.Start() for lines   _LoadedChunk.Add(new Chunk...
-        // change to                    _LoadedChunk.Add(new DevChunk...
+        //Uncomment the following lines for DevChunk testing
+        // in World.Start() for lines:  _LoadedChunk.Add(new Chunk...
+        // change to:                   _LoadedChunk.Add(new DevChunk...
         // then move sliders in editor to test Noise values on chunk gen
-        /*
-        Sdx = dx;
-        Sdz = dz;
-        Smy = my;
-        Scutoff = cutoff;
-        Smul = mul;
-        */
-        this.main.Update();
+        //Sdx = this.dx;
+        //Sdz = this.dz;
+        //Sdy = this.dy;
+        //Smy = this.my;
+        //Smul = this.mul;
+        //Scutoff = this.cutoff;
+        //Sdcutoffgrass = this.dcutoffgrass;
+        //Sdcutoffdirt = this.dcutoffdirt;
+        //SUGdx = this.UGdx;
+        //SUGdz = this.UGdz;
+        //SUGdy = this.UGdy;
+        //SUGmul = this.UGmul;
+        //SUGcutoff = this.UGcutoff;
+        try
+        {
+            this.main.Update();
+        }
+        catch(System.Exception e)
+        {
+            Debug.Log("Can't update MainLoopable due to Exception.");
+            Debug.Log(e.ToString());
+            World.Instance.IsRunning = false;
+        }
         for(int i = 0; i < this._Delegates.Count; i++)
         {
             this._Delegates[i].DynamicInvoke();
@@ -84,7 +113,7 @@ public class GameManager : MonoBehaviour
     // Exit Game internal
     internal static void ExitGame()
     {
-        instance.ExitGameInstance();
+        Instance.ExitGameInstance();
     }
 
     // Exit Game method
@@ -102,21 +131,20 @@ public class GameManager : MonoBehaviour
     // Check if Player is loaded into world
     internal static bool PlayerLoaded()
     {
-        return instance.IsPlayerLoaded;
+        return Instance.isPlayerLoaded;
     }
 
     // Create player in world and destroy starting UI
     public void StartPlayer(Vector3 Pos)
     {
-        instance.RegisterDelegate(new Action(() =>
+        Instance.RegisterDelegate(new Action(() =>
         {
             {
-                Debug.Log("Running StartPlayer Method from GameManager");
                 Destroy(this.StartCamera);
                 Destroy(this.UITEXT);
                 this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
                 this.Player.SetActive(true);
-                this.Playerpos = this.Player.transform.position;
+                this.PlayerPos = this.Player.transform.position;
             }
         }));
     }

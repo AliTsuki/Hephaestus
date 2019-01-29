@@ -12,7 +12,6 @@ public class BlockRegistry
     // Register Block
     public static void RegisterBlock(Block b)
     {
-        Debug.Log($@"Registering Block: {b.GetName()}, with ID: {b.GetID()}");
         _REGISTEREDBLOCKS.Add(b);
     }
 
@@ -23,7 +22,6 @@ public class BlockRegistry
         {
             int CurrentID = 0;
             List<string> _names = new List<string>();
-            Debug.Log("Trying to RegisterBlocks with NULL BlockRegistry!!");
             foreach(Block b in _REGISTEREDBLOCKS)
             {
                 _names.Add(string.Format("CurrentID: {0}, BlockName: {1}, BlockID: {2}", CurrentID, b.GetName(), b.GetID()));

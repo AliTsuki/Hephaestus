@@ -7,26 +7,24 @@ using UnityEngine;
 public class World : ILoopable
 {
     // World variables/objects
-    private bool IsRunning;
-    private bool RanOnce = false;
+    public bool IsRunning;
+    private bool ranOnce = false;
     // How far to render chunks from Playerpos
-    private static readonly int RenderDistanceChunks = 5;
-    private Thread worldthread;
-    private Int3 PlayerStartingPos;
+    private static readonly int renderDistanceChunks = 7;
+    private Thread worldThread;
+    public Int3 PlayerStartingPos;
     public readonly List<Chunk> _LoadedChunks = new List<Chunk>();
 
     // World instance getter/setter
-    public static World _instance { get; private set; }
+    public static World Instance { get; private set; }
 
     // Instantiate World, Register loops, set Random Player start position
     public static void Instantiate()
     {
-        Debug.Log("World.Instantiate() executing...");
-        _instance = new World();
-        MainLoopable.GetInstance().RegisterLoops(_instance);
+        Instance = new World();
+        MainLoopable.GetInstance().RegisterLoops(Instance);
         System.Random r = new System.Random();
-        _instance.PlayerStartingPos = new Int3(r.Next(-1000, 1000), 100, r.Next(-1000, 1000));
-        Debug.Log($@"Starting Player Position in WORLD set to: {_instance.PlayerStartingPos.ToString()}");
+        Instance.PlayerStartingPos = new Int3(r.Next(-1000, 1000), 0, r.Next(-1000, 1000));
     }
 
     // Start is called before the first frame update
@@ -34,84 +32,40 @@ public class World : ILoopable
     public void Start()
     {
         this.IsRunning = true;
-        this.worldthread = new Thread(() =>
+        this.worldThread = new Thread(() =>
         {
             Logger.Log("Initalizing world thread...");
             while(this.IsRunning)
             {
                 try
                 {
-                    Int3 newchunkpos = new Int3(this.PlayerStartingPos.x, 0, this.PlayerStartingPos.z);
-                    if(!this.RanOnce)
+                    Int3 newChunkPos = new Int3(this.PlayerStartingPos.x, 0, this.PlayerStartingPos.z);
+                    if(!this.ranOnce)
                     {
                         // For first time running world thread, for all Chunk Positions within Rendering Distance 
                         // check if chunk exists in file, if so get from file, if not Generate Chunk
-                        for(int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
+                        int x = 0; // current position; x
+                        int z = 0; // current position; y
+                        int direction = 0; // current direction; 0=RIGHT, 1=DOWN, 2=LEFT, 3=UP
+                        int counter = 0; // counter
+                        int chainSize = 1; // chain size
+                        for(int k = 1; k <= (renderDistanceChunks - 1); k++)
                         {
-                            for(int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
+                            for(int j = 0; j < (k < (renderDistanceChunks - 1) ? 2 : 3); j++)
                             {
-                                newchunkpos.SetPos(this.PlayerStartingPos.x, 0, this.PlayerStartingPos.z);
-                                newchunkpos.AddPos(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth);
-                                newchunkpos.ToChunkCoordinates();
-                                // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
-                                if(System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
+                                for(int i = 0; i < chainSize; i++)
                                 {
-                                    try
-                                    {
-                                        Debug.Log($@"Reading CHUNK from FILE: C_{newchunkpos.x}_{newchunkpos.z}");
-                                        this._LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this));
-                                    }
-                                    catch(System.Exception e)
-                                    {
-                                        Debug.Log(e.ToString());
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.Log($@"First Time Generation of CHUNK: C_{newchunkpos.x}_{newchunkpos.z}");
-                                    this._LoadedChunks.Add(new Chunk(newchunkpos.x, newchunkpos.z, this));
-                                }
-                            }
-                        }
-                        for(int i = 0; i < this._LoadedChunks.Count; i++)
-                        {
-                            Debug.Log($@"Starting CHUNK: C_{_LoadedChunks[i].PosX}_{_LoadedChunks[i].PosZ}");
-                            this._LoadedChunks[i].Start();
-                        }
-                        for(int i = 0; i < this._LoadedChunks.Count; i++)
-                        {
-                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(this.PlayerStartingPos.x, this.PlayerStartingPos.z)) <= (RenderDistanceChunks - 1 * Chunk.ChunkWidth))
-                            {
-                                // TODO: FIX THIS
-                                Debug.Log($@"Updating CHUNK: C_{_LoadedChunks[i].PosX}_{_LoadedChunks[i].PosZ}");
-                                this._LoadedChunks[i].Update();
-                            }
-                        }
-                        this.RanOnce = true;
-                        Debug.Log("World.RanOnce in World.Start()");
-                    }
-                    // After ran once, continuously update
-                    // If Player has been loaded in, keep generating chunks around player and degenerating chunks that are too far from player
-                    if(GameManager.PlayerLoaded())
-                    {
-                        Int3 CurrentPlayerPos = new Int3(GameManager.instance.Playerpos);
-                        for(int x = -RenderDistanceChunks; x < RenderDistanceChunks; x++)
-                        {
-                            for(int z = -RenderDistanceChunks; z < RenderDistanceChunks; z++)
-                            {
-                                newchunkpos.SetPos(CurrentPlayerPos.x, 0, CurrentPlayerPos.z);
-                                newchunkpos.AddPos(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth);
-                                newchunkpos.ToChunkCoordinates();
-                                if(!this.ChunkExists(newchunkpos.x, newchunkpos.z))
-                                {
-                                    if(System.IO.File.Exists(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)))
+                                    newChunkPos.SetPos(this.PlayerStartingPos.x, 0, this.PlayerStartingPos.z);
+                                    newChunkPos.AddPos(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth);
+                                    newChunkPos.ToChunkCoordinates();
+                                    // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
+                                    if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos.x, newChunkPos.z)))
                                     {
                                         try
                                         {
-                                            Debug.Log($@"Reading CHUNK from FILE: C_{newchunkpos.x}_{newchunkpos.z}");
-                                            Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newchunkpos.x, newchunkpos.z)), this);
-                                            c.Start();
-                                            this._LoadedChunks.Add(c);
+                                            Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos.x, newChunkPos.z)), this);
+                                            this._LoadedChunks.Add(chunk);
+                                            chunk.Start();
                                         }
                                         catch(System.Exception e)
                                         {
@@ -120,10 +74,64 @@ public class World : ILoopable
                                     }
                                     else
                                     {
-                                        Debug.Log($@"First Time Generation of CHUNK: C_{newchunkpos.x}_{newchunkpos.z}");
-                                        Chunk c = new Chunk(newchunkpos.x, newchunkpos.z, this);
-                                        c.Start();
-                                        this._LoadedChunks.Add(c);
+                                        Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.z, this);
+                                        this._LoadedChunks.Add(chunk);
+                                        chunk.Start();
+                                    }
+                                    counter++;
+                                    switch(direction)
+                                    {
+                                        case 0: z = z + 1; break;
+                                        case 1: x = x + 1; break;
+                                        case 2: z = z - 1; break;
+                                        case 3: x = x - 1; break;
+                                    }
+                                }
+                                direction = (direction + 1) % 4;
+                            }
+                            chainSize = chainSize + 1;
+                        }
+                        for(int i = 0; i < this._LoadedChunks.Count; i++)
+                        {
+                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(this.PlayerStartingPos.x, this.PlayerStartingPos.z)) <= ((renderDistanceChunks - 1) * Chunk.ChunkWidth))
+                            {
+                                this._LoadedChunks[i].Update();
+                            }
+                        }
+                        this.ranOnce = true;
+                    }
+                    // After ran once, continuously update
+                    // If Player has been loaded in, keep generating chunks around player and degenerating chunks that are too far from player
+                    if(GameManager.PlayerLoaded())
+                    {
+                        Int3 currentPlayerPos = new Int3(GameManager.Instance.PlayerPos);
+                        for(int x = -renderDistanceChunks; x < renderDistanceChunks; x++)
+                        {
+                            for(int z = -renderDistanceChunks; z < renderDistanceChunks; z++)
+                            {
+                                newChunkPos.SetPos(currentPlayerPos.x, 0, currentPlayerPos.z);
+                                newChunkPos.AddPos(x * Chunk.ChunkWidth, 0, z * Chunk.ChunkWidth);
+                                newChunkPos.ToChunkCoordinates();
+                                if(!this.ChunkExists(newChunkPos.x, newChunkPos.z))
+                                {
+                                    if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos.x, newChunkPos.z)))
+                                    {
+                                        try
+                                        {
+                                            Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos.x, newChunkPos.z)), this);
+                                            this._LoadedChunks.Add(chunk);
+                                            chunk.Start();
+                                        }
+                                        catch(System.Exception e)
+                                        {
+                                            Debug.Log(e.ToString());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.z, this);
+                                        this._LoadedChunks.Add(chunk);
+                                        chunk.Start();
                                     }
                                 }
                             }
@@ -131,7 +139,7 @@ public class World : ILoopable
                         // Loop through loaded chunks and run Chunk.Update(): Draw/Update meshes to render
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(this.PlayerStartingPos.x, this.PlayerStartingPos.z)) <= (RenderDistanceChunks - 1 * Chunk.ChunkWidth))
+                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(currentPlayerPos.x, currentPlayerPos.z)) <= ((renderDistanceChunks - 1) * Chunk.ChunkWidth))
                             {
                                 // Before update, if chunk has been set that it's neighbors need to update, tell those neighbors they need to update
                                 // Neighbors will need to update meshes if a block is changed at the intersection of chunks to ensure no extra tris are rendered unseen
@@ -161,7 +169,7 @@ public class World : ILoopable
                         // Iterate through Loaded Chunks and Degenerate if they are too far from player position
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(CurrentPlayerPos.x, CurrentPlayerPos.z)) > (RenderDistanceChunks * 2 * Chunk.ChunkWidth))
+                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(currentPlayerPos.x, currentPlayerPos.z)) > (renderDistanceChunks * 1.5 * Chunk.ChunkWidth))
                             {
                                 this._LoadedChunks[i].Degenerate();
                             }
@@ -177,7 +185,7 @@ public class World : ILoopable
             Logger.Log("World thread successfully stopped.");
             Logger.MainLog.Update(); // TODO: FIX IN FUTURE, BAD PRACTICE, This reruns last log
         });
-        this.worldthread.Start();
+        this.worldThread.Start();
     }
 
     // Remove Chunk from world
@@ -245,7 +253,6 @@ public class World : ILoopable
                 // Only bother saving chunks which have been modified by player
                 if(this._LoadedChunks[i].HasBeenModified)
                 {
-                    Debug.Log($@"Saving CHUNK to FILE: C_{this._LoadedChunks[i].PosX}_{this._LoadedChunks[i].PosZ}");
                     Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosZ), this._LoadedChunks[i].GetChunkSaveData());
                 }
             }

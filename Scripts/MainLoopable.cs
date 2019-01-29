@@ -1,22 +1,19 @@
 ﻿using System.Collections.Generic;
 
-using UnityEngine;
-
 // Class for Main Loop
 public class MainLoopable : ILoopable
 {
     //MainLoopable objects
-    private static MainLoopable _Instance;
+    private static MainLoopable Instance;
     private readonly List<ILoopable> _RegisteredLoops = new List<ILoopable>();
 
     // MainLoopable instance getter
-    public static MainLoopable GetInstance() => _Instance;
+    public static MainLoopable GetInstance() => Instance;
 
     // Instantiate MainLoopable, Logger, and World, also Register Blocks
     public static void Instantiate()
     {
-        Debug.Log("MainLoopable.Instantiate() executing...");
-        _Instance = new MainLoopable();
+        Instance = new MainLoopable();
         //register
         Logger.Instantiate();
         World.Instantiate();
@@ -54,8 +51,14 @@ public class MainLoopable : ILoopable
     }
 
     // Register Loops
-    public void RegisterLoops(ILoopable l) => this._RegisteredLoops.Add(l);
+    public void RegisterLoops(ILoopable l)
+    {
+        this._RegisteredLoops.Add(l);
+    }
 
     // Deregister Loops
-    public void DeRegisterLoops(ILoopable l) => this._RegisteredLoops.Remove(l);
+    public void DeRegisterLoops(ILoopable l)
+    {
+        this._RegisteredLoops.Remove(l);
+    }
 }
