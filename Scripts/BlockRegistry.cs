@@ -6,7 +6,6 @@ using UnityEngine;
 public class BlockRegistry
 {
     // BlockRegistry variables/objects
-    private static readonly bool DebugMode = true;
     private static List<Block> _REGISTEREDBLOCKS = new List<Block>();
 
     // Register Block
@@ -18,7 +17,7 @@ public class BlockRegistry
     // Register All Blocks to BlockRegistry.txt FILE
     public static void RegisterBlocks()
     {
-        if(DebugMode)
+        if(GameManager.Instance.IsDebug)
         {
             int CurrentID = 0;
             List<string> _names = new List<string>();

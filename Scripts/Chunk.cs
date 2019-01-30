@@ -30,7 +30,7 @@ public class Chunk : ITickable
 
     // Chunk size in blocks
     public static readonly int ChunkWidth = 16;
-    public static readonly int ChunkHeight = 64;
+    public static readonly int ChunkHeight = 128;
 
     // Chunk position getter/setter
     public int PosX { get; private set; }
@@ -81,43 +81,56 @@ public class Chunk : ITickable
             {
                 for(int z = 0; z < ChunkWidth; z++)
                 {
-                    float perlinUpper = this.GetHeightUpper(x, y, z);
-                    float perlinLower = this.GetHeightLower(x, y, z);
-                    // Above Ground
-                    if(y >= ChunkHeight / 2)
+                    float perlin = this.GetNoise(x, y, z);
+                    float perlinCaves = this.GetNoiseForCaves(x, y, z);
+                    float perlinMountainStone = this.GetNoiseForMountainStone(x, y, z);
+                    // Above Ground Generation
+                    if(perlin > GameManager.Scutoff)
                     {
-                        if(perlinUpper > GameManager.Scutoff)
-                        {
-                            this.Blocks[x, y, z] = Block.Air;
-                        }
-                        else if(perlinUpper > GameManager.Scutoff / GameManager.Sdcutoffgrass)
-                        {
-                            this.Blocks[x, y, z] = Block.Grass;
-                        }
-                        else if(perlinUpper > GameManager.Scutoff / GameManager.Sdcutoffdirt)
-                        {
-                            this.Blocks[x, y, z] = Block.Dirt;
-                        }
-                        else
-                        {
-                            this.Blocks[x, y, z] = Block.Stone;
-                        }
+                        this.Blocks[x, y, z] = Block.Air;
                     }
-                    // Under Ground
-                    else if(y < ChunkHeight && y > 1)
+                    else if(perlin > GameManager.Scutoff / GameManager.Sdcutoffgrass)
                     {
-                        if(perlinLower > GameManager.SUGcutoff)
-                        {
-                            this.Blocks[x, y, z] = Block.Air;
-                        }
-                        else
-                        {
-                            this.Blocks[x, y, z] = Block.Stone;
-                        }
+                        this.Blocks[x, y, z] = Block.Grass;
                     }
-                    else if(y <= 1)
+                    else if(perlin > GameManager.Scutoff / GameManager.Sdcutoffdirt)
+                    {
+                        this.Blocks[x, y, z] = Block.Dirt;
+                    }
+                    else
+                    {
+                        this.Blocks[x, y, z] = Block.Stone;
+                    }
+                    // Set stone on mountainsides
+                    if(perlinMountainStone > GameManager.Smcutoff && !this.Blocks[x, y, z].Istransparent())
+                    {
+                        this.Blocks[x, y, z] = Block.Stone;
+                    }
+                    // Cave Generation
+                    if(perlinCaves > GameManager.Scavecutoff)
+                    {
+                        this.Blocks[x, y, z] = Block.Air;
+                    }
+                    // Bedrock Generation
+                    if(y <= 1)
                     {
                         this.Blocks[x, y, z] = Block.Bedrock;
+                    }
+                }
+            }
+        }
+        // Tree generation
+        for(int x = 0; x < ChunkWidth; x++)
+        {
+            for(int z = 0; z < ChunkWidth; z++)
+            {
+                float perlinTree = this.GetNoiseForTree(x, z);
+                if(perlinTree > GameManager.Sdcutofftreemin && perlinTree < GameManager.Sdcutofftreemax)
+                {
+                    int y = MathHelper.GetHighestClearBlockPositionTree(this.Blocks, x, z);
+                    if(y < ChunkHeight - 7 && y > ChunkHeight * 0.3)
+                    {
+                        MathHelper.GenerateTree(this.Blocks, x, y, z, this.PosX, this.PosZ);
                     }
                 }
             }
@@ -183,10 +196,10 @@ public class Chunk : ITickable
                 cTransform.gameObject.AddComponent<MeshRenderer>();
                 cTransform.gameObject.AddComponent<MeshCollider>();
                 cTransform.transform.position = new Vector3(this.PosX * ChunkWidth, 0, this.PosZ * ChunkWidth);
-                Texture2D atlas = new Texture2D(0, 0, TextureFormat.RGB24, false);
+                Texture2D atlas = new Texture2D(0, 0, TextureFormat.ARGB32, false);
                 atlas.LoadImage(System.IO.File.ReadAllBytes("Assets/Resources/Textures/Atlas/atlas.png"));
                 atlas.filterMode = FilterMode.Point;
-                atlas.wrapMode = TextureWrapMode.Repeat;
+                atlas.wrapMode = TextureWrapMode.Clamp;
                 cTransform.gameObject.GetComponent<MeshRenderer>().material.mainTexture = atlas;
                 cTransform.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Glossiness", 0.0f);
             }
@@ -194,7 +207,7 @@ public class Chunk : ITickable
             cTransform.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
             this.renderingLock = false;
             this.hasRendered = true;
-            if(this.IsFirstChunk)
+            if(this.IsFirstChunk && cTransform.transform.GetComponent<MeshCollider>().sharedMesh != null)
             {
                 Vector3 PlayerStartPosition = World.Instance.PlayerStartingPos.GetVec3();
                 PlayerStartPosition.y = MathHelper.GetHighestClearBlockPosition(this.Blocks, PlayerStartPosition.x, PlayerStartPosition.z, this.PosX, this.PosZ);
@@ -203,47 +216,68 @@ public class Chunk : ITickable
         }
     }
 
-    //// Get height from noise
-    //public float GetHeight(float px, float py, float pz)
-    //{
-    //    px += this.PosX * ChunkWidth;
-    //    pz += this.PosZ * ChunkWidth;
-    //    float p1 = Mathf.PerlinNoise(px / GameManager.Sdx, pz / GameManager.Sdz) * GameManager.Smul;
-    //    p1 *= GameManager.Smy * py;
-    //    return p1;
-    //}
-
-    // Get height from noise, UPPER half
-    public float GetHeightUpper(float px, float py, float pz)
+    // Get noise for terrain generation
+    public float GetNoise(float px, float py, float pz)
     {
         px += this.PosX * ChunkWidth;
         pz += this.PosZ * ChunkWidth;
-        float AB = Mathf.PerlinNoise(px / GameManager.Sdx, py / GameManager.Sdy) * GameManager.Smul;
-        float BC = Mathf.PerlinNoise(py / GameManager.Sdy, pz / GameManager.Sdz) * GameManager.Smul;
-        float AC = Mathf.PerlinNoise(px / GameManager.Sdx, pz / GameManager.Sdz) * GameManager.Smul;
-        float BA = Mathf.PerlinNoise(py / GameManager.Sdy, px / GameManager.Sdx) * GameManager.Smul;
-        float CB = Mathf.PerlinNoise(pz / GameManager.Sdz, py / GameManager.Sdy) * GameManager.Smul;
-        float CA = Mathf.PerlinNoise(pz / GameManager.Sdz, px / GameManager.Sdx) * GameManager.Smul;
-        float ABC = AB + BC + AC + BA + CB + CA;
-        ABC = ABC / 6f;
-        ABC = ABC * GameManager.Smy * py;
-        return ABC;
+        float xy = Mathf.PerlinNoise(px / GameManager.Sdx, py / GameManager.Sdy) * GameManager.Smul;
+        float yz = Mathf.PerlinNoise(py / GameManager.Sdy, pz / GameManager.Sdz) * GameManager.Smul;
+        float xz = Mathf.PerlinNoise(px / GameManager.Sdx, pz / GameManager.Sdz) * GameManager.Smul;
+        float xyz = (xy + yz + xz) / 3f;
+        float oxy = Mathf.PerlinNoise((px / GameManager.Sndx) + GameManager.Soffset, (py / GameManager.Sndy) - GameManager.Soffset) * GameManager.Snmul;
+        float oyz = Mathf.PerlinNoise((py / GameManager.Sndy) - GameManager.Soffset, (pz / GameManager.Sndz) + GameManager.Soffset) * GameManager.Snmul;
+        float oxz = Mathf.PerlinNoise((px / GameManager.Sndx) + GameManager.Soffset, (pz / GameManager.Sndz) - GameManager.Soffset) * GameManager.Snmul;
+        float oxyz = (oxy + oyz + oxz) / 3f;
+        xyz = (xyz + oxyz) / 2f;
+        xyz = xyz * GameManager.Smy * py;
+        return xyz;
     }
 
-    // Get height from noise, LOWER half
-    public float GetHeightLower(float px, float py, float pz)
+    // Get noise for cave generation
+    public float GetNoiseForCaves(float px, float py, float pz)
     {
         px += this.PosX * ChunkWidth;
         pz += this.PosZ * ChunkWidth;
-        float AB = Mathf.PerlinNoise(px / GameManager.SUGdx, py / GameManager.SUGdy) * GameManager.SUGmul;
-        float BC = Mathf.PerlinNoise(py / GameManager.SUGdy, pz / GameManager.SUGdz) * GameManager.SUGmul;
-        float AC = Mathf.PerlinNoise(px / GameManager.SUGdx, pz / GameManager.SUGdz) * GameManager.SUGmul;
-        float BA = Mathf.PerlinNoise(py / GameManager.SUGdy, px / GameManager.SUGdx) * GameManager.SUGmul;
-        float CB = Mathf.PerlinNoise(pz / GameManager.SUGdz, py / GameManager.SUGdy) * GameManager.SUGmul;
-        float CA = Mathf.PerlinNoise(pz / GameManager.SUGdz, px / GameManager.SUGdx) * GameManager.SUGmul;
-        float ABC = AB + BC + AC + BA + CB + CA;
-        ABC = ABC / 6f;
-        return ABC;
+        float xy = Mathf.PerlinNoise(px / GameManager.Scavedx, py / GameManager.Scavedy) * GameManager.Scavemul;
+        float yz = Mathf.PerlinNoise(py / GameManager.Scavedy, pz / GameManager.Scavedz) * GameManager.Scavemul;
+        float xz = Mathf.PerlinNoise(px / GameManager.Scavedx, pz / GameManager.Scavedz) * GameManager.Scavemul;
+        float xyz = (xy + yz + xz) / 3f;
+        float oxy = Mathf.PerlinNoise((px / GameManager.Scavendx) + GameManager.Scaveoffset, (py / GameManager.Scavendy) - GameManager.Scaveoffset) * GameManager.Scavenmul;
+        float oyz = Mathf.PerlinNoise((py / GameManager.Scavendy) - GameManager.Scaveoffset, (pz / GameManager.Scavendz) + GameManager.Scaveoffset) * GameManager.Scavenmul;
+        float oxz = Mathf.PerlinNoise((px / GameManager.Scavendx) + GameManager.Scaveoffset, (pz / GameManager.Scavendz) - GameManager.Scaveoffset) * GameManager.Scavenmul;
+        float oxyz = (oxy + oyz + oxz) / 3f;
+        xyz = (xyz + oxyz) / 2f;
+        return xyz;
+    }
+
+    // Get noise for putting stone on mountain tops
+    public float GetNoiseForMountainStone(float px, float py, float pz)
+    {
+        px += this.PosX * ChunkWidth;
+        pz += this.PosZ * ChunkWidth;
+        float xy = Mathf.PerlinNoise(px / GameManager.Smdx, py / GameManager.Smdy) * GameManager.Smmul;
+        float yz = Mathf.PerlinNoise(py / GameManager.Smdy, pz / GameManager.Smdz) * GameManager.Smmul;
+        float xz = Mathf.PerlinNoise(px / GameManager.Smdx, pz / GameManager.Smdz) * GameManager.Smmul;
+        float xyz = (xy + yz + xz) / 3f;
+        float oxy = Mathf.PerlinNoise((px / GameManager.Smndx) + GameManager.Smoffset, (py / GameManager.Smndy) - GameManager.Smoffset) * GameManager.Smnmul;
+        float oyz = Mathf.PerlinNoise((py / GameManager.Smndy) - GameManager.Smoffset, (pz / GameManager.Smndz) + GameManager.Smoffset) * GameManager.Smnmul;
+        float oxz = Mathf.PerlinNoise((px / GameManager.Smndx) + GameManager.Smoffset, (pz / GameManager.Smndz) - GameManager.Smoffset) * GameManager.Smnmul;
+        float oxyz = (oxy + oyz + oxz) / 3f;
+        xyz = (xyz + oxyz) / 2f;
+        xyz = xyz * GameManager.Smmy * py;
+        return xyz;
+    }
+
+    // Get noise tree generation
+    public float GetNoiseForTree(float px, float pz)
+    {
+        px += this.PosX * ChunkWidth;
+        pz += this.PosZ * ChunkWidth;
+        float xz = Mathf.PerlinNoise(px / GameManager.Streedx, pz / GameManager.Streedz) * GameManager.Streemul;
+        float oxz = Mathf.PerlinNoise((px / GameManager.Streendx) + GameManager.Streeoffset, (pz / GameManager.Streendz) - GameManager.Streeoffset) * GameManager.Streenmul;
+        xz = (xz + oxz) / 2f;
+        return xz;
     }
 
     // Get Block at position
@@ -277,6 +311,12 @@ public class Chunk : ITickable
         {
             this.NeedToUpdatePosZNeighbor = true;
         }
+    }
+
+    // Set Block at position used by Structure Generator
+    internal void StructureSetBlock(int x, int y, int z, Block block)
+    {
+        this.Blocks[x, y, z] = block;
     }
 
     // Degenerate Chunks

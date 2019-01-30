@@ -433,10 +433,69 @@ public class MathHelper
         {
             if(blocks[newx, i, newz].Istransparent() && blocks[newx, i + 1, newz].Istransparent() && !blocks[newx, i - 1, newz].Istransparent())
             { 
-                y = i + 0.7f;
+                y = i + 1.7f;
                 return y;
             }
         }
         return y;
+    }
+
+    // Get highest clear block: for tree generation
+    public static int GetHighestClearBlockPositionTree(Block[,,] blocks, int x, int z)
+    {
+        int y = Chunk.ChunkHeight - 1;
+        for(int i = Chunk.ChunkHeight - 7; i >= 1; i--)
+        {
+            if(blocks[x, i, z].Istransparent() && blocks[x, i + 1, z].Istransparent() && blocks[x, i + 2, z].Istransparent()
+                && blocks[x, i + 3, z].Istransparent() && blocks[x, i + 4, z].Istransparent() && blocks[x, i + 5, z].Istransparent()
+                && blocks[x, i + 6, z].Istransparent() && !blocks[x, i - 1, z].Istransparent() && blocks[x, i - 1, z] != Block.Leaves && blocks[x, i - 1, z] != Block.Logs)
+            {
+                y = i;
+                return y;
+            }
+        }
+        return 0;
+    }
+
+    // Generate tree at position
+    public static void GenerateTree(Block[,,] blocks, int x, int y, int z, int ChunkPosX, int ChunkPosZ)
+    {
+        Chunk currentchunk;
+        currentchunk = World.Instance.GetChunk(ChunkPosX, ChunkPosZ);
+        if(x - 2 > 0 && x + 2 < Chunk.ChunkWidth - 1 && z - 2 > 0 && z + 2 < Chunk.ChunkWidth - 1)
+        {
+            currentchunk.StructureSetBlock(x, y, z, Block.Logs);
+            currentchunk.StructureSetBlock(x, y + 1, z, Block.Logs);
+            currentchunk.StructureSetBlock(x, y + 2, z, Block.Logs);
+            currentchunk.StructureSetBlock(x, y + 3, z, Block.Logs);
+            currentchunk.StructureSetBlock(x, y + 4, z, Block.Logs);
+            currentchunk.StructureSetBlock(x, y + 5, z, Block.Logs);
+            currentchunk.StructureSetBlock(x - 1, y + 5, z, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 1, y + 5, z, Block.Leaves);
+            currentchunk.StructureSetBlock(x, y + 5, z - 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x, y + 5, z + 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x - 1, y + 5, z - 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x - 1, y + 5, z + 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 1, y + 5, z - 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 1, y + 5, z + 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x - 2, y + 5, z, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 2, y + 5, z, Block.Leaves);
+            currentchunk.StructureSetBlock(x, y + 5, z - 2, Block.Leaves);
+            currentchunk.StructureSetBlock(x, y + 5, z + 2, Block.Leaves);
+            currentchunk.StructureSetBlock(x - 2, y + 5, z - 2, Block.Leaves);
+            currentchunk.StructureSetBlock(x - 2, y + 5, z + 2, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 2, y + 5, z - 2, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 2, y + 5, z + 2, Block.Leaves);
+            currentchunk.StructureSetBlock(x, y + 6, z, Block.Logs);
+            currentchunk.StructureSetBlock(x - 1, y + 6, z, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 1, y + 6, z, Block.Leaves);
+            currentchunk.StructureSetBlock(x, y + 6, z - 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x, y + 6, z + 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x - 1, y + 6, z - 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x - 1, y + 6, z + 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 1, y + 6, z - 1, Block.Leaves);
+            currentchunk.StructureSetBlock(x + 1, y + 6, z + 1, Block.Leaves);
+        }
+
     }
 }

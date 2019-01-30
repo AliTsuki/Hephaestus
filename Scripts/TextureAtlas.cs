@@ -29,7 +29,7 @@ public class TextureAtlas
                 {
                     goto end;
                 }
-                Texture2D temp = new Texture2D(0, 0);
+                Texture2D temp = new Texture2D(0, 0, TextureFormat.ARGB32, false);
                 temp.LoadImage(File.ReadAllBytes(_Images[count]));
                 Atlas.SetPixels(x * PixelWidth, y * PixelHeight, PixelWidth, PixelHeight, temp.GetPixels());
                 float startx = x * PixelWidth;
