@@ -17,57 +17,57 @@ public class GameManager : MonoBehaviour
     private MainLoopable main;
     private readonly List<Delegate> _Delegates = new List<Delegate>();
     
-    // Noise variables
-    public float dx = 50f;
-    public float dz = 50f;
-    public float dy = 50f;
-    public float my = 0.5f;
-    public float mul = 0.07f;
-    public float ndx = 20f;
-    public float ndz = 20f;
-    public float ndy = 20f;
-    public float nmul = 0.02f;
-    public float offset = 500f;
-    public float cutoff = 0.8f;
-    public float dcutoffgrass = 1.04f;
-    public float dcutoffdirt = 1.2f;
-    public float dcutoffstone = 1.4f;
+    //// Noise variables
+    //public float dx = 50f;
+    //public float dz = 50f;
+    //public float dy = 50f;
+    //public float my = 0.5f;
+    //public float mul = 0.07f;
+    //public float ndx = 20f;
+    //public float ndz = 20f;
+    //public float ndy = 20f;
+    //public float nmul = 0.02f;
+    //public float offset = 500f;
+    //public float cutoff = 0.8f;
+    //public float dcutoffgrass = 1.04f;
+    //public float dcutoffdirt = 1.2f;
+    //public float dcutoffstone = 1.4f;
 
-    // Mountain Stone noise variables
-    public float mdx = 20f;
-    public float mdz = 20f;
-    public float mdy = 20f;
-    public float mmy = 0.5f;
-    public float mmul = 0.01f;
-    public float mndx = 100f;
-    public float mndz = 100f;
-    public float mndy = 20f;
-    public float mnmul = 0.09f;
-    public float moffset = 1000f;
-    public float mcutoff = 1f;
+    //// Mountain Stone noise variables
+    //public float mdx = 20f;
+    //public float mdz = 20f;
+    //public float mdy = 20f;
+    //public float mmy = 0.5f;
+    //public float mmul = 0.01f;
+    //public float mndx = 100f;
+    //public float mndz = 100f;
+    //public float mndy = 20f;
+    //public float mnmul = 0.09f;
+    //public float moffset = 1000f;
+    //public float mcutoff = 1f;
 
-    // Underground noise variables
-    public float cavedx = 100f;
-    public float cavedz = 100f;
-    public float cavedy = 10f;
-    public float cavemul = 0.04f;
-    public float cavendx = 35f;
-    public float cavendz = 35f;
-    public float cavendy = 10f;
-    public float cavenmul = 0.09f;
-    public float caveoffset = -500f;
-    public float cavecutoff = 0.04f;
+    //// Underground noise variables
+    //public float cavedx = 100f;
+    //public float cavedz = 100f;
+    //public float cavedy = 10f;
+    //public float cavemul = 0.04f;
+    //public float cavendx = 35f;
+    //public float cavendz = 35f;
+    //public float cavendy = 10f;
+    //public float cavenmul = 0.09f;
+    //public float caveoffset = -500f;
+    //public float cavecutoff = 0.04f;
 
-    // Tree noise variables
-    public float treedx = 5f;
-    public float treedz = 5f;
-    public float treemul = 0.6f;
-    public float treeoffset = -1000f;
-    public float dcutofftreemax = 0.166f;
-    public float dcutofftreemin = 0.165f;
-    public float treendx = 100f;
-    public float treendz = 100f;
-    public float treenmul = 0.4f;
+    //// Tree noise variables
+    //public float treedx = 5f;
+    //public float treedz = 5f;
+    //public float treemul = 0.6f;
+    //public float treeoffset = -1000f;
+    //public float dcutofftreemax = 0.166f;
+    //public float dcutofftreemin = 0.165f;
+    //public float treendx = 100f;
+    //public float treendz = 100f;
+    //public float treenmul = 0.4f;
 
     // Static noise variables
     public static float Sdx = 50f;
@@ -86,17 +86,19 @@ public class GameManager : MonoBehaviour
     public static float Sdcutoffstone = 1.4f;
 
     // Static Mountain Stone noise variables
-    public static float Smdx = 20f;
-    public static float Smdz = 20f;
-    public static float Smdy = 20f;
+    public static float Smdx = 10f;
+    public static float Smdz = 10f;
+    public static float Smdy = 10f;
     public static float Smmy = 0.5f;
-    public static float Smmul = 0.01f;
-    public static float Smndx = 100f;
-    public static float Smndz = 100f;
+    public static float Smmul = 0.001f;
+    public static float Smndx = 40f;
+    public static float Smndz = 40f;
     public static float Smndy = 20f;
     public static float Smnmul = 0.09f;
     public static float Smoffset = 1000f;
-    public static float Smcutoff = 1f;
+    public static float Smcutoff = 1.4f;
+    public static float SDirtMinCutoff = 0.8f;
+    public static float SDirtMaxCutoff = 0.9f;
 
     // Static underground noise variables
     public static float Scavedx = 100f;
@@ -105,8 +107,8 @@ public class GameManager : MonoBehaviour
     public static float Scavemul = 0.04f;
     public static float Scavendx = 35f;
     public static float Scavendz = 35f;
-    public static float Scavendy = 10f;
-    public static float Scavenmul = 0.09f;
+    public static float Scavendy = 20f;
+    public static float Scavenmul = 0.1f;
     public static float Scaveoffset = 500f;
     public static float Scavecutoff = 0.04f;
 
@@ -146,46 +148,46 @@ public class GameManager : MonoBehaviour
         // in World.Start() for lines:  _LoadedChunk.Add(new Chunk...
         // change to:                   _LoadedChunk.Add(new DevChunk...
         // then move sliders in editor to test Noise values on chunk gen
-        if(this.IsDebug)
-        {
-            Sdx = this.dx;
-            Sdz = this.dz;
-            Sdy = this.dy;
-            Smy = this.my;
-            Smul = this.mul;
-            Sndx = this.ndx;
-            Sndz = this.ndz;
-            Sndy = this.ndy;
-            Snmul = this.nmul;
-            Soffset = this.offset;
-            Scutoff = this.cutoff;
-            Sdcutoffgrass = this.dcutoffgrass;
-            Sdcutoffdirt = this.dcutoffdirt;
-            Sdcutoffstone = this.dcutoffstone;
-            Sdcutofftreemax = this.dcutofftreemax;
-            Sdcutofftreemin = this.dcutofftreemin;
-            Smdx = this.mdx;
-            Smdz = this.mdz;
-            Smdy = this.mdy;
-            Smmul = this.mmul;
-            Smmul = this.mmul;
-            Smndx = this.mndx;
-            Smndz = this.mndz;
-            Smndy = this.mndy;
-            Smnmul = this.mnmul;
-            Smoffset = this.moffset;
-            Smcutoff = this.mcutoff;
-            Scavedx = this.cavedx;
-            Scavedz = this.cavedz;
-            Scavedy = this.cavedy;
-            Scavemul = this.cavemul;
-            Scavendx = this.cavendx;
-            Scavendz = this.cavendz;
-            Scavendy = this.cavendy;
-            Scavenmul = this.cavenmul;
-            Scaveoffset = this.caveoffset;
-            Scavecutoff = this.cavecutoff;
-        }
+        //if(this.IsDebug)
+        //{
+        //    Sdx = this.dx;
+        //    Sdz = this.dz;
+        //    Sdy = this.dy;
+        //    Smy = this.my;
+        //    Smul = this.mul;
+        //    Sndx = this.ndx;
+        //    Sndz = this.ndz;
+        //    Sndy = this.ndy;
+        //    Snmul = this.nmul;
+        //    Soffset = this.offset;
+        //    Scutoff = this.cutoff;
+        //    Sdcutoffgrass = this.dcutoffgrass;
+        //    Sdcutoffdirt = this.dcutoffdirt;
+        //    Sdcutoffstone = this.dcutoffstone;
+        //    Sdcutofftreemax = this.dcutofftreemax;
+        //    Sdcutofftreemin = this.dcutofftreemin;
+        //    Smdx = this.mdx;
+        //    Smdz = this.mdz;
+        //    Smdy = this.mdy;
+        //    Smmul = this.mmul;
+        //    Smmul = this.mmul;
+        //    Smndx = this.mndx;
+        //    Smndz = this.mndz;
+        //    Smndy = this.mndy;
+        //    Smnmul = this.mnmul;
+        //    Smoffset = this.moffset;
+        //    Smcutoff = this.mcutoff;
+        //    Scavedx = this.cavedx;
+        //    Scavedz = this.cavedz;
+        //    Scavedy = this.cavedy;
+        //    Scavemul = this.cavemul;
+        //    Scavendx = this.cavendx;
+        //    Scavendz = this.cavendz;
+        //    Scavendy = this.cavendy;
+        //    Scavenmul = this.cavenmul;
+        //    Scaveoffset = this.caveoffset;
+        //    Scavecutoff = this.cavecutoff;
+        //}
         try
         {
             this.main.Update();
@@ -234,16 +236,19 @@ public class GameManager : MonoBehaviour
     }
 
     // Create player in world and destroy starting UI
-    public void StartPlayer(Vector3 Pos)
+    public void StartPlayer(Vector3 Pos, GameObject go)
     {
         Instance.RegisterDelegate(new Action(() =>
         {
             {
-                Destroy(this.StartCamera);
-                Destroy(this.UITEXT);
-                this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
-                this.Player.SetActive(true);
-                this.PlayerPos = this.Player.transform.position;
+                if(go.gameObject.GetComponent<MeshCollider>().sharedMesh != null)
+                {
+                    Destroy(this.StartCamera);
+                    Destroy(this.UITEXT);
+                    this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
+                    this.Player.SetActive(true);
+                    this.PlayerPos = this.Player.transform.position;
+                }
             }
         }));
     }

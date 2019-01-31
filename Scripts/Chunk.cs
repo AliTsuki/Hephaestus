@@ -106,6 +106,11 @@ public class Chunk : ITickable
                     {
                         this.Blocks[x, y, z] = Block.Stone;
                     }
+                    // Set dirt in stone
+                    if(perlinMountainStone > GameManager.SDirtMinCutoff && perlinMountainStone < GameManager.SDirtMaxCutoff && !this.Blocks[x, y, z].Istransparent())
+                    {
+                        this.Blocks[x, y, z] = Block.Dirt;
+                    }
                     // Cave Generation
                     if(perlinCaves > GameManager.Scavecutoff)
                     {
@@ -207,11 +212,11 @@ public class Chunk : ITickable
             cTransform.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
             this.renderingLock = false;
             this.hasRendered = true;
-            if(this.IsFirstChunk && cTransform.transform.GetComponent<MeshCollider>().sharedMesh != null)
+            if(this.IsFirstChunk)
             {
                 Vector3 PlayerStartPosition = World.Instance.PlayerStartingPos.GetVec3();
                 PlayerStartPosition.y = MathHelper.GetHighestClearBlockPosition(this.Blocks, PlayerStartPosition.x, PlayerStartPosition.z, this.PosX, this.PosZ);
-                GameManager.Instance.StartPlayer(PlayerStartPosition);
+                GameManager.Instance.StartPlayer(PlayerStartPosition, this.go);
             }
         }
     }

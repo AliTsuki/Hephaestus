@@ -18,7 +18,7 @@ public class MeshData
         this._uvs = new List<Vector2>(u);
     }
 
-    // MeshData constructor (EMPTY, can be deleted??)
+    // MeshData constructor
     public MeshData()
     {
         

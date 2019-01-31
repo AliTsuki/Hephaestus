@@ -16,7 +16,7 @@ public class Block : ITickable
     public static Block Gravel = new Block("Gravel", false, "Assets/Resources/Textures/Blocks/Gravel.png");
     public static Block Iron_Ore = new Block("Iron Ore", false, "Assets/Resources/Textures/Blocks/Iron_Ore.png");
     public static Block Leaves = new Block("Leaves", false, "Assets/Resources/Textures/Blocks/Leaves.png");
-    public static Block Logs = new Block("Logs", false, "Assets/Resources/Textures/Blocks/Logs_Top.png", "Assets/Resources/Textures/Blocks/Logs_Side.png", "Assets/Resources/Textures/Blocks/Logs_Top.png");
+    public static Block Logs = new Block("Logs", false, "Assets/Resources/Textures/Blocks/Logs_Top.png", "Assets/Resources/Textures/Blocks/Logs_Side.png");
     public static Block Obsidian = new Block("Obsidian", false, "Assets/Resources/Textures/Blocks/Obsidian.png");
     public static Block Purple_Ore = new Block("Purple_Ore", false, "Assets/Resources/Textures/Blocks/Purple_Ore.png");
     public static Block Red_Ore = new Block("Red_Ore", false, "Assets/Resources/Textures/Blocks/Red_Ore.png");
@@ -52,6 +52,18 @@ public class Block : ITickable
         this._UVMap = UVMap.GetUVMap(this.TopImageName)._UVMAP;
         this._UVMap2 = UVMap.GetUVMap(this.LeftImageName)._UVMAP;
         this._UVMap3 = UVMap.GetUVMap(this.BottomImageName)._UVMAP;
+        this.REGISTER();
+    }
+
+    // Block constructor for Blocks with unique top, sides, bottom textures
+    public Block(string BlockName, bool IsTransparent, string TopImageName, string SideImageName)
+    {
+        this.BlockName = BlockName;
+        this.IsTransparent = IsTransparent;
+        this.TopImageName = TopImageName;
+        this.LeftImageName = SideImageName;
+        this._UVMap = UVMap.GetUVMap(this.TopImageName)._UVMAP;
+        this._UVMap2 = UVMap.GetUVMap(this.LeftImageName)._UVMAP;
         this.REGISTER();
     }
 
@@ -131,11 +143,23 @@ public class Block : ITickable
             return new MeshData();
         }
         // If block is NOT air, Draw Cube
-        else if(this.Equals(Grass) || this.Equals(Logs))
+        else if(this.Equals(Grass))
         {
             try
             {
                 return MathHelper.DrawCube(chunk, _Blocks, this, x, y, z, this._UVMap, this._UVMap2, this._UVMap3);
+            }
+            catch(System.Exception e)
+            {
+                Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+            }
+            return new MeshData();
+        }
+        else if(this.Equals(Logs))
+        {
+            try
+            {
+                return MathHelper.DrawCube(chunk, _Blocks, this, x, y, z, this._UVMap, this._UVMap2);
             }
             catch(System.Exception e)
             {

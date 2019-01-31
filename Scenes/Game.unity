@@ -190,6 +190,17 @@ PrefabInstance:
       propertyPath: BlockSelector
       value: 
       objectReference: {fileID: 1405985048}
+    - target: {fileID: 3013639576804781485, guid: 28a31402099097c418dff10a59db5f05,
+        type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2291478893063306486, guid: 28a31402099097c418dff10a59db5f05,
+        type: 3}
+      propertyPath: sharedProfile
+      value: 
+      objectReference: {fileID: 11400000, guid: 30fbb19881f894243b9f174d010dfd0e,
+        type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 28a31402099097c418dff10a59db5f05, type: 3}
 --- !u!1 &577647971
@@ -481,7 +492,7 @@ Light:
     m_NormalBias: 0.4
     m_NearPlane: 0.2
   m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
+  m_DrawHalo: 1
   m_Flare: {fileID: 0}
   m_RenderMode: 0
   m_CullingMask:
@@ -618,14 +629,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 854c30d5668d04340b4d6724effde279, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsDebug: 0
   StartCamera: {fileID: 577647971}
   UITEXT: {fileID: 2093888586}
   Player: {fileID: 246672359}
-  dx: 1
-  dz: 1
-  my: 1
-  cutoff: 1
-  mul: 1
 --- !u!4 &1548076113
 Transform:
   m_ObjectHideFlags: 0

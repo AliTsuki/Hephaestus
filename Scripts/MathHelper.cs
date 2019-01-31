@@ -127,6 +127,271 @@ public class MathHelper
             && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).HasGenerated
             && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).Istransparent()))
         {
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            {
+                data.Merge(new MeshData( // Front Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(0,0,1),
+                    new Vector3(0,1,0),
+                    new Vector3(0,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+            }
+            else
+            {
+                data.Merge(new MeshData( // Front Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(0,0,1),
+                    new Vector3(0,1,0),
+                    new Vector3(0,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap3[2],
+                    _uvmap3[0],
+                    _uvmap3[3],
+                    _uvmap3[1]
+                }));
+            }
+        }
+        // Back Face
+        if((x + 1 < Chunk.ChunkWidth && _Blocks[x + 1, y, z].Istransparent()) || 
+            (x + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1])
+            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).HasGenerated
+            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).Istransparent()))
+        {
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            {
+                data.Merge(new MeshData( // Back Face
+                new List<Vector3>()
+                {
+                    new Vector3(1,0,0),
+                    new Vector3(1,0,1),
+                    new Vector3(1,1,0),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+            }
+            else
+            {
+                data.Merge(new MeshData( // Back Face
+                new List<Vector3>()
+                {
+                    new Vector3(1,0,0),
+                    new Vector3(1,0,1),
+                    new Vector3(1,1,0),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap3[2],
+                    _uvmap3[0],
+                    _uvmap3[3],
+                    _uvmap3[1]
+                }));
+            }
+        }
+        // Left Face
+        if((z - 1 >= 0 && _Blocks[x, y, z - 1].Istransparent()) ||
+            (z - 1 < 0 && World.Instance.ChunkExists(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1])
+            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).HasGenerated
+            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).GetBlock(x, y, Chunk.ChunkWidth - 1).Istransparent()))
+        {
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            {
+                data.Merge(new MeshData( // Left Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(1,0,0),
+                    new Vector3(0,1,0),
+                    new Vector3(1,1,0)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+            }
+            else
+            {
+                data.Merge(new MeshData( // Left Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(1,0,0),
+                    new Vector3(0,1,0),
+                    new Vector3(1,1,0)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap3[2],
+                    _uvmap3[0],
+                    _uvmap3[3],
+                    _uvmap3[1]
+                }));
+            }
+        }
+        // Right Face
+        if((z + 1 < Chunk.ChunkWidth && _Blocks[x, y, z + 1].Istransparent()) ||
+            (z + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1])
+            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).HasGenerated
+            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).GetBlock(x, y, 0).Istransparent()))
+        {
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            {
+                data.Merge(new MeshData( // Right Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,1),
+                    new Vector3(1,0,1),
+                    new Vector3(0,1,1),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap2[2],
+                    _uvmap2[0],
+                    _uvmap2[3],
+                    _uvmap2[1]
+                }));
+            }
+            else
+            {
+                data.Merge(new MeshData( // Right Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,1),
+                    new Vector3(1,0,1),
+                    new Vector3(0,1,1),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap3[2],
+                    _uvmap3[0],
+                    _uvmap3[3],
+                    _uvmap3[1]
+                }));
+            }
+        }
+        data.AddPos(new Vector3(x - 0.5f, y - 0.5f, z - 0.5f));
+        return data;
+    }
+
+    // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
+    // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
+    // Draw Log Block
+    public static MeshData DrawCube(Chunk chunk, Block[,,] _Blocks, Block block, int x, int y, int z, Vector2[] _uvmap, Vector2[] _uvmap2)
+    {
+        MeshData data = new MeshData();
+        // If Air don't bother looping through draw below
+        if(block.Equals(Block.Air))
+        {
+            return new MeshData();
+        }
+        // Bottom Face
+        if(y > 0 && _Blocks[x, y - 1, z].Istransparent())
+        {
+            data.Merge(new MeshData( // Bottom Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,0,0),
+                    new Vector3(0,0,1),
+                    new Vector3(1,0,0),
+                    new Vector3(1,0,1)
+                },
+                new List<int>()
+                {
+                    0,2,1,3,1,2
+                },
+                new Vector2[]
+                {
+                    _uvmap[0],
+                    _uvmap[1],
+                    _uvmap[2],
+                    _uvmap[3]
+                }));
+        }
+        // Top Face
+        if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+        {
+            data.Merge(new MeshData( // Top Face
+                new List<Vector3>()
+                {
+                    new Vector3(0,1,0),
+                    new Vector3(0,1,1),
+                    new Vector3(1,1,0),
+                    new Vector3(1,1,1)
+                },
+                new List<int>()
+                {
+                    0,1,2,3,2,1
+                },
+                new Vector2[]
+                {
+                    _uvmap[0],
+                    _uvmap[1],
+                    _uvmap[2],
+                    _uvmap[3]
+                }));
+        }
+        // Front Face
+        if((x - 1 >= 0 && _Blocks[x - 1, y, z].Istransparent()) ||
+            (x - 1 < 0 && World.Instance.ChunkExists(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1])
+            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).HasGenerated
+            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).Istransparent()))
+        {
             data.Merge(new MeshData( // Front Face
                 new List<Vector3>()
                 {
@@ -148,7 +413,7 @@ public class MathHelper
                 }));
         }
         // Back Face
-        if((x + 1 < Chunk.ChunkWidth && _Blocks[x + 1, y, z].Istransparent()) || 
+        if((x + 1 < Chunk.ChunkWidth && _Blocks[x + 1, y, z].Istransparent()) ||
             (x + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1])
             && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).HasGenerated
             && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).Istransparent()))
@@ -433,7 +698,7 @@ public class MathHelper
         {
             if(blocks[newx, i, newz].Istransparent() && blocks[newx, i + 1, newz].Istransparent() && !blocks[newx, i - 1, newz].Istransparent())
             { 
-                y = i + 1.7f;
+                y = i + 3.7f;
                 return y;
             }
         }
@@ -452,6 +717,10 @@ public class MathHelper
             {
                 y = i;
                 return y;
+            }
+            if(!blocks[x, i, z].Istransparent() && !blocks[x, i + 1, z].Istransparent())
+            {
+                break;
             }
         }
         return 0;

@@ -49,9 +49,9 @@ public class World : ILoopable
                         int direction = 0; // current direction; 0=RIGHT, 1=DOWN, 2=LEFT, 3=UP
                         int counter = 0; // counter
                         int chainSize = 1; // chain size
-                        for(int k = 1; k <= (renderDistanceChunks - 1); k++)
+                        for(int k = 1; k <= renderDistanceChunks; k++)
                         {
-                            for(int j = 0; j < (k < (renderDistanceChunks - 1) ? 2 : 3); j++)
+                            for(int j = 0; j < (k < renderDistanceChunks ? 2 : 3); j++)
                             {
                                 for(int i = 0; i < chainSize; i++)
                                 {
@@ -139,7 +139,7 @@ public class World : ILoopable
                         // Loop through loaded chunks and run Chunk.Update(): Draw/Update meshes to render
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(currentPlayerPos.x, currentPlayerPos.z)) <= ((renderDistanceChunks - 1) * Chunk.ChunkWidth))
+                            if(Vector2.Distance(new Vector2(this._LoadedChunks[i].PosX * Chunk.ChunkWidth, this._LoadedChunks[i].PosZ * Chunk.ChunkWidth), new Vector2(currentPlayerPos.x, currentPlayerPos.z)) <= ((renderDistanceChunks - 2) * Chunk.ChunkWidth))
                             {
                                 // Before update, if chunk has been set that it's neighbors need to update, tell those neighbors they need to update
                                 // Neighbors will need to update meshes if a block is changed at the intersection of chunks to ensure no extra tris are rendered unseen
