@@ -1,5 +1,5 @@
 ﻿using System;
-
+using SharpNoise.Modules;
 using UnityEngine;
 
 // Class containing Chunk functions
@@ -75,49 +75,85 @@ public class Chunk : ITickable
             return;
         }
         this.Blocks = new Block[ChunkWidth, ChunkHeight, ChunkWidth];
+        System.Random r = new System.Random();
+        int check;
         for(int x = 0; x < ChunkWidth; x++)
         {
             for(int y = 0; y < ChunkHeight; y++)
             {
                 for(int z = 0; z < ChunkWidth; z++)
                 {
-                    float perlin = this.GetNoise(x, y, z);
-                    float perlinCaves = this.GetNoiseForCaves(x, y, z);
-                    float perlinMountainStone = this.GetNoiseForMountainStone(x, y, z);
+                    float perlinNew = this.GetNoiseNew(x, y, z);
+                    float perlinNewCave = this.GetNoiseNewCave(x, y, z);
                     // Above Ground Generation
-                    if(perlin > GameManager.Scutoff)
+                    // Air Layer
+                    if(perlinNew > GameManager.STATICAirAndLandIntersectionCutoff)
                     {
                         this.Blocks[x, y, z] = Block.Air;
                     }
-                    else if(perlin > GameManager.Scutoff / GameManager.Sdcutoffgrass)
+                    // Top layer
+                    else if(perlinNew < GameManager.STATICAirAndLandIntersectionCutoff && perlinNew > GameManager.STATICLandTopLayerCutoff)
                     {
-                        this.Blocks[x, y, z] = Block.Grass;
+                        check = r.Next(-4, 4);
+                        if(check + y > 110)
+                        {
+                            this.Blocks[x, y, z] = Block.Snow;
+                        }
+                        else if(check + y < 110 && check + y > 100)
+                        {
+                            this.Blocks[x, y, z] = Block.Stone;
+                        }
+                        else if(check + y < 100 && check + y > 90)
+                        {
+                            this.Blocks[x, y, z] = Block.Dirt;
+                        }
+                        else if(check + y < 90 && check + y > 62)
+                        {
+                            this.Blocks[x, y, z] = Block.Grass;
+                        }
+                        else if(check + y < 62 && check + y > 30)
+                        {
+                            this.Blocks[x, y, z] = Block.Sand;
+                        }
+                        else
+                        {
+                            this.Blocks[x, y, z] = Block.Stone;
+                        }
                     }
-                    else if(perlin > GameManager.Scutoff / GameManager.Sdcutoffdirt)
+                    // Secondary Layer
+                    else if(perlinNew < GameManager.STATICLandTopLayerCutoff && perlinNew > GameManager.STATICLand2NDLayerCutoff)
                     {
-                        this.Blocks[x, y, z] = Block.Dirt;
+                        check = r.Next(-4, 4);
+                        if(check + y > 100)
+                        {
+                            this.Blocks[x, y, z] = Block.Stone;
+                        }
+                        else if(check + y < 100 && check + y > 62)
+                        {
+                            this.Blocks[x, y, z] = Block.Dirt;
+                        }
+                        else if(check + y < 62 && check + y > 30)
+                        {
+                            this.Blocks[x, y, z] = Block.Dirt;
+                        }
+                        else
+                        {
+                            this.Blocks[x, y, z] = Block.Stone;
+                        }
                     }
+                    // Inner Layer
                     else
                     {
                         this.Blocks[x, y, z] = Block.Stone;
                     }
-                    // Set stone on mountainsides
-                    if(perlinMountainStone > GameManager.Smcutoff && !this.Blocks[x, y, z].Istransparent())
-                    {
-                        this.Blocks[x, y, z] = Block.Stone;
-                    }
-                    // Set dirt in stone
-                    if(perlinMountainStone > GameManager.SDirtMinCutoff && perlinMountainStone < GameManager.SDirtMaxCutoff && !this.Blocks[x, y, z].Istransparent())
-                    {
-                        this.Blocks[x, y, z] = Block.Dirt;
-                    }
                     // Cave Generation
-                    if(perlinCaves > GameManager.Scavecutoff)
+                    if(perlinNewCave > GameManager.STATICCaveCutoff)
                     {
                         this.Blocks[x, y, z] = Block.Air;
                     }
                     // Bedrock Generation
-                    if(y <= 1)
+                    check = r.Next(-1, 1);
+                    if(y + check <= 2)
                     {
                         this.Blocks[x, y, z] = Block.Bedrock;
                     }
@@ -221,57 +257,35 @@ public class Chunk : ITickable
         }
     }
 
-    // Get noise for terrain generation
-    public float GetNoise(float px, float py, float pz)
+    // Get noise tree generation
+    public float GetNoiseNew(float px, float py, float pz)
     {
         px += this.PosX * ChunkWidth;
         pz += this.PosZ * ChunkWidth;
-        float xy = Mathf.PerlinNoise(px / GameManager.Sdx, py / GameManager.Sdy) * GameManager.Smul;
-        float yz = Mathf.PerlinNoise(py / GameManager.Sdy, pz / GameManager.Sdz) * GameManager.Smul;
-        float xz = Mathf.PerlinNoise(px / GameManager.Sdx, pz / GameManager.Sdz) * GameManager.Smul;
-        float xyz = (xy + yz + xz) / 3f;
-        float oxy = Mathf.PerlinNoise((px / GameManager.Sndx) + GameManager.Soffset, (py / GameManager.Sndy) - GameManager.Soffset) * GameManager.Snmul;
-        float oyz = Mathf.PerlinNoise((py / GameManager.Sndy) - GameManager.Soffset, (pz / GameManager.Sndz) + GameManager.Soffset) * GameManager.Snmul;
-        float oxz = Mathf.PerlinNoise((px / GameManager.Sndx) + GameManager.Soffset, (pz / GameManager.Sndz) - GameManager.Soffset) * GameManager.Snmul;
-        float oxyz = (oxy + oyz + oxz) / 3f;
-        xyz = (xyz + oxyz) / 2f;
-        xyz = xyz * GameManager.Smy * py;
-        return xyz;
+        Perlin perlin = new Perlin()
+        {
+            Frequency = GameManager.STATICPerlinFrequency,
+            Lacunarity = GameManager.STATICPerlinLacunarity,
+            OctaveCount = GameManager.STATICPerlinOctaveCount,
+            Persistence = GameManager.STATICPerlinPersistance,
+            Seed = GameManager.STATICPerlinSeed,
+        };
+        return (float)perlin.GetValue(px, py, pz) + ((py - (ChunkHeight * 0.5f)) * GameManager.STATICyMultiplier);
     }
 
-    // Get noise for cave generation
-    public float GetNoiseForCaves(float px, float py, float pz)
+    // Get noise tree generation
+    public float GetNoiseNewCave(float px, float py, float pz)
     {
         px += this.PosX * ChunkWidth;
         pz += this.PosZ * ChunkWidth;
-        float xy = Mathf.PerlinNoise(px / GameManager.Scavedx, py / GameManager.Scavedy) * GameManager.Scavemul;
-        float yz = Mathf.PerlinNoise(py / GameManager.Scavedy, pz / GameManager.Scavedz) * GameManager.Scavemul;
-        float xz = Mathf.PerlinNoise(px / GameManager.Scavedx, pz / GameManager.Scavedz) * GameManager.Scavemul;
-        float xyz = (xy + yz + xz) / 3f;
-        float oxy = Mathf.PerlinNoise((px / GameManager.Scavendx) + GameManager.Scaveoffset, (py / GameManager.Scavendy) - GameManager.Scaveoffset) * GameManager.Scavenmul;
-        float oyz = Mathf.PerlinNoise((py / GameManager.Scavendy) - GameManager.Scaveoffset, (pz / GameManager.Scavendz) + GameManager.Scaveoffset) * GameManager.Scavenmul;
-        float oxz = Mathf.PerlinNoise((px / GameManager.Scavendx) + GameManager.Scaveoffset, (pz / GameManager.Scavendz) - GameManager.Scaveoffset) * GameManager.Scavenmul;
-        float oxyz = (oxy + oyz + oxz) / 3f;
-        xyz = (xyz + oxyz) / 2f;
-        return xyz;
-    }
-
-    // Get noise for putting stone on mountain tops
-    public float GetNoiseForMountainStone(float px, float py, float pz)
-    {
-        px += this.PosX * ChunkWidth;
-        pz += this.PosZ * ChunkWidth;
-        float xy = Mathf.PerlinNoise(px / GameManager.Smdx, py / GameManager.Smdy) * GameManager.Smmul;
-        float yz = Mathf.PerlinNoise(py / GameManager.Smdy, pz / GameManager.Smdz) * GameManager.Smmul;
-        float xz = Mathf.PerlinNoise(px / GameManager.Smdx, pz / GameManager.Smdz) * GameManager.Smmul;
-        float xyz = (xy + yz + xz) / 3f;
-        float oxy = Mathf.PerlinNoise((px / GameManager.Smndx) + GameManager.Smoffset, (py / GameManager.Smndy) - GameManager.Smoffset) * GameManager.Smnmul;
-        float oyz = Mathf.PerlinNoise((py / GameManager.Smndy) - GameManager.Smoffset, (pz / GameManager.Smndz) + GameManager.Smoffset) * GameManager.Smnmul;
-        float oxz = Mathf.PerlinNoise((px / GameManager.Smndx) + GameManager.Smoffset, (pz / GameManager.Smndz) - GameManager.Smoffset) * GameManager.Smnmul;
-        float oxyz = (oxy + oyz + oxz) / 3f;
-        xyz = (xyz + oxyz) / 2f;
-        xyz = xyz * GameManager.Smmy * py;
-        return xyz;
+        RidgedMulti ridged = new RidgedMulti()
+        {
+            Frequency = GameManager.STATICRidgedFrequency,
+            Lacunarity = GameManager.STATICRidgedLacunarity,
+            OctaveCount = GameManager.STATICRidgedOctaveCount,
+            Seed = GameManager.STATICRidgedSeed,
+        };
+        return (float)ridged.GetValue(px, py, pz) - ((py / (ChunkHeight * 0.5f)) * GameManager.STATICCaveyMultiplier);
     }
 
     // Get noise tree generation

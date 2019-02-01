@@ -144,19 +144,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf87091ede6d26b44a522ccee8f97ea3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dx: 100
-  dz: 100
-  dy: 10
-  my: 1
-  mul: 0.045
-  cutoff: 0.04
-  offset: 500
-  dcutoffgrass: 1.04
-  dcutoffdirt: 1.2
-  ndx: 40
-  ndz: 40
-  ndy: 10
-  nmul: 0.09
+  yoffset: 10
+  ymulti: 2
+  SandCutoff: 0
+  GrassCutoff: 0.25
+  DirtCutoff: 0.5
+  StoneCutoff: 0.75
+  SnowCutoff: 0.9
+  AirCutoff: 1
+  BillowFrequency: 2
+  ScaleBiasScale: 0.125
+  ScaleBiasBias: -0.75
+  PerlinFrequency: 0.5
+  PerlinPersistance: 0.25
+  SelectLowerBound: 0
+  SelectUpperBound: 1000
+  SelectEdgeFalloff: 0.125
+  TurbulenceFrequency: 4
+  TurbulencePower: 0.125
 --- !u!64 &230751039
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -374,8 +379,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1152687093}
-  m_LocalRotation: {x: -0.161729, y: 0.8373192, z: -0.34682897, w: -0.39044833}
-  m_LocalPosition: {x: 80, y: 96, z: 70}
+  m_LocalRotation: {x: -0.0005944223, y: -0.7022929, z: 0.71188766, w: -0.0005628467}
+  m_LocalPosition: {x: 5.4237456, y: 55.575344, z: 20.667006}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

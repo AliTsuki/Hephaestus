@@ -4,84 +4,91 @@
 public class Block : ITickable
 {
     // Start of Block List
-    public static Block Air = new Block("Air", true);
-    public static Block Bedrock = new Block("Bedrock", false, "Assets/Resources/Textures/Blocks/Bedrock.png");
-    public static Block Clay = new Block("Clay", false, "Assets/Resources/Textures/Blocks/Clay.png");
-    public static Block Cobblestone = new Block("Cobblestone", false, "Assets/Resources/Textures/Blocks/Cobblestone.png");
-    public static Block Copper_Ore = new Block("Copper Ore", false, "Assets/Resources/Textures/Blocks/Copper_Ore.png");
-    public static Block Diamond_Ore = new Block("Diamond Ore", false, "Assets/Resources/Textures/Blocks/Diamond_Ore.png");
-    public static Block Dirt = new Block("Dirt", false, "Assets/Resources/Textures/Blocks/Dirt.png");
-    public static Block Gold_Ore = new Block("Gold Ore", false, "Assets/Resources/Textures/Blocks/Gold_Ore.png");
-    public static Block Grass = new Block("Grass", false, "Assets/Resources/Textures/Blocks/Grass_Top.png", "Assets/Resources/Textures/Blocks/Grass_Side.png", "Assets/Resources/Textures/Blocks/Dirt.png");
-    public static Block Gravel = new Block("Gravel", false, "Assets/Resources/Textures/Blocks/Gravel.png");
-    public static Block Iron_Ore = new Block("Iron Ore", false, "Assets/Resources/Textures/Blocks/Iron_Ore.png");
-    public static Block Leaves = new Block("Leaves", false, "Assets/Resources/Textures/Blocks/Leaves.png");
-    public static Block Logs = new Block("Logs", false, "Assets/Resources/Textures/Blocks/Logs_Top.png", "Assets/Resources/Textures/Blocks/Logs_Side.png");
-    public static Block Obsidian = new Block("Obsidian", false, "Assets/Resources/Textures/Blocks/Obsidian.png");
-    public static Block Purple_Ore = new Block("Purple_Ore", false, "Assets/Resources/Textures/Blocks/Purple_Ore.png");
-    public static Block Red_Ore = new Block("Red_Ore", false, "Assets/Resources/Textures/Blocks/Red_Ore.png");
-    public static Block Sand = new Block("Sand", false, "Assets/Resources/Textures/Blocks/Sand.png");
-    public static Block Stone = new Block("Stone", false, "Assets/Resources/Textures/Blocks/Stone.png");
-    public static Block Uranium_Ore = new Block("Uranium Ore", false, "Assets/Resources/Textures/Blocks/Uranium_Ore.png");
-    public static Block Wood_Planks = new Block("Wood Planks", false, "Assets/Resources/Textures/Blocks/WoodPlanks.png");
+    public static Block Air = new Block("Air", true, false);
+    public static Block Bedrock = new Block("Bedrock", false, "Assets/Resources/Textures/Blocks/Bedrock.png", false);
+    public static Block Clay = new Block("Clay", false, "Assets/Resources/Textures/Blocks/Clay.png", false);
+    public static Block Cobblestone = new Block("Cobblestone", false, "Assets/Resources/Textures/Blocks/Cobblestone.png", false);
+    public static Block Copper_Ore = new Block("Copper Ore", false, "Assets/Resources/Textures/Blocks/Copper_Ore.png", false);
+    public static Block Diamond_Ore = new Block("Diamond Ore", false, "Assets/Resources/Textures/Blocks/Diamond_Ore.png", false);
+    public static Block Dirt = new Block("Dirt", false, "Assets/Resources/Textures/Blocks/Dirt.png", false);
+    public static Block Gold_Ore = new Block("Gold Ore", false, "Assets/Resources/Textures/Blocks/Gold_Ore.png", false);
+    public static Block Grass = new Block("Grass", false, "Assets/Resources/Textures/Blocks/Grass_Top.png", "Assets/Resources/Textures/Blocks/Grass_Side.png", "Assets/Resources/Textures/Blocks/Dirt.png", false);
+    public static Block Gravel = new Block("Gravel", false, "Assets/Resources/Textures/Blocks/Gravel.png", false);
+    public static Block Iron_Ore = new Block("Iron Ore", false, "Assets/Resources/Textures/Blocks/Iron_Ore.png", false);
+    public static Block Leaves = new Block("Leaves", false, "Assets/Resources/Textures/Blocks/Leaves.png", false);
+    public static Block Logs = new Block("Logs", false, "Assets/Resources/Textures/Blocks/Logs_Top.png", "Assets/Resources/Textures/Blocks/Logs_Side.png", false);
+    public static Block Obsidian = new Block("Obsidian", false, "Assets/Resources/Textures/Blocks/Obsidian.png", false);
+    public static Block Purple_Ore = new Block("Purple_Ore", false, "Assets/Resources/Textures/Blocks/Purple_Ore.png", false);
+    public static Block Red_Ore = new Block("Red_Ore", false, "Assets/Resources/Textures/Blocks/Red_Ore.png", false);
+    public static Block Sand = new Block("Sand", false, "Assets/Resources/Textures/Blocks/Sand.png", false);
+    public static Block Snow = new Block("Snow", false, "Assets/Resources/Textures/Blocks/Snow.png", false);
+    public static Block Stone = new Block("Stone", false, "Assets/Resources/Textures/Blocks/Stone.png", false);
+    public static Block Uranium_Ore = new Block("Uranium Ore", false, "Assets/Resources/Textures/Blocks/Uranium_Ore.png", false);
+    public static Block Water = new Block("Water", false, "Assets/Resources/Textures/Blocks/Water.png", true);
+    public static Block Wood_Planks = new Block("Wood Planks", false, "Assets/Resources/Textures/Blocks/WoodPlanks.png", false);
     // End of Block List
 
     //Block variables/objects
-    private static int CurrentID = 0;
-    private readonly bool IsTransparent;
-    private readonly string BottomImageName;
-    private readonly string TopImageName;
-    private readonly string FrontImageName;
-    private readonly string BackImageName;
-    private readonly string LeftImageName;
-    private readonly string RightImageName;
-    private readonly string BlockName;
-    private int ID;
+    private static int currentID = 0;
+    private readonly bool isTransparent;
+    private readonly bool isSemiTransparent;
+    private readonly string bottomImageName;
+    private readonly string topImageName;
+    private readonly string frontImageName;
+    private readonly string backImageName;
+    private readonly string leftImageName;
+    private readonly string rightImageName;
+    private readonly string blockName;
+    private int id;
     private readonly Vector2[] _UVMap;
     private readonly Vector2[] _UVMap2;
     private readonly Vector2[] _UVMap3;
 
     // Block constructor for Blocks with unique top, sides, bottom textures
-    public Block(string BlockName, bool IsTransparent, string TopImageName, string SideImageName, string BottomImageName)
+    public Block(string BlockName, bool IsTransparent, string TopImageName, string SideImageName, string BottomImageName, bool IsSemiTransparent)
     {
-        this.BlockName = BlockName;
-        this.IsTransparent = IsTransparent;
-        this.TopImageName = TopImageName;
-        this.LeftImageName = SideImageName;
-        this.BottomImageName = BottomImageName;
-        this._UVMap = UVMap.GetUVMap(this.TopImageName)._UVMAP;
-        this._UVMap2 = UVMap.GetUVMap(this.LeftImageName)._UVMAP;
-        this._UVMap3 = UVMap.GetUVMap(this.BottomImageName)._UVMAP;
+        this.blockName = BlockName;
+        this.isTransparent = IsTransparent;
+        this.topImageName = TopImageName;
+        this.leftImageName = SideImageName;
+        this.bottomImageName = BottomImageName;
+        this._UVMap = UVMap.GetUVMap(this.topImageName)._UVMAP;
+        this._UVMap2 = UVMap.GetUVMap(this.leftImageName)._UVMAP;
+        this._UVMap3 = UVMap.GetUVMap(this.bottomImageName)._UVMAP;
+        this.isSemiTransparent = IsSemiTransparent;
         this.REGISTER();
     }
 
     // Block constructor for Blocks with unique top, sides, bottom textures
-    public Block(string BlockName, bool IsTransparent, string TopImageName, string SideImageName)
+    public Block(string BlockName, bool IsTransparent, string TopImageName, string SideImageName, bool IsSemiTransparent)
     {
-        this.BlockName = BlockName;
-        this.IsTransparent = IsTransparent;
-        this.TopImageName = TopImageName;
-        this.LeftImageName = SideImageName;
-        this._UVMap = UVMap.GetUVMap(this.TopImageName)._UVMAP;
-        this._UVMap2 = UVMap.GetUVMap(this.LeftImageName)._UVMAP;
+        this.blockName = BlockName;
+        this.isTransparent = IsTransparent;
+        this.topImageName = TopImageName;
+        this.leftImageName = SideImageName;
+        this._UVMap = UVMap.GetUVMap(this.topImageName)._UVMAP;
+        this._UVMap2 = UVMap.GetUVMap(this.leftImageName)._UVMAP;
+        this.isSemiTransparent = IsSemiTransparent;
         this.REGISTER();
     }
 
     // Block constructor for Blocks with same texture on all sides
-    public Block(string BlockName, bool IsTransparent, string MainImageName)
+    public Block(string BlockName, bool IsTransparent, string MainImageName, bool IsSemiTransparent)
     {
-        this.BlockName = BlockName;
-        this.IsTransparent = IsTransparent;
-        this.TopImageName = MainImageName;
-        this._UVMap = UVMap.GetUVMap(this.TopImageName)._UVMAP;
+        this.blockName = BlockName;
+        this.isTransparent = IsTransparent;
+        this.topImageName = MainImageName;
+        this._UVMap = UVMap.GetUVMap(this.topImageName)._UVMAP;
+        this.isSemiTransparent = IsSemiTransparent;
         this.REGISTER();
     }
 
     // Block constructor for: Transparent Blocks (Air block only)
-    public Block(string BlockName, bool IsTransparent)
+    public Block(string BlockName, bool IsTransparent, bool IsSemiTransparent)
     {
-        this.BlockName = BlockName;
-        this.IsTransparent = IsTransparent;
+        this.blockName = BlockName;
+        this.isTransparent = IsTransparent;
+        this.isSemiTransparent = IsSemiTransparent;
         this.REGISTER();
     }
 
@@ -120,19 +127,34 @@ public class Block : ITickable
     // Register block to Block Registry
     private void REGISTER()
     {
-        this.ID = CurrentID;
-        CurrentID++;
+        this.id = currentID;
+        currentID++;
         BlockRegistry.RegisterBlock(this);
     }
 
     // Get if block is transparent
-    public bool Istransparent() => this.IsTransparent;
+    public bool IsTransparent()
+    {
+        return this.isTransparent;
+    }
+
+    // Get if block is semi-transparent
+    public bool IsSemiTransparent()
+    {
+        return this.isSemiTransparent;
+    }
 
     // Get Block name
-    public string GetName() => this.BlockName;
+    public string GetName()
+    {
+        return this.blockName;
+    }
 
     // Get Block ID
-    public int GetID() => this.ID;
+    public int GetID()
+    {
+        return this.id;
+    }
 
     // Draw Block using MathHelper DrawCube
     public virtual MeshData Draw(Chunk chunk, Block[,,] _Blocks, int x, int y, int z)

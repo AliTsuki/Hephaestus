@@ -76,7 +76,7 @@ public class MathHelper
             return new MeshData();
         }
         // Bottom Face
-        if(y > 0 && _Blocks[x, y - 1, z].Istransparent())
+        if(y > 0 && (_Blocks[x, y - 1, z].IsTransparent() || _Blocks[x, y - 1, z].IsSemiTransparent()))
         {
             data.Merge(new MeshData( // Bottom Face
                 new List<Vector3>()
@@ -99,7 +99,7 @@ public class MathHelper
                 }));
         }
         // Top Face
-        if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+        if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].IsTransparent() || _Blocks[x, y + 1, z].IsSemiTransparent())
         {
             data.Merge(new MeshData( // Top Face
                 new List<Vector3>()
@@ -122,12 +122,12 @@ public class MathHelper
                 }));
         }
         // Front Face
-        if((x - 1 >= 0 && _Blocks[x - 1, y, z].Istransparent()) || 
-            (x - 1 < 0 && World.Instance.ChunkExists(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1])
+        if((x - 1 >= 0 && (_Blocks[x - 1, y, z].IsTransparent() || _Blocks[x - 1, y, z].IsSemiTransparent())) 
+            || (x - 1 < 0 && World.Instance.ChunkExists(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1])
             && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).Istransparent()))
+            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).IsTransparent()))
         {
-            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].IsTransparent())
             {
                 data.Merge(new MeshData( // Front Face
                 new List<Vector3>()
@@ -173,12 +173,12 @@ public class MathHelper
             }
         }
         // Back Face
-        if((x + 1 < Chunk.ChunkWidth && _Blocks[x + 1, y, z].Istransparent()) || 
+        if((x + 1 < Chunk.ChunkWidth && (_Blocks[x + 1, y, z].IsTransparent() || _Blocks[x + 1, y, z].IsSemiTransparent())) || 
             (x + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1])
             && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).Istransparent()))
+            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).IsTransparent()))
         {
-            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].IsTransparent())
             {
                 data.Merge(new MeshData( // Back Face
                 new List<Vector3>()
@@ -224,12 +224,12 @@ public class MathHelper
             }
         }
         // Left Face
-        if((z - 1 >= 0 && _Blocks[x, y, z - 1].Istransparent()) ||
+        if((z - 1 >= 0 && (_Blocks[x, y, z - 1].IsTransparent() || _Blocks[x, y, z - 1].IsSemiTransparent())) ||
             (z - 1 < 0 && World.Instance.ChunkExists(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1])
             && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).GetBlock(x, y, Chunk.ChunkWidth - 1).Istransparent()))
+            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).GetBlock(x, y, Chunk.ChunkWidth - 1).IsTransparent()))
         {
-            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].IsTransparent())
             {
                 data.Merge(new MeshData( // Left Face
                 new List<Vector3>()
@@ -275,12 +275,12 @@ public class MathHelper
             }
         }
         // Right Face
-        if((z + 1 < Chunk.ChunkWidth && _Blocks[x, y, z + 1].Istransparent()) ||
+        if((z + 1 < Chunk.ChunkWidth && (_Blocks[x, y, z + 1].IsTransparent() || _Blocks[x, y, z + 1].IsSemiTransparent())) ||
             (z + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1])
             && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).GetBlock(x, y, 0).Istransparent()))
+            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).GetBlock(x, y, 0).IsTransparent()))
         {
-            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+            if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].IsTransparent())
             {
                 data.Merge(new MeshData( // Right Face
                 new List<Vector3>()
@@ -341,7 +341,7 @@ public class MathHelper
             return new MeshData();
         }
         // Bottom Face
-        if(y > 0 && _Blocks[x, y - 1, z].Istransparent())
+        if(y > 0 && (_Blocks[x, y - 1, z].IsTransparent() || _Blocks[x, y - 1, z].IsSemiTransparent()))
         {
             data.Merge(new MeshData( // Bottom Face
                 new List<Vector3>()
@@ -364,7 +364,7 @@ public class MathHelper
                 }));
         }
         // Top Face
-        if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+        if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].IsTransparent() || _Blocks[x, y + 1, z].IsSemiTransparent())
         {
             data.Merge(new MeshData( // Top Face
                 new List<Vector3>()
@@ -387,10 +387,10 @@ public class MathHelper
                 }));
         }
         // Front Face
-        if((x - 1 >= 0 && _Blocks[x - 1, y, z].Istransparent()) ||
+        if((x - 1 >= 0 && (_Blocks[x - 1, y, z].IsTransparent() || _Blocks[x - 1, y, z].IsSemiTransparent())) ||
             (x - 1 < 0 && World.Instance.ChunkExists(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1])
             && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).Istransparent()))
+            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).IsTransparent()))
         {
             data.Merge(new MeshData( // Front Face
                 new List<Vector3>()
@@ -413,10 +413,10 @@ public class MathHelper
                 }));
         }
         // Back Face
-        if((x + 1 < Chunk.ChunkWidth && _Blocks[x + 1, y, z].Istransparent()) ||
+        if((x + 1 < Chunk.ChunkWidth && (_Blocks[x + 1, y, z].IsTransparent() || _Blocks[x + 1, y, z].IsSemiTransparent())) ||
             (x + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1])
             && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).Istransparent()))
+            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).IsTransparent()))
         {
             data.Merge(new MeshData( // Back Face
                 new List<Vector3>()
@@ -439,10 +439,10 @@ public class MathHelper
                 }));
         }
         // Left Face
-        if((z - 1 >= 0 && _Blocks[x, y, z - 1].Istransparent()) ||
+        if((z - 1 >= 0 && (_Blocks[x, y, z - 1].IsTransparent() || _Blocks[x, y, z - 1].IsSemiTransparent())) ||
             (z - 1 < 0 && World.Instance.ChunkExists(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1])
             && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).GetBlock(x, y, Chunk.ChunkWidth - 1).Istransparent()))
+            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).GetBlock(x, y, Chunk.ChunkWidth - 1).IsTransparent()))
         {
             data.Merge(new MeshData( // Left Face
                 new List<Vector3>()
@@ -465,10 +465,10 @@ public class MathHelper
                 }));
         }
         // Right Face
-        if((z + 1 < Chunk.ChunkWidth && _Blocks[x, y, z + 1].Istransparent()) ||
+        if((z + 1 < Chunk.ChunkWidth && (_Blocks[x, y, z + 1].IsTransparent() || _Blocks[x, y, z + 1].IsSemiTransparent())) ||
             (z + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1])
             && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).GetBlock(x, y, 0).Istransparent()))
+            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).GetBlock(x, y, 0).IsTransparent()))
         {
             data.Merge(new MeshData( // Right Face
                 new List<Vector3>()
@@ -506,7 +506,7 @@ public class MathHelper
             return new MeshData();
         }
         // Bottom Face
-        if(y > 0 && _Blocks[x, y - 1, z].Istransparent())
+        if(y > 0 && (_Blocks[x, y - 1, z].IsTransparent() || _Blocks[x, y - 1, z].IsSemiTransparent()))
         {
             data.Merge(new MeshData( // Bottom Face
                 new List<Vector3>()
@@ -529,7 +529,7 @@ public class MathHelper
                 }));
         }
         // Top Face
-        if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].Istransparent())
+        if(y + 1 > Chunk.ChunkHeight - 1 || _Blocks[x, y + 1, z].IsTransparent() || _Blocks[x, y + 1, z].IsSemiTransparent())
         {
             data.Merge(new MeshData( // Top Face
                 new List<Vector3>()
@@ -552,10 +552,10 @@ public class MathHelper
                 }));
         }
         // Front Face
-        if((x - 1 >= 0 && _Blocks[x - 1, y, z].Istransparent()) ||
+        if((x - 1 >= 0 && (_Blocks[x - 1, y, z].IsTransparent() || _Blocks[x - 1, y, z].IsSemiTransparent())) ||
             (x - 1 < 0 && World.Instance.ChunkExists(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1])
             && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).Istransparent()))
+            && World.Instance.GetChunk(chunk.NegXNeighbor[0], chunk.NegXNeighbor[1]).GetBlock(Chunk.ChunkWidth - 1, y, z).IsTransparent()))
         {
             data.Merge(new MeshData( // Front Face
                 new List<Vector3>()
@@ -578,10 +578,10 @@ public class MathHelper
                 }));
         }
         // Back Face
-        if((x + 1 < Chunk.ChunkWidth && _Blocks[x + 1, y, z].Istransparent()) ||
+        if((x + 1 < Chunk.ChunkWidth && (_Blocks[x + 1, y, z].IsTransparent() ||  _Blocks[x + 1, y, z].IsSemiTransparent())) ||
             (x + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1])
             && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).Istransparent()))
+            && World.Instance.GetChunk(chunk.PosXNeighbor[0], chunk.PosXNeighbor[1]).GetBlock(0, y, z).IsTransparent()))
         {
             data.Merge(new MeshData( // Back Face
                 new List<Vector3>()
@@ -604,10 +604,10 @@ public class MathHelper
                 }));
         }
         // Left Face
-        if((z - 1 >= 0 && _Blocks[x, y, z - 1].Istransparent()) ||
+        if((z - 1 >= 0 && (_Blocks[x, y, z - 1].IsTransparent() || _Blocks[x, y, z - 1].IsSemiTransparent())) ||
             (z - 1 < 0 && World.Instance.ChunkExists(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1])
             && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).GetBlock(x, y, Chunk.ChunkWidth - 1).Istransparent()))
+            && World.Instance.GetChunk(chunk.NegZNeighbor[0], chunk.NegZNeighbor[1]).GetBlock(x, y, Chunk.ChunkWidth - 1).IsTransparent()))
         {
             data.Merge(new MeshData( // Left Face
                 new List<Vector3>()
@@ -630,10 +630,10 @@ public class MathHelper
                 }));
         }
         // Right Face
-        if((z + 1 < Chunk.ChunkWidth && _Blocks[x, y, z + 1].Istransparent()) ||
+        if((z + 1 < Chunk.ChunkWidth && (_Blocks[x, y, z + 1].IsTransparent() || _Blocks[x, y, z + 1].IsSemiTransparent())) ||
             (z + 1 >= Chunk.ChunkWidth && World.Instance.ChunkExists(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1])
             && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).HasGenerated
-            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).GetBlock(x, y, 0).Istransparent()))
+            && World.Instance.GetChunk(chunk.PosZNeighbor[0], chunk.PosZNeighbor[1]).GetBlock(x, y, 0).IsTransparent()))
         {
             data.Merge(new MeshData( // Right Face
                 new List<Vector3>()
@@ -696,7 +696,7 @@ public class MathHelper
         int newz = (int)System.Math.Abs(z - (ChunkPosZ * Chunk.ChunkWidth));
         for(int i = Chunk.ChunkHeight - 2; i >= 1; i--)
         {
-            if(blocks[newx, i, newz].Istransparent() && blocks[newx, i + 1, newz].Istransparent() && !blocks[newx, i - 1, newz].Istransparent())
+            if(blocks[newx, i, newz].IsTransparent() && blocks[newx, i + 1, newz].IsTransparent() && !blocks[newx, i - 1, newz].IsTransparent())
             { 
                 y = i + 3.7f;
                 return y;
@@ -711,14 +711,14 @@ public class MathHelper
         int y = Chunk.ChunkHeight - 1;
         for(int i = Chunk.ChunkHeight - 7; i >= 1; i--)
         {
-            if(blocks[x, i, z].Istransparent() && blocks[x, i + 1, z].Istransparent() && blocks[x, i + 2, z].Istransparent()
-                && blocks[x, i + 3, z].Istransparent() && blocks[x, i + 4, z].Istransparent() && blocks[x, i + 5, z].Istransparent()
-                && blocks[x, i + 6, z].Istransparent() && !blocks[x, i - 1, z].Istransparent() && blocks[x, i - 1, z] != Block.Leaves && blocks[x, i - 1, z] != Block.Logs)
+            if(blocks[x, i, z].IsTransparent() && blocks[x, i + 1, z].IsTransparent() && blocks[x, i + 2, z].IsTransparent()
+                && blocks[x, i + 3, z].IsTransparent() && blocks[x, i + 4, z].IsTransparent() && blocks[x, i + 5, z].IsTransparent()
+                && blocks[x, i + 6, z].IsTransparent() && !blocks[x, i - 1, z].IsTransparent() && blocks[x, i - 1, z] != Block.Leaves && blocks[x, i - 1, z] != Block.Logs)
             {
                 y = i;
                 return y;
             }
-            if(!blocks[x, i, z].Istransparent() && !blocks[x, i + 1, z].Istransparent())
+            if(!blocks[x, i, z].IsTransparent() && !blocks[x, i + 1, z].IsTransparent())
             {
                 break;
             }

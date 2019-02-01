@@ -1,34 +1,47 @@
-﻿﻿using System.Collections.Generic;
-
+﻿using SharpNoise.Modules;
 using UnityEngine;
 
 public class NoiseTest : MonoBehaviour
 {
-    public static int imagesize = 256;
+    private static readonly int imagesize = 256;
 
-    public float treedx = 5f;
-    public float treedz = 5f;
-    public float treemul = 0.6f;
-    public float treeoffset = -1000f;
-    public float dcutofftreemax = 0.166f;
-    public float dcutofftreemin = 0.165f;
-    public float treendx = 100f;
-    public float treendz = 100f;
-    public float treenmul = 0.4f;
 
-    public static float Streedx = 5f;
-    public static float Streedz = 5f;
-    public static float Streemul = 0.6f;
-    public static float Streeoffset = -1000f;
-    public static float Sdcutofftreemax = 0.166f;
-    public static float Sdcutofftreemin = 0.65f;
-    public static float Streendx = 100f;
-    public static float Streendz = 100f;
-    public static float Streenmul = 0.4f;
+    private static int STATICy = 0;
+    private static float STATICyMultiplier = 0.01f;
+
+    private static float STATICCutoff = 1.0f;
+
+    private static float STATICPerlinFrequency = 0.04f;
+    private static float STATICPerlinLacunarity = 2.34f;
+    private static int STATICPerlinOctaveCount = 4;
+    private static float STATICPerlinPersistance = 0.55f;
+    private static int STATICPerlinSeed = 0;
+
+    private static float STATICRidgedFrequency = 0.04f;
+    private static float STATICRidgedLacunarity = 2.34f;
+    private static int STATICRidgedOctaveCount = 4;
+    private static int STATICRidgedSeed = 0;
+
+    public int y = 0;
+    public float yMultiplier = 0.02f;
+
+    public float Cutoff = 1.0f;
+
+    public float PerlinFrequency = 0.04f;
+    public float PerlinLacunarity = 2.34f;
+    public int PerlinOctaveCount = 4;
+    public float PerlinPersistance = 0.55f;
+    public int PerlinSeed = 0;
+
+    public float RidgedFrequency = 0.04f;
+    public float RidgedLacunarity = 2.34f;
+    public int RidgedOctaveCount = 4;
+    public int RidgedSeed = 0;
 
     // Start is called before the first frame update
     void Start()
     {
+        GameObject go = this.GetComponent<GameObject>();
         this.GetComponent<MeshRenderer>().material.SetFloat("_Glossiness", 0.0f);
         this.GetComponent<MeshRenderer>().material.SetFloat("_Mode", 1);
     }
@@ -36,23 +49,27 @@ public class NoiseTest : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Streedx = this.treedx;
-        Streedz = this.treedz;
-        Streemul = this.treemul;
-        Streeoffset = this.treeoffset;
-        Sdcutofftreemax = this.dcutofftreemax;
-        Sdcutofftreemin = this.dcutofftreemin;
-        Streendx = this.treendx;
-        Streendz = this.treendz;
-        Streenmul = this.treenmul;
+        STATICy = this.y;
+        STATICyMultiplier = this.yMultiplier;
+        STATICCutoff = this.Cutoff;
+        //STATICPerlinFrequency = this.PerlinFrequency;
+        //STATICPerlinLacunarity = this.PerlinLacunarity;
+        //STATICPerlinOctaveCount = this.PerlinOctaveCount;
+        //STATICPerlinPersistance = this.PerlinPersistance;
+        //STATICPerlinSeed = this.PerlinSeed;
+        STATICRidgedFrequency = this.RidgedFrequency;
+        STATICRidgedLacunarity = this.RidgedLacunarity;
+        STATICRidgedOctaveCount = this.RidgedOctaveCount;
+        STATICRidgedSeed = this.RidgedSeed;
+
         float[,] imageArray = new float[imagesize, imagesize];
         Texture2D texture = new Texture2D(imagesize, imagesize);
         for(int x = 0; x < imagesize; x++)
         {
             for(int z = 0; z < imagesize; z++)
             {
-                imageArray[x, z] = this.GetNoiseForTree(x, z);
-                if(imageArray[x, z] > Sdcutofftreemin && imageArray[x, z] < Sdcutofftreemax)
+                imageArray[x, z] = this.GetNoise(x, STATICy, z);
+                if(imageArray[x, z] > STATICCutoff)
                 {
                     imageArray[x, z] = 1;
                 }
@@ -63,7 +80,7 @@ public class NoiseTest : MonoBehaviour
 
                 if(imageArray[x, z] == 1)
                 {
-                    texture.SetPixel(x, z, Color.green);
+                    texture.SetPixel(x, z, Color.white);
                 }
                 else
                 {
@@ -76,11 +93,25 @@ public class NoiseTest : MonoBehaviour
     }
 
     // Get noise tree generation
-    public float GetNoiseForTree(float px, float pz)
+    public float GetNoise(float px, float py, float pz)
     {
-        float xz = Mathf.PerlinNoise(px / Streedx, pz / Streedz) * Streemul;
-        float oxz = Mathf.PerlinNoise((px / Streendx) + Streeoffset, (pz / Streendz) - Streeoffset) * Streenmul;
-        xz = (xz + oxz) / 2f;
-        return xz;
+        //Perlin perlin = new Perlin()
+        //{
+        //    Frequency = STATICPerlinFrequency,
+        //    Lacunarity = STATICPerlinLacunarity,
+        //    OctaveCount = STATICPerlinOctaveCount,
+        //    Persistence = STATICPerlinPersistance,
+        //    Seed = STATICPerlinSeed,
+        //};
+
+        RidgedMulti ridged = new RidgedMulti()
+        {
+            Frequency = RidgedFrequency,
+            Lacunarity = RidgedLacunarity,
+            OctaveCount = RidgedOctaveCount,
+            Seed = RidgedSeed,
+        };
+
+        return (float)ridged.GetValue(px, py, pz);
     }
 }
