@@ -257,23 +257,61 @@ public class Chunk : ITickable
         }
     }
 
-    // Get noise tree generation
+    // Get noise
     public float GetNoiseNew(float px, float py, float pz)
     {
         px += this.PosX * ChunkWidth;
         pz += this.PosZ * ChunkWidth;
-        Perlin perlin = new Perlin()
+        var ridgedMulti = new RidgedMulti()
         {
-            Frequency = GameManager.STATICPerlinFrequency,
-            Lacunarity = GameManager.STATICPerlinLacunarity,
-            OctaveCount = GameManager.STATICPerlinOctaveCount,
-            Persistence = GameManager.STATICPerlinPersistance,
-            Seed = GameManager.STATICPerlinSeed,
+            Frequency = 0.015f,
+            Lacunarity = 2f,
+            OctaveCount = 4,
+            Seed = 0,
         };
-        return (float)perlin.GetValue(px, py, pz) + ((py - (ChunkHeight * 0.5f)) * GameManager.STATICyMultiplier);
+        var billow = new Billow()
+        {
+            Frequency = 0.015f,
+            Lacunarity = 2f,
+            OctaveCount = 4,
+            Persistence = 0.5f,
+            Seed = 0,
+        };
+        var scaleBias = new ScaleBias()
+        {
+            Source0 = billow,
+            Scale = 0.125f,
+            Bias = -0.75f,
+        };
+        var perlin = new Perlin()
+        {
+            Frequency = 0.015f,
+            Lacunarity = 2f,
+            OctaveCount = 4,
+            Persistence = 0.25f,
+            Seed = 0,
+        };
+        var select = new Select()
+        {
+            Control = perlin,
+            Source0 = scaleBias,
+            Source1 = ridgedMulti,
+            LowerBound = 0f,
+            UpperBound = 1000f,
+            EdgeFalloff = 0.125f,
+        };
+        var noiseSource = new Turbulence()
+        {
+            Source0 = select,
+            Frequency = 0.015f,
+            Power = 0.125f,
+            Roughness = 2,
+            Seed = 0,
+        };
+        return (float)noiseSource.GetValue(px, py, pz) + ((py - (ChunkHeight * 0.3f)) * GameManager.STATICyMultiplier);
     }
 
-    // Get noise tree generation
+    // Get noise for Cave Generation
     public float GetNoiseNewCave(float px, float py, float pz)
     {
         px += this.PosX * ChunkWidth;

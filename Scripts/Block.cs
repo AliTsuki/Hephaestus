@@ -164,7 +164,7 @@ public class Block : ITickable
         {
             return new MeshData();
         }
-        // If block is NOT air, Draw Cube
+        // If block is Grass draw with special rules (3 UVs)
         else if(this.Equals(Grass))
         {
             try
@@ -177,6 +177,7 @@ public class Block : ITickable
             }
             return new MeshData();
         }
+        // If block is Logs draw with special rules (2 UVs)
         else if(this.Equals(Logs))
         {
             try
@@ -189,6 +190,7 @@ public class Block : ITickable
             }
             return new MeshData();
         }
+        // If block is anything else draw with normal rules (1 UV)
         else
         {
             try

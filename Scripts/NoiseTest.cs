@@ -1,4 +1,5 @@
 ﻿using SharpNoise.Modules;
+
 using UnityEngine;
 
 public class NoiseTest : MonoBehaviour
