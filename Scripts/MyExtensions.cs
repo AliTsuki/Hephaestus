@@ -14,7 +14,7 @@ public static class MyExtensions
             {
                 for(int z = 0; z < lz; z++)
                 {
-                    data[x, y, z] = _ChunkData[x, y, z].GetID();
+                    data[x, y, z] = _ChunkData[x, y, z].ID;
                 }
             }
         }

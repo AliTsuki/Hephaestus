@@ -23,8 +23,7 @@ public class BlockRegistry
             List<string> _names = new List<string>();
             foreach(Block b in _REGISTEREDBLOCKS)
             {
-                _names.Add(string.Format("CurrentID: {0}, BlockName: {1}, BlockID: {2}", CurrentID, b.GetName(), b.GetID()));
-                CurrentID++;
+                _names.Add($@"CurrentID: {CurrentID}, BlockName: {b.BlockName}, BlockID: {b.ID}");
             }
             System.IO.File.WriteAllLines("BlockRegistry.txt", _names.ToArray());
         }

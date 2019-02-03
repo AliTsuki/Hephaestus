@@ -2,7 +2,7 @@
 public class ErroredChunk : Chunk
 {
     // ErroredChunk constructor
-    public ErroredChunk(int px, int pz, World world) : base(px, pz, world)
+    public ErroredChunk(int px, int py, int pz, World world) : base(px, py, pz, world)
     {
 
     }

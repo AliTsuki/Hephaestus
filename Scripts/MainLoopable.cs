@@ -4,16 +4,13 @@
 public class MainLoopable : ILoopable
 {
     //MainLoopable objects
-    private static MainLoopable Instance;
+    public static MainLoopable MLInstance { get; private set; }
     private readonly List<ILoopable> _RegisteredLoops = new List<ILoopable>();
-
-    // MainLoopable instance getter
-    public static MainLoopable GetInstance() => Instance;
 
     // Instantiate MainLoopable, Logger, and World, also Register Blocks
     public static void Instantiate()
     {
-        Instance = new MainLoopable();
+        MLInstance = new MainLoopable();
         //register
         Logger.Instantiate();
         World.Instantiate();

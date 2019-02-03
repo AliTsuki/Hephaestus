@@ -2,7 +2,7 @@
 public class DevChunk : Chunk
 {
     // DevChunk constructor
-    public DevChunk(int px, int pz, World world) : base(px, pz, world)
+    public DevChunk(int px, int py, int pz, World world) : base(px, py, pz, world)
     {
 
     }

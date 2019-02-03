@@ -27,30 +27,6 @@ public class Serializer
     }
 
     // Serializes to file
-    public static void Serialize_ToFile<T>(string path, string Filename, string extension, T _DATA) where T : class
-    {
-        if(Check_Gen_Folder(path))
-        {
-            try
-            {
-                using(Stream s = File.OpenWrite(string.Format("{0}{1}.{2}", path, Filename, extension)))
-                {
-                    BinaryFormatter f = new BinaryFormatter();
-                    f.Serialize(s, _DATA);
-                }
-            }
-            catch(System.Exception e)
-            {
-                Logger.Log(e.ToString());
-            }
-        }
-        else
-        {
-            throw new System.Exception("Can't get correct directory: " + path);
-        }
-    }
-
-    // Serializes to file
     public static void Serialize_ToFile_FullPath<T>(string path, T _DATA) where T : class
     {
         try

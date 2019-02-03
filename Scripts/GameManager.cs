@@ -16,9 +16,10 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     private MainLoopable main;
     private readonly List<Delegate> _Delegates = new List<Delegate>();
+    public static string WorldName = "DevWorld";
 
     // New Noise Variables
-    public static float STATICyMultiplier = 0.05f;
+    public static float STATICyMultiplier = 0.04f;
     public static float STATICLand2NDLayerCutoff = 0.6f;
     public static float STATICLandTopLayerCutoff = 0.9f;
     public static float STATICAirAndLandIntersectionCutoff = 1.4f;
@@ -34,7 +35,6 @@ public class GameManager : MonoBehaviour
     public static float STATICRidgedLacunarity = 2f;
     public static int STATICRidgedOctaveCount = 4;
     public static int STATICRidgedSeed = 0;
-
     // Static Tree noise variables
     public static float Streedx = 5f;
     public static float Streedz = 5f;
@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
         FileManager.RegisterFiles();
         TextureAtlas.Instance.CreateAtlas();
         MainLoopable.Instantiate();
-        this.main = MainLoopable.GetInstance();
+        this.main = MainLoopable.MLInstance;
         this.main.Start();
     }
 
@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Can't update MainLoopable due to Exception.");
             Debug.Log(e.ToString());
-            World.Instance.IsRunning = false;
+            World.WorldInstance.IsRunning = false;
         }
         for(int i = 0; i < this._Delegates.Count; i++)
         {

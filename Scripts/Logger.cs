@@ -10,7 +10,7 @@ public class Logger : ILoopable
     // Instantiate Logger
     public static void Instantiate()
     {
-        MainLoopable.GetInstance().RegisterLoops(MainLog);
+        MainLoopable.MLInstance.RegisterLoops(MainLog);
     }
 
     // Logger Start

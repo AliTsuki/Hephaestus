@@ -2,7 +2,7 @@
 public class FileManager
 {
     // FileManager variables
-    public static readonly string ChunkSaveDirectory = "Data/World/DevWorld/Chunks/";
+    public static readonly string ChunkSaveDirectory = $@"Data/World/{GameManager.WorldName}/Chunks/";
 
     // Register Files
     public static void RegisterFiles()
@@ -11,8 +11,8 @@ public class FileManager
     }
 
     // Get Chunk Filename string
-    public static string GetChunkString(int x, int z)
+    public static string GetChunkString(int x, int y, int z)
     {
-        return string.Format("{0}C_{1}_{2}.CHK", ChunkSaveDirectory, x, z);
+        return $@"{ChunkSaveDirectory}C_{x}_{y}_{z}.CHUNK";
     }
 }
