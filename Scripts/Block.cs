@@ -50,7 +50,7 @@ public class Block : ITickable
     private readonly Vector2[] _UVMap6;
     public Int3 Position { get; private set; }
 
-    // Block constructor for Blocks with unique top, sides, bottom textures
+    // Block constructor for Blocks with unique top, sides, bottom textures (Grass)
     public Block(string BlockName, bool IsTransparent, bool IsSemiTransparent, string TopImageName, string SideImageName, string BottomImageName)
     {
         this.BlockName = BlockName;
@@ -65,7 +65,7 @@ public class Block : ITickable
         this.REGISTER();
     }
 
-    // Block constructor for Blocks with unique top, sides, bottom textures
+    // Block constructor for Blocks with unique top/bottom and side textures (Logs)
     public Block(string BlockName, bool IsTransparent, bool IsSemiTransparent, string TopImageName, string SideImageName)
     {
         this.BlockName = BlockName;
@@ -89,7 +89,7 @@ public class Block : ITickable
         this.REGISTER();
     }
 
-    // Block constructor for: Transparent Blocks (Air block only)
+    // Block constructor for Transparent Blocks (Air block only)
     public Block(string BlockName, bool IsTransparent, bool IsSemiTransparent)
     {
         this.BlockName = BlockName;
