@@ -146,6 +146,12 @@ public class Block : ITickable
         this.Position = position;
     }
 
+    // Set Block Position
+    public void SetPosition(Int3 pos)
+    {
+        this.Position = pos;
+    }
+
     // Draw Block using MathHelper DrawCube
     public virtual MeshData Draw(int x, int y, int z, Block[,,] blocks)
     {

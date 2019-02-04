@@ -17,12 +17,12 @@ public class Chunk : ITickable
     private bool renderingLock = false;
     public bool NeedToUpdate = false;
     public bool HasBeenModified = false;
-    public int[] NegXNeighbor;
-    public int[] PosXNeighbor;
-    public int[] NegYNeighbor;
-    public int[] PosYNeighbor;
-    public int[] NegZNeighbor;
-    public int[] PosZNeighbor;
+    public Int3 NegXNeighbor;
+    public Int3 PosXNeighbor;
+    public Int3 NegYNeighbor;
+    public Int3 PosYNeighbor;
+    public Int3 NegZNeighbor;
+    public Int3 PosZNeighbor;
     public bool NeedToUpdateNegXNeighbor = false;
     public bool NeedToUpdatePosXNeighbor = false;
     public bool NeedToUpdateNegYNeighbor = false;
@@ -49,12 +49,12 @@ public class Chunk : ITickable
         this.PosY = py;
         this.PosZ = pz;
         this.world = world;
-        this.NegXNeighbor = new int[3] { this.PosX - 1, this.PosY, this.PosZ };
-        this.PosXNeighbor = new int[3] { this.PosX + 1, this.PosY, this.PosZ };
-        this.NegYNeighbor = new int[3] { this.PosX, this.PosY - 1, this.PosZ };
-        this.PosYNeighbor = new int[3] { this.PosX, this.PosY + 1, this.PosZ };
-        this.NegZNeighbor = new int[3] { this.PosX, this.PosY, this.PosZ - 1 };
-        this.PosZNeighbor = new int[3] { this.PosX, this.PosY, this.PosZ + 1 };
+        this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
+        this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
+        this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
+        this.PosYNeighbor = new Int3(this.PosX, this.PosY + 1, this.PosZ);
+        this.NegZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ - 1);
+        this.PosZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ + 1);
     }
 
     // Chunk constructor for new chunks
@@ -64,12 +64,12 @@ public class Chunk : ITickable
         this.PosY = pos.y;
         this.PosZ = pos.z;
         this.world = world;
-        this.NegXNeighbor = new int[3] { this.PosX - 1, this.PosY, this.PosZ };
-        this.PosXNeighbor = new int[3] { this.PosX + 1, this.PosY, this.PosZ };
-        this.NegYNeighbor = new int[3] { this.PosX, this.PosY - 1, this.PosZ };
-        this.PosYNeighbor = new int[3] { this.PosX, this.PosY + 1, this.PosZ };
-        this.NegZNeighbor = new int[3] { this.PosX, this.PosY, this.PosZ - 1 };
-        this.PosZNeighbor = new int[3] { this.PosX, this.PosY, this.PosZ + 1 };
+        this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
+        this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
+        this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
+        this.PosYNeighbor = new Int3(this.PosX, this.PosY + 1, this.PosZ);
+        this.NegZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ - 1);
+        this.PosZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ + 1);
     }
 
     // Chunk constructor for saved data
@@ -79,12 +79,12 @@ public class Chunk : ITickable
         this.PosY = py;
         this.PosZ = pz;
         this.world = world;
-        this.NegXNeighbor = new int[] { this.PosX - 1, this.PosY, this.PosZ };
-        this.PosXNeighbor = new int[] { this.PosX + 1, this.PosY, this.PosZ };
-        this.NegYNeighbor = new int[] { this.PosX, this.PosY - 1, this.PosZ };
-        this.PosYNeighbor = new int[] { this.PosX, this.PosY + 1, this.PosZ };
-        this.NegZNeighbor = new int[] { this.PosX, this.PosY, this.PosZ - 1 };
-        this.PosZNeighbor = new int[] { this.PosX, this.PosY, this.PosZ + 1 };
+        this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
+        this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
+        this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
+        this.PosYNeighbor = new Int3(this.PosX, this.PosY + 1, this.PosZ);
+        this.NegZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ - 1);
+        this.PosZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ + 1);
         this.HasGenerated = true;
         this.LoadChunkFromData(data);
     }
@@ -96,12 +96,12 @@ public class Chunk : ITickable
         this.PosY = pos.y;
         this.PosZ = pos.z;
         this.world = world;
-        this.NegXNeighbor = new int[] { this.PosX - 1, this.PosY, this.PosZ };
-        this.PosXNeighbor = new int[] { this.PosX + 1, this.PosY, this.PosZ };
-        this.NegYNeighbor = new int[] { this.PosX, this.PosY - 1, this.PosZ };
-        this.PosYNeighbor = new int[] { this.PosX, this.PosY + 1, this.PosZ };
-        this.NegZNeighbor = new int[] { this.PosX, this.PosY, this.PosZ - 1 };
-        this.PosZNeighbor = new int[] { this.PosX, this.PosY, this.PosZ + 1 };
+        this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
+        this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
+        this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
+        this.PosYNeighbor = new Int3(this.PosX, this.PosY + 1, this.PosZ);
+        this.NegZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ - 1);
+        this.PosZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ + 1);
         this.HasGenerated = true;
         this.LoadChunkFromData(data);
     }
@@ -118,8 +118,6 @@ public class Chunk : ITickable
         {
             return;
         }
-        Debug.Log($@"Starting Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-        Logger.Log($@"Starting Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         this.Blocks = new Block[ChunkSize, ChunkSize, ChunkSize];
         System.Random r = new System.Random();
         int check;
@@ -138,7 +136,7 @@ public class Chunk : ITickable
                     if(perlinNew > GameManager.STATICAirAndLandIntersectionCutoff)
                     {
                         this.Blocks[x, y, z] = Block.Air;
-                        this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                     // Top layer
                     else if(perlinNew < GameManager.STATICAirAndLandIntersectionCutoff && perlinNew > GameManager.STATICLandTopLayerCutoff)
@@ -147,32 +145,32 @@ public class Chunk : ITickable
                         if(check + pos.y > 110)
                         {
                             this.Blocks[x, y, z] = Block.Snow;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 110 && check + pos.y > 100)
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 100 && check + pos.y > 90)
                         {
                             this.Blocks[x, y, z] = Block.Dirt;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 90 && check + pos.y > 62)
                         {
                             this.Blocks[x, y, z] = Block.Grass;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 62 && check + pos.y > 30)
                         {
                             this.Blocks[x, y, z] = Block.Sand;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                     }
                     // Secondary Layer
@@ -182,42 +180,42 @@ public class Chunk : ITickable
                         if(check + pos.y > 100)
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 100 && check + pos.y > 62)
                         {
                             this.Blocks[x, y, z] = Block.Dirt;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 62 && check + pos.y > 30)
                         {
                             this.Blocks[x, y, z] = Block.Dirt;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                     }
                     // Inner Layer
                     else
                     {
                         this.Blocks[x, y, z] = Block.Stone;
-                        this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                     // Cave Generation
                     if(perlinNewCave > GameManager.STATICCaveCutoff)
                     {
                         this.Blocks[x, y, z] = Block.Air;
-                        this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                     // Bedrock Generation
                     check = r.Next(-1, 1);
                     if(pos.y + check <= 2)
                     {
                         this.Blocks[x, y, z] = Block.Bedrock;
-                        this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
+                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                 }
             }
@@ -262,8 +260,6 @@ public class Chunk : ITickable
         }
         if(!this.hasDrawn && this.HasGenerated && !this.drawnLock)
         {
-            Debug.Log($@"Updating Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"Updating Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             this.drawnLock = true;
             this.data = new MeshData();
             for(int x = 0; x < ChunkSize; x++)
@@ -286,8 +282,6 @@ public class Chunk : ITickable
     {
         if (this.HasGenerated && !this.hasRendered && this.hasDrawn && !this.renderingLock)
         {
-            Debug.Log($@"Creating GameObject for Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"Creating GameObject for Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             this.renderingLock = true;
             Mesh mesh = this.data.ToMesh();
             if(this.go == null)
@@ -325,78 +319,25 @@ public class Chunk : ITickable
     }
 
     // Get noise
-    public float GetNoiseNew(float x, float y, float z)
+    private float GetNoiseNew(float x, float y, float z)
     {
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        RidgedMulti ridgedMulti = new RidgedMulti()
-        {
-            Frequency = 0.015f,
-            Lacunarity = 2f,
-            OctaveCount = 4,
-            Seed = 0,
-        };
-        Billow billow = new Billow()
-        {
-            Frequency = 0.015f,
-            Lacunarity = 2f,
-            OctaveCount = 4,
-            Persistence = 0.5f,
-            Seed = 0,
-        };
-        ScaleBias scaleBias = new ScaleBias()
-        {
-            Source0 = billow,
-            Scale = 0.125f,
-            Bias = -0.75f,
-        };
-        Perlin perlin = new Perlin()
-        {
-            Frequency = 0.015f,
-            Lacunarity = 2f,
-            OctaveCount = 4,
-            Persistence = 0.25f,
-            Seed = 0,
-        };
-        Select select = new Select()
-        {
-            Control = perlin,
-            Source0 = scaleBias,
-            Source1 = ridgedMulti,
-            LowerBound = 0f,
-            UpperBound = 1000f,
-            EdgeFalloff = 0.125f,
-        };
-        Turbulence noiseSource = new Turbulence()
-        {
-            Source0 = select,
-            Frequency = 0.015f,
-            Power = 0.125f,
-            Roughness = 2,
-            Seed = 0,
-        };
-        return (float)noiseSource.GetValue(x, y, z) + ((y - (ChunkSize * 0.3f)) * GameManager.STATICyMultiplier);
+        return (float)World.WorldInstance.perlin.GetValue(x, y, z) + ((y - (ChunkSize * 0.3f)) * GameManager.STATICyMultiplier);
     }
 
     // Get noise for Cave Generation
-    public float GetNoiseNewCave(float x, float y, float z)
+    private float GetNoiseNewCave(float x, float y, float z)
     {
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        RidgedMulti ridged = new RidgedMulti()
-        {
-            Frequency = GameManager.STATICRidgedFrequency,
-            Lacunarity = GameManager.STATICRidgedLacunarity,
-            OctaveCount = GameManager.STATICRidgedOctaveCount,
-            Seed = GameManager.STATICRidgedSeed,
-        };
-        return (float)ridged.GetValue(x, y, z) - (y / (ChunkSize * 0.5f) * GameManager.STATICCaveyMultiplier);
+        return (float)World.WorldInstance.ridged.GetValue(x, y, z) - (y / (ChunkSize * 0.5f) * GameManager.STATICCaveyMultiplier);
     }
 
     // Get noise tree generation
-    public float GetNoiseForTree(float x, float z)
+    private float GetNoiseForTree(float x, float z)
     {
         x += this.PosX * ChunkSize;
         z += this.PosZ * ChunkSize;

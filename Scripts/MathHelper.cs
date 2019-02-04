@@ -72,23 +72,31 @@ public class Int3
         this.z = Mathf.FloorToInt(this.z / Chunk.ChunkSize);
     }
 
-    // Get Internal Chunk coords from World coords and Chunk Coords
-    internal void ToInternalChunkCoords(int PosX, int PosY, int PosZ)
+    // Get Internal Chunk coords from World coords
+    internal void ToInternalChunkCoords()
     {
-        this.x = this.x - (PosX * Chunk.ChunkSize);
-        this.y = this.y - (PosY * Chunk.ChunkSize);
-        this.z = this.z - (PosZ * Chunk.ChunkSize);
+        Int3 chunkBlocks = new Int3(
+            Mathf.FloorToInt(this.x / Chunk.ChunkSize) * Chunk.ChunkSize, 
+            Mathf.FloorToInt(this.y / Chunk.ChunkSize) * Chunk.ChunkSize, 
+            Mathf.FloorToInt(this.z / Chunk.ChunkSize) * Chunk.ChunkSize);
+        this.x = this.x - chunkBlocks.x;
+        this.y = this.y - chunkBlocks.y;
+        this.z = this.z - chunkBlocks.z;
+        if(this.x < 0)
+        {
+            this.x = -this.x;
+        }
+        if(this.y < 0)
+        {
+            this.y = -this.y;
+        }
+        if(this.z < 0)
+        {
+            this.z = -this.z;
+        }
     }
 
-    // Get Internal Chunk coords from World coords and Chunk Coords
-    internal void ToInternalChunkCoords(Int3 chunkPos)
-    {
-        this.x = this.x - (chunkPos.x * Chunk.ChunkSize);
-        this.y = this.y - (chunkPos.y * Chunk.ChunkSize);
-        this.z = this.z - (chunkPos.z * Chunk.ChunkSize);
-    }
-
-    // Get World coords from Within-Chunk coords and Chunk coords
+    // Get World coords from Within-Chunk coords by passing Chunk coords
     internal void ToWorldCoords(int PosX, int PosY, int PosZ)
     {
         this.x = this.x + (PosX * Chunk.ChunkSize);
@@ -96,7 +104,7 @@ public class Int3
         this.z = this.z + (PosZ * Chunk.ChunkSize);
     }
 
-    // Get World coords from Within-Chunk coords and Chunk coords
+    // Get World coords from Within-Chunk coords by passing Chunk coords
     internal void ToWorldCoords(Int3 chunkPos)
     {
         this.x = this.x + (chunkPos.x * Chunk.ChunkSize);
@@ -671,7 +679,7 @@ public class MathHelper
                 return;
             }
             Int3 pos = new Int3(position);
-            pos.ToInternalChunkCoords(chunkPos);
+            pos.ToInternalChunkCoords();
             currentchunk.PlayerSetBlock(pos, block);
         }
         catch(System.Exception e)

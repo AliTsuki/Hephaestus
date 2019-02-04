@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
-
+using SharpNoise.Modules;
 using UnityEngine;
 
 // Class containing World functions
@@ -10,11 +10,28 @@ public class World : ILoopable
     public bool IsRunning;
     private bool ranOnce = false;
     // How far to render chunks from Playerpos
-    private static readonly int renderDistanceFirstPass = 6;
-    private static readonly int renderDistance = 4;
+    private static readonly int renderDistanceFirstPass = 4;
+    private static readonly int renderDistance = 3;
     private Thread worldThread;
     public Int3 PlayerStartingPos;
     public readonly List<Chunk> _LoadedChunks = new List<Chunk>();
+
+    public readonly Perlin perlin = new Perlin()
+    {
+        Frequency = 0.015f,
+        Lacunarity = 2f,
+        OctaveCount = 4,
+        Persistence = 0.25f,
+        Seed = 0,
+    };
+
+    public readonly RidgedMulti ridged = new RidgedMulti()
+    {
+        Frequency = GameManager.STATICRidgedFrequency,
+        Lacunarity = GameManager.STATICRidgedLacunarity,
+        OctaveCount = GameManager.STATICRidgedOctaveCount,
+        Seed = GameManager.STATICRidgedSeed,
+    };
 
     // World instance getter/setter
     public static World WorldInstance { get; private set; }
@@ -42,21 +59,21 @@ public class World : ILoopable
                 {
                     Int3 newChunkPos = this.PlayerStartingPos;
                     newChunkPos.ToChunkCoords();
-                    Vector3 startingChunkPos = newChunkPos.GetVec3();
+                    Int3 startingChunkPos = newChunkPos;
                     if(!this.ranOnce)
                     {
                         // For first time running world thread, for all Chunk Positions within Rendering Distance 
                         // check if chunk exists in file, if so get from file, if not Generate Chunk
-                        for(int x = -(renderDistanceFirstPass - 1); x < renderDistanceFirstPass; x++)
+                        for(int x = -renderDistanceFirstPass; x < renderDistanceFirstPass; x++)
                         {
-                            for(int y = -(renderDistanceFirstPass - 1); y < renderDistanceFirstPass; y++)
+                            for(int y = -renderDistanceFirstPass; y < renderDistanceFirstPass; y++)
                             {
-                                for(int z = -(renderDistanceFirstPass - 1); z < renderDistanceFirstPass; z++)
+                                for(int z = -renderDistanceFirstPass; z < renderDistanceFirstPass; z++)
                                 {
                                     newChunkPos.SetPos(this.PlayerStartingPos);
                                     newChunkPos.AddPos(x * Chunk.ChunkSize, y * Chunk.ChunkSize, z * Chunk.ChunkSize);
                                     newChunkPos.ToChunkCoords();
-                                    if(Vector3.Distance(newChunkPos.GetVec3(), startingChunkPos) < (renderDistanceFirstPass - 1))
+                                    if(Vector3.Distance(newChunkPos.GetVec3(), startingChunkPos.GetVec3()) <= renderDistanceFirstPass)
                                     {
                                         // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
                                         if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos)))
@@ -86,9 +103,15 @@ public class World : ILoopable
                         Debug.Log("Finished Adding New Chunks First Round");
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            if(Vector3.Distance(new Vector3(this._LoadedChunks[i].PosX * Chunk.ChunkSize, this._LoadedChunks[i].PosY * Chunk.ChunkSize, this._LoadedChunks[i].PosZ * Chunk.ChunkSize), new Vector3(this.PlayerStartingPos.x, this.PlayerStartingPos.y, this.PlayerStartingPos.z)) <= (renderDistance * Chunk.ChunkSize))
+                            Int3 chunkPos = new Int3(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ);
+                            if(Vector3.Distance(chunkPos.GetVec3(), startingChunkPos.GetVec3()) <= renderDistance)
                             {
-                                this._LoadedChunks[i].Update();
+                                if (this.ChunkExists(this._LoadedChunks[i].NegXNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosXNeighbor) 
+                                 && this.ChunkExists(this._LoadedChunks[i].NegYNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosYNeighbor) 
+                                 && this.ChunkExists(this._LoadedChunks[i].NegZNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosZNeighbor))
+                                {
+                                    this._LoadedChunks[i].Update();
+                                }
                             }
                         }
                         Debug.Log("Finished Updating Chunks First Round");
@@ -100,11 +123,11 @@ public class World : ILoopable
                     if(GameManager.PlayerLoaded())
                     {
                         Int3 currentPlayerPos = new Int3(GameManager.Instance.PlayerPos);
-                        for(int x = -(renderDistance - 1); x < renderDistance; x++)
+                        for(int x = -renderDistance; x < renderDistance; x++)
                         {
-                            for(int y = -(renderDistance - 1); y < renderDistance; y++)
+                            for(int y = -renderDistance; y < renderDistance; y++)
                             {
-                                for(int z = -(renderDistance - 1); z < renderDistance; z++)
+                                for(int z = -renderDistance; z < renderDistance; z++)
                                 {
                                     newChunkPos.SetPos(currentPlayerPos);
                                     newChunkPos.AddPos(x * Chunk.ChunkSize, y * Chunk.ChunkSize, z * Chunk.ChunkSize);
@@ -138,7 +161,8 @@ public class World : ILoopable
                         // Iterate through Loaded Chunks and Degenerate if they are too far from player position
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            if(Vector3.Distance(new Vector3(this._LoadedChunks[i].PosX * Chunk.ChunkSize, this._LoadedChunks[i].PosY * Chunk.ChunkSize, this._LoadedChunks[i].PosZ * Chunk.ChunkSize), new Vector3(currentPlayerPos.x, currentPlayerPos.y, currentPlayerPos.z)) <= (renderDistance * 1.5 * Chunk.ChunkSize))
+                            Int3 chunkPos = new Int3(this._LoadedChunks[i].PosX * Chunk.ChunkSize, this._LoadedChunks[i].PosY * Chunk.ChunkSize, this._LoadedChunks[i].PosZ * Chunk.ChunkSize);
+                            if(Vector3.Distance(chunkPos.GetVec3(), currentPlayerPos.GetVec3()) <= (renderDistance * 1.5 * Chunk.ChunkSize))
                             {
                                 this._LoadedChunks[i].Degenerate();
                             }
@@ -146,38 +170,39 @@ public class World : ILoopable
                         // Loop through loaded chunks and run Chunk.Update(): Draw/Update meshes to render
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            if(Vector3.Distance(new Vector3(this._LoadedChunks[i].PosX * Chunk.ChunkSize, this._LoadedChunks[i].PosY * Chunk.ChunkSize, this._LoadedChunks[i].PosZ * Chunk.ChunkSize), new Vector3(currentPlayerPos.x, currentPlayerPos.y, currentPlayerPos.z)) <= ((renderDistance - 2) * Chunk.ChunkSize))
+                            Int3 chunkPos = new Int3(this._LoadedChunks[i].PosX * Chunk.ChunkSize, this._LoadedChunks[i].PosY * Chunk.ChunkSize, this._LoadedChunks[i].PosZ * Chunk.ChunkSize);
+                            if(Vector3.Distance(chunkPos.GetVec3(), currentPlayerPos.GetVec3()) <= (renderDistance * Chunk.ChunkSize))
                             {
                                 // Before update, if chunk has been set that it's neighbors need to update, tell those neighbors they need to update
                                 // Neighbors will need to update meshes if a block is changed at the intersection of chunks to ensure no extra tris are rendered unseen
-                                if(this._LoadedChunks[i].NeedToUpdateNegXNeighbor && this.ChunkExists(this._LoadedChunks[i].PosX - 1, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ))
+                                if(this._LoadedChunks[i].NeedToUpdateNegXNeighbor && this.ChunkExists(this._LoadedChunks[i].NegXNeighbor))
                                 {
-                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosX - 1, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ)].NeedToUpdate = true;
+                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].NegXNeighbor)].NeedToUpdate = true;
                                     this._LoadedChunks[i].NeedToUpdateNegXNeighbor = false;
                                 }
-                                if(this._LoadedChunks[i].NeedToUpdatePosXNeighbor && this.ChunkExists(this._LoadedChunks[i].PosX + 1, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ))
+                                if(this._LoadedChunks[i].NeedToUpdatePosXNeighbor && this.ChunkExists(this._LoadedChunks[i].PosXNeighbor))
                                 {
-                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosX + 1, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ)].NeedToUpdate = true;
+                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosXNeighbor)].NeedToUpdate = true;
                                     this._LoadedChunks[i].NeedToUpdatePosXNeighbor = false;
                                 }
-                                if(this._LoadedChunks[i].NeedToUpdateNegYNeighbor && this.ChunkExists(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY - 1, this._LoadedChunks[i].PosZ))
+                                if(this._LoadedChunks[i].NeedToUpdateNegYNeighbor && this.ChunkExists(this._LoadedChunks[i].NegYNeighbor))
                                 {
-                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY - 1, this._LoadedChunks[i].PosZ)].NeedToUpdate = true;
+                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].NegYNeighbor)].NeedToUpdate = true;
                                     this._LoadedChunks[i].NeedToUpdateNegYNeighbor = false;
                                 }
-                                if(this._LoadedChunks[i].NeedToUpdatePosYNeighbor && this.ChunkExists(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY + 1, this._LoadedChunks[i].PosZ))
+                                if(this._LoadedChunks[i].NeedToUpdatePosYNeighbor && this.ChunkExists(this._LoadedChunks[i].PosYNeighbor))
                                 {
-                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY + 1, this._LoadedChunks[i].PosZ)].NeedToUpdate = true;
+                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosYNeighbor)].NeedToUpdate = true;
                                     this._LoadedChunks[i].NeedToUpdatePosYNeighbor = false;
                                 }
-                                if(this._LoadedChunks[i].NeedToUpdateNegZNeighbor && this.ChunkExists(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ - 1))
+                                if(this._LoadedChunks[i].NeedToUpdateNegZNeighbor && this.ChunkExists(this._LoadedChunks[i].NegZNeighbor))
                                 {
-                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ - 1)].NeedToUpdate = true;
+                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].NegZNeighbor)].NeedToUpdate = true;
                                     this._LoadedChunks[i].NeedToUpdateNegZNeighbor = false;
                                 }
-                                if(this._LoadedChunks[i].NeedToUpdatePosZNeighbor && this.ChunkExists(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ + 1))
+                                if(this._LoadedChunks[i].NeedToUpdatePosZNeighbor && this.ChunkExists(this._LoadedChunks[i].PosZNeighbor))
                                 {
-                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ + 1)].NeedToUpdate = true;
+                                    this._LoadedChunks[this.GetChunkIndex(this._LoadedChunks[i].PosZNeighbor)].NeedToUpdate = true;
                                     this._LoadedChunks[i].NeedToUpdateNegZNeighbor = false;
                                 }
                                 this._LoadedChunks[i].Update();
@@ -193,8 +218,10 @@ public class World : ILoopable
             }
             Logger.Log("World thread successfully stopped.");
             Logger.MainLog.Update(); // TODO: FIX IN FUTURE, BAD PRACTICE, This reruns last log
-        });
-        this.worldThread.IsBackground = true;
+        })
+        {
+            IsBackground = true
+        };
         this.worldThread.Start();
     }
 
@@ -215,10 +242,11 @@ public class World : ILoopable
         {
             try
             {
+                Int3 chunkPos = new Int3(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ);
                 // Only bother saving chunks which have been modified by player
                 if(this._LoadedChunks[i].HasBeenModified)
                 {
-                    Serializer.Serialize_ToFile_FullPath(FileManager.GetChunkString(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ), this._LoadedChunks[i].GetChunkSaveData());
+                    Serializer.Serialize_ToFile_FullPath(FileManager.GetChunkString(chunkPos), this._LoadedChunks[i].GetChunkSaveData());
                 }
             }
             catch(System.Exception e)
@@ -320,16 +348,10 @@ public class World : ILoopable
     // Get Block Type at given World Coords
     public Block GetBlockFromWorldCoords(int x, int y, int z)
     {
-        Debug.Log($@"GetBlockFromWorldCoords: {x}, {y}, {z}");
-        Logger.Log($@"GetBlockFromWorldCoords: {x}, {y}, {z}");
         Int3 chunkCoords = new Int3(x, y, z);
         chunkCoords.ToChunkCoords();
-        Debug.Log($@"ToChunkCoords: {chunkCoords.ToString()}");
-        Logger.Log($@"ToChunkCoords: {chunkCoords.ToString()}");
         Int3 pos = new Int3(x, y, z);
-        pos.ToInternalChunkCoords(chunkCoords);
-        Debug.Log($@"InternalChunkCoords: {pos.ToString()}");
-        Logger.Log($@"InternalChunkCoords: {pos.ToString()}");
+        pos.ToInternalChunkCoords();
         if(this.ChunkExists(chunkCoords))
         {
             Chunk chunk = this.GetChunk(chunkCoords);
