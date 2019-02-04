@@ -56,6 +56,8 @@ public class GameManager : MonoBehaviour
         MainLoopable.Instantiate();
         this.main = MainLoopable.MLInstance;
         this.main.Start();
+        Debug.Log(Vector3.Distance(new Vector3(0, 0, 0), new Vector3(3, 3, 3)));
+        Debug.Log(Vector3.Distance(new Vector3(0, 0, 0), new Vector3(5, 10, 15)));
     }
 
     // Update is called once per frame
@@ -75,6 +77,8 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Can't update MainLoopable due to Exception.");
             Debug.Log(e.ToString());
+            Logger.Log("Can't update MainLoopable due to Exception.");
+            Logger.Log(e);
             World.WorldInstance.IsRunning = false;
         }
         for(int i = 0; i < this._Delegates.Count; i++)

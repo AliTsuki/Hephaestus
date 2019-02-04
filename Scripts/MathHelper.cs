@@ -40,6 +40,14 @@ public class Int3
         this.z = z;
     }
 
+    // Sets x,y,z position
+    internal void SetPos(Int3 pos)
+    {
+        this.x = pos.x;
+        this.y = pos.y;
+        this.z = pos.z;
+    }
+
     // Add x,y,z position
     internal void AddPos(int x, int y, int z)
     {
@@ -48,7 +56,15 @@ public class Int3
         this.z += z;
     }
 
-    // Get Within-Chunk coords from given World coords
+    // Add x,y,z position
+    internal void AddPos(Int3 pos)
+    {
+        this.x += pos.x;
+        this.y += pos.y;
+        this.z += pos.z;
+    }
+
+    // Get Chunk coords from given World coords
     internal void ToChunkCoords()
     {
         this.x = Mathf.FloorToInt(this.x / Chunk.ChunkSize);
@@ -56,12 +72,36 @@ public class Int3
         this.z = Mathf.FloorToInt(this.z / Chunk.ChunkSize);
     }
 
-    // Get World coords from Within-Chunk coords
+    // Get Internal Chunk coords from World coords and Chunk Coords
+    internal void ToInternalChunkCoords(int PosX, int PosY, int PosZ)
+    {
+        this.x = this.x - (PosX * Chunk.ChunkSize);
+        this.y = this.y - (PosY * Chunk.ChunkSize);
+        this.z = this.z - (PosZ * Chunk.ChunkSize);
+    }
+
+    // Get Internal Chunk coords from World coords and Chunk Coords
+    internal void ToInternalChunkCoords(Int3 chunkPos)
+    {
+        this.x = this.x - (chunkPos.x * Chunk.ChunkSize);
+        this.y = this.y - (chunkPos.y * Chunk.ChunkSize);
+        this.z = this.z - (chunkPos.z * Chunk.ChunkSize);
+    }
+
+    // Get World coords from Within-Chunk coords and Chunk coords
     internal void ToWorldCoords(int PosX, int PosY, int PosZ)
     {
         this.x = this.x + (PosX * Chunk.ChunkSize);
         this.y = this.y + (PosY * Chunk.ChunkSize);
         this.z = this.z + (PosZ * Chunk.ChunkSize);
+    }
+
+    // Get World coords from Within-Chunk coords and Chunk coords
+    internal void ToWorldCoords(Int3 chunkPos)
+    {
+        this.x = this.x + (chunkPos.x * Chunk.ChunkSize);
+        this.y = this.y + (chunkPos.y * Chunk.ChunkSize);
+        this.z = this.z + (chunkPos.z * Chunk.ChunkSize);
     }
 
     // Get Vec3 from Int3
@@ -161,7 +201,7 @@ public class MathHelper
         {
             return data;
         }
-        Vector3Int position = block.Position;
+        Int3 position = block.Position;
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -331,7 +371,7 @@ public class MathHelper
         {
             return data;
         }
-        Vector3Int position = block.Position;
+        Int3 position = block.Position;
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -437,7 +477,7 @@ public class MathHelper
         {
             return data;
         }
-        Vector3Int position = block.Position;
+        Int3 position = block.Position;
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -533,7 +573,7 @@ public class MathHelper
     }
 
     // Checks if NegX face is visible
-    private static bool CheckNegXVis(int x, int y, int z, Vector3Int position, Block[,,] blocks)
+    private static bool CheckNegXVis(int x, int y, int z, Int3 position, Block[,,] blocks)
     {
         if(x > 0)
         {
@@ -547,7 +587,7 @@ public class MathHelper
     }
 
     // Checks if PosX face is visible
-    private static bool CheckPosXVis(int x, int y, int z, Vector3Int position, Block[,,] blocks)
+    private static bool CheckPosXVis(int x, int y, int z, Int3 position, Block[,,] blocks)
     {
         if(x < Chunk.ChunkSize - 1)
         {
@@ -561,7 +601,7 @@ public class MathHelper
     }
 
     // Checks if NegY face is visible
-    private static bool CheckNegYVis(int x, int y, int z, Vector3Int position, Block[,,] blocks)
+    private static bool CheckNegYVis(int x, int y, int z, Int3 position, Block[,,] blocks)
     {
         if(y > 0)
         {
@@ -575,7 +615,7 @@ public class MathHelper
     }
 
     // Checks if PosY face is visible
-    private static bool CheckPosYVis(int x, int y, int z, Vector3Int position, Block[,,] blocks)
+    private static bool CheckPosYVis(int x, int y, int z, Int3 position, Block[,,] blocks)
     {
         if(y < Chunk.ChunkSize - 1)
         {
@@ -589,7 +629,7 @@ public class MathHelper
     }
 
     // Checks if NegZ face is visible
-    private static bool CheckNegZVis(int x, int y, int z, Vector3Int position, Block[,,] blocks)
+    private static bool CheckNegZVis(int x, int y, int z, Int3 position, Block[,,] blocks)
     {
         if(z > 0)
         {
@@ -603,7 +643,7 @@ public class MathHelper
     }
 
     // Checks if PosZ face is visible
-    private static bool CheckPosZVis(int x, int y, int z, Vector3Int position, Block[,,] blocks)
+    private static bool CheckPosZVis(int x, int y, int z, Int3 position, Block[,,] blocks)
     {
         if(z < Chunk.ChunkSize - 1)
         {
@@ -619,26 +659,25 @@ public class MathHelper
     // Add Block to Chunk
     internal static void AddBlock(Vector3 position, Block block)
     {
-        int chunkPosx = Mathf.FloorToInt(position.x / Chunk.ChunkSize);
-        int chunkPosy = Mathf.FloorToInt(position.y / Chunk.ChunkSize);
-        int chunkPosz = Mathf.FloorToInt(position.z / Chunk.ChunkSize);
+        Int3 chunkPos = new Int3(position);
+        chunkPos.ToChunkCoords();
         Chunk currentchunk;
         try
         {
-            currentchunk = World.WorldInstance.GetChunk(chunkPosx, chunkPosy, chunkPosz);
+            currentchunk = World.WorldInstance.GetChunk(chunkPos);
             if(currentchunk.GetType().Equals(typeof(ErroredChunk)))
             {
-                Debug.Log($@"Current CHUNK is ERRORED: C_{chunkPosx}_{chunkPosy}_{chunkPosz}");
+                Debug.Log($@"Current CHUNK is ERRORED: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
                 return;
             }
-            int x = (int)(position.x - (chunkPosx * Chunk.ChunkSize));
-            int y = (int)(position.y - (chunkPosy * Chunk.ChunkSize));
-            int z = (int)(position.z - (chunkPosz * Chunk.ChunkSize));
-            currentchunk.PlayerSetBlock(x, y, z, block);
+            Int3 pos = new Int3(position);
+            pos.ToInternalChunkCoords(chunkPos);
+            currentchunk.PlayerSetBlock(pos, block);
         }
         catch(System.Exception e)
         {
             Debug.Log(e.ToString());
+            Logger.Log(e);
         }
     }
 

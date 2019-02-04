@@ -40,7 +40,9 @@ public class World : ILoopable
             {
                 try
                 {
-                    Int3 newChunkPos = new Int3(this.PlayerStartingPos.x, this.PlayerStartingPos.y, this.PlayerStartingPos.z);
+                    Int3 newChunkPos = this.PlayerStartingPos;
+                    newChunkPos.ToChunkCoords();
+                    Vector3 startingChunkPos = newChunkPos.GetVec3();
                     if(!this.ranOnce)
                     {
                         // For first time running world thread, for all Chunk Positions within Rendering Distance 
@@ -51,28 +53,32 @@ public class World : ILoopable
                             {
                                 for(int z = -(renderDistanceFirstPass - 1); z < renderDistanceFirstPass; z++)
                                 {
-                                    newChunkPos.SetPos(this.PlayerStartingPos.x, this.PlayerStartingPos.y, this.PlayerStartingPos.z);
+                                    newChunkPos.SetPos(this.PlayerStartingPos);
                                     newChunkPos.AddPos(x * Chunk.ChunkSize, y * Chunk.ChunkSize, z * Chunk.ChunkSize);
                                     newChunkPos.ToChunkCoords();
-                                    // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
-                                    if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos.x, newChunkPos.y, newChunkPos.z)))
+                                    if(Vector3.Distance(newChunkPos.GetVec3(), startingChunkPos) < (renderDistanceFirstPass - 1))
                                     {
-                                        try
+                                        // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
+                                        if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos)))
                                         {
-                                            Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.y, newChunkPos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos.x, newChunkPos.y, newChunkPos.z)), this);
+                                            try
+                                            {
+                                                Chunk chunk = new Chunk(newChunkPos, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos)), this);
+                                                this._LoadedChunks.Add(chunk);
+                                                chunk.Start();
+                                            }
+                                            catch(System.Exception e)
+                                            {
+                                                Debug.Log(e.ToString());
+                                                Logger.Log(e);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Chunk chunk = new Chunk(newChunkPos, this);
                                             this._LoadedChunks.Add(chunk);
                                             chunk.Start();
                                         }
-                                        catch(System.Exception e)
-                                        {
-                                            Debug.Log(e.ToString());
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.y, newChunkPos.z, this);
-                                        this._LoadedChunks.Add(chunk);
-                                        chunk.Start();
                                     }
                                 }
                             }
@@ -100,27 +106,28 @@ public class World : ILoopable
                             {
                                 for(int z = -(renderDistance - 1); z < renderDistance; z++)
                                 {
-                                    newChunkPos.SetPos(currentPlayerPos.x, currentPlayerPos.y, currentPlayerPos.z);
+                                    newChunkPos.SetPos(currentPlayerPos);
                                     newChunkPos.AddPos(x * Chunk.ChunkSize, y * Chunk.ChunkSize, z * Chunk.ChunkSize);
                                     newChunkPos.ToChunkCoords();
-                                    if(!this.ChunkExists(newChunkPos.x, newChunkPos.y, newChunkPos.z))
+                                    if(!this.ChunkExists(newChunkPos))
                                     {
-                                        if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos.x, newChunkPos.y, newChunkPos.z)))
+                                        if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos)))
                                         {
                                             try
                                             {
-                                                Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.y, newChunkPos.z, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos.x, newChunkPos.y, newChunkPos.z)), this);
+                                                Chunk chunk = new Chunk(newChunkPos, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos)), this);
                                                 this._LoadedChunks.Add(chunk);
                                                 chunk.Start();
                                             }
                                             catch(System.Exception e)
                                             {
                                                 Debug.Log(e.ToString());
+                                                Logger.Log(e);
                                             }
                                         }
                                         else
                                         {
-                                            Chunk chunk = new Chunk(newChunkPos.x, newChunkPos.y, newChunkPos.z, this);
+                                            Chunk chunk = new Chunk(newChunkPos, this);
                                             this._LoadedChunks.Add(chunk);
                                             chunk.Start();
                                         }
@@ -211,12 +218,13 @@ public class World : ILoopable
                 // Only bother saving chunks which have been modified by player
                 if(this._LoadedChunks[i].HasBeenModified)
                 {
-                    Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ), this._LoadedChunks[i].GetChunkSaveData());
+                    Serializer.Serialize_ToFile_FullPath(FileManager.GetChunkString(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ), this._LoadedChunks[i].GetChunkSaveData());
                 }
             }
             catch(System.Exception e)
             {
                 Debug.Log(e.ToString());
+                Logger.Log(e);
             }
         }
         this.IsRunning = false;
@@ -242,6 +250,19 @@ public class World : ILoopable
         return false;
     }
 
+    // Check if Chunk currently exists
+    public bool ChunkExists(Int3 pos)
+    {
+        for(int i = 0; i < this._LoadedChunks.Count; i++)
+        {
+            if(this._LoadedChunks[i].PosX.Equals(pos.x) && this._LoadedChunks[i].PosY.Equals(pos.y) && this._LoadedChunks[i].PosZ.Equals(pos.z))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Get Chunk at location
     public Chunk GetChunk(int posx, int posy, int posz)
     {
@@ -255,6 +276,19 @@ public class World : ILoopable
         return new ErroredChunk(posx, posy, posz, this);
     }
 
+    // Get Chunk at location
+    public Chunk GetChunk(Int3 pos)
+    {
+        for(int i = 0; i < this._LoadedChunks.Count; i++)
+        {
+            if(this._LoadedChunks[i].PosX.Equals(pos.x) && this._LoadedChunks[i].PosY.Equals(pos.y) && this._LoadedChunks[i].PosZ.Equals(pos.z))
+            {
+                return this._LoadedChunks[i];
+            }
+        }
+        return new ErroredChunk(pos.x, pos.y, pos.z, this);
+    }
+
     // Get Chunk index position in Loaded Chunks
     public int GetChunkIndex(int posx, int posy, int posz)
     {
@@ -265,19 +299,45 @@ public class World : ILoopable
                 return i;
             }
         }
-        return 0; // TODO: Fix this... ChunkExists() is always called before this, so it should never be trying to find an index for a chunk that isn't loaded... but if it does, i gots problems
+        Logger.Log("Trying to get Chunk Index of Chunk that doesn't exist.");
+        throw new System.Exception("Trying to get Chunk Index of Chunk that doesn't exist.");
+    }
+
+    // Get Chunk index position in Loaded Chunks
+    public int GetChunkIndex(Int3 pos)
+    {
+        for(int i = 0; i < this._LoadedChunks.Count; i++)
+        {
+            if(this._LoadedChunks[i].PosX.Equals(pos.x) && this._LoadedChunks[i].PosY.Equals(pos.y) && this._LoadedChunks[i].PosZ.Equals(pos.z))
+            {
+                return i;
+            }
+        }
+        Logger.Log("Trying to get Chunk Index of Chunk that doesn't exist.");
+        throw new System.Exception("Trying to get Chunk Index of Chunk that doesn't exist.");
     }
 
     // Get Block Type at given World Coords
     public Block GetBlockFromWorldCoords(int x, int y, int z)
     {
+        Debug.Log($@"GetBlockFromWorldCoords: {x}, {y}, {z}");
+        Logger.Log($@"GetBlockFromWorldCoords: {x}, {y}, {z}");
         Int3 chunkCoords = new Int3(x, y, z);
         chunkCoords.ToChunkCoords();
-        int newx = x - (chunkCoords.x * Chunk.ChunkSize);
-        int newy = x - (chunkCoords.y * Chunk.ChunkSize);
-        int newz = x - (chunkCoords.z * Chunk.ChunkSize);
-        Chunk chunk = this.GetChunk(chunkCoords.x, chunkCoords.y, chunkCoords.z);
-        Block b = chunk.GetBlockFromChunkInternalCoords(newx, newy, newz);
-        return b;
+        Debug.Log($@"ToChunkCoords: {chunkCoords.ToString()}");
+        Logger.Log($@"ToChunkCoords: {chunkCoords.ToString()}");
+        Int3 pos = new Int3(x, y, z);
+        pos.ToInternalChunkCoords(chunkCoords);
+        Debug.Log($@"InternalChunkCoords: {pos.ToString()}");
+        Logger.Log($@"InternalChunkCoords: {pos.ToString()}");
+        if(this.ChunkExists(chunkCoords))
+        {
+            Chunk chunk = this.GetChunk(chunkCoords);
+            Block b = chunk.GetBlockFromChunkInternalCoords(pos);
+            return b;
+        }
+        Debug.Log($@"Chunk: {chunkCoords.ToString()} does not exist.");
+        Logger.Log($@"Chunk: {chunkCoords.ToString()} does not exist.");
+        throw new System.Exception("Trying to get Blocks from Chunk that doesn't exist.");
     }
 }

@@ -48,7 +48,7 @@ public class Block : ITickable
     private readonly Vector2[] _UVMap4;
     private readonly Vector2[] _UVMap5;
     private readonly Vector2[] _UVMap6;
-    public Vector3Int Position { get; private set; }
+    public Int3 Position { get; private set; }
 
     // Block constructor for Blocks with unique top, sides, bottom textures
     public Block(string BlockName, bool IsTransparent, bool IsSemiTransparent, string TopImageName, string SideImageName, string BottomImageName)
@@ -143,7 +143,7 @@ public class Block : ITickable
     {
         Int3 position = new Int3(x, y, z);
         position.ToWorldCoords(PosX, PosY, PosZ);
-        this.Position = new Vector3Int(position.x, position.y, position.z);
+        this.Position = position;
     }
 
     // Draw Block using MathHelper DrawCube
@@ -164,6 +164,7 @@ public class Block : ITickable
             catch(System.Exception e)
             {
                 Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Logger.Log(e);
             }
             return new MeshData();
         }
@@ -177,6 +178,7 @@ public class Block : ITickable
             catch(System.Exception e)
             {
                 Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Logger.Log(e);
             }
             return new MeshData();
         }
@@ -190,6 +192,7 @@ public class Block : ITickable
             catch(System.Exception e)
             {
                 Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Logger.Log(e);
             }
             return new MeshData();
         }

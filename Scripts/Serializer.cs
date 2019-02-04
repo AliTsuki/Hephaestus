@@ -20,7 +20,7 @@ public class Serializer
             }
             catch(System.Exception e)
             {
-                Logger.MainLog.log(e.ToString());
+                Logger.Log(e);
             }
         }
         return false;
@@ -39,7 +39,7 @@ public class Serializer
         }
         catch(System.Exception e)
         {
-            Logger.Log(e.ToString());
+            Logger.Log(e);
         }
     }
 

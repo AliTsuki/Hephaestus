@@ -15,4 +15,10 @@ public class FileManager
     {
         return $@"{ChunkSaveDirectory}C_{x}_{y}_{z}.CHUNK";
     }
+
+    // Get Chunk Filename string
+    public static string GetChunkString(Int3 pos)
+    {
+        return $@"{ChunkSaveDirectory}C_{pos.x}_{pos.y}_{pos.z}.CHUNK";
+    }
 }
