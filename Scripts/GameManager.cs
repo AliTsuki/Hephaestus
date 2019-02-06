@@ -56,8 +56,6 @@ public class GameManager : MonoBehaviour
         MainLoopable.Instantiate();
         this.main = MainLoopable.MLInstance;
         this.main.Start();
-        Debug.Log(Vector3.Distance(new Vector3(0, 0, 0), new Vector3(3, 3, 3)));
-        Debug.Log(Vector3.Distance(new Vector3(0, 0, 0), new Vector3(5, 10, 15)));
     }
 
     // Update is called once per frame

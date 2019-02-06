@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using UnityEngine;
 
 // Class of Int3 container
-public class Int3
+public struct Int3
 {
     // Int3 variables
     public int x, y, z;
@@ -33,7 +34,7 @@ public class Int3
     }
 
     // Sets x,y,z position
-    internal void SetPos(int x, int y, int z)
+    public void SetPos(int x, int y, int z)
     {
         this.x = x;
         this.y = y;
@@ -41,7 +42,7 @@ public class Int3
     }
 
     // Sets x,y,z position
-    internal void SetPos(Int3 pos)
+    public void SetPos(Int3 pos)
     {
         this.x = pos.x;
         this.y = pos.y;
@@ -49,7 +50,7 @@ public class Int3
     }
 
     // Add x,y,z position
-    internal void AddPos(int x, int y, int z)
+    public void AddPos(int x, int y, int z)
     {
         this.x += x;
         this.y += y;
@@ -57,7 +58,7 @@ public class Int3
     }
 
     // Add x,y,z position
-    internal void AddPos(Int3 pos)
+    public void AddPos(Int3 pos)
     {
         this.x += pos.x;
         this.y += pos.y;
@@ -65,7 +66,7 @@ public class Int3
     }
 
     // Get Chunk coords from given World coords
-    internal void ToChunkCoords()
+    public void ToChunkCoords()
     {
         this.x = Mathf.FloorToInt(this.x / Chunk.ChunkSize);
         this.y = Mathf.FloorToInt(this.y / Chunk.ChunkSize);
@@ -73,31 +74,15 @@ public class Int3
     }
 
     // Get Internal Chunk coords from World coords
-    internal void ToInternalChunkCoords()
+    public void ToInternalChunkCoords()
     {
-        Int3 chunkBlocks = new Int3(
-            Mathf.FloorToInt(this.x / Chunk.ChunkSize) * Chunk.ChunkSize, 
-            Mathf.FloorToInt(this.y / Chunk.ChunkSize) * Chunk.ChunkSize, 
-            Mathf.FloorToInt(this.z / Chunk.ChunkSize) * Chunk.ChunkSize);
-        this.x = this.x - chunkBlocks.x;
-        this.y = this.y - chunkBlocks.y;
-        this.z = this.z - chunkBlocks.z;
-        if(this.x < 0)
-        {
-            this.x = -this.x;
-        }
-        if(this.y < 0)
-        {
-            this.y = -this.y;
-        }
-        if(this.z < 0)
-        {
-            this.z = -this.z;
-        }
+        this.x = Math.Abs(this.x - (Mathf.FloorToInt(this.x / Chunk.ChunkSize) * Chunk.ChunkSize));
+        this.y = Math.Abs(this.y - (Mathf.FloorToInt(this.y / Chunk.ChunkSize) * Chunk.ChunkSize));
+        this.z = Math.Abs(this.z - (Mathf.FloorToInt(this.z / Chunk.ChunkSize) * Chunk.ChunkSize));
     }
 
     // Get World coords from Within-Chunk coords by passing Chunk coords
-    internal void ToWorldCoords(int PosX, int PosY, int PosZ)
+    public void ToWorldCoords(int PosX, int PosY, int PosZ)
     {
         this.x = this.x + (PosX * Chunk.ChunkSize);
         this.y = this.y + (PosY * Chunk.ChunkSize);
@@ -105,7 +90,7 @@ public class Int3
     }
 
     // Get World coords from Within-Chunk coords by passing Chunk coords
-    internal void ToWorldCoords(Int3 chunkPos)
+    public void ToWorldCoords(Int3 chunkPos)
     {
         this.x = this.x + (chunkPos.x * Chunk.ChunkSize);
         this.y = this.y + (chunkPos.y * Chunk.ChunkSize);
@@ -113,7 +98,7 @@ public class Int3
     }
 
     // Get Vec3 from Int3
-    internal Vector3 GetVec3()
+    public Vector3 GetVec3()
     {
         Vector3 vec3 = new Vector3(this.x, this.y, this.z);
         return vec3;
@@ -127,72 +112,72 @@ public class Int3
 }
 
 // Class for Mesh maths
-public class MathHelper
+public static class MathHelper
 {
     // List of Face Vertices and Draw Orders
-    static readonly List<Vector3> BottomFaceVerts = new List<Vector3>()
+    private static readonly List<Vector3> BottomFaceVerts = new List<Vector3>()
     {
         new Vector3(0,0,0),
         new Vector3(0,0,1),
         new Vector3(1,0,0),
         new Vector3(1,0,1)
     };
-    static readonly List<int> BottomFaceDrawOrder = new List<int>()
+    private static readonly List<int> BottomFaceDrawOrder = new List<int>()
     {
         0,2,1,3,1,2
     };
-    static readonly List<Vector3> TopFaceVerts = new List<Vector3>()
+    private static readonly List<Vector3> TopFaceVerts = new List<Vector3>()
     {
         new Vector3(0,1,0),
         new Vector3(0,1,1),
         new Vector3(1,1,0),
         new Vector3(1,1,1)
     };
-    static readonly List<int> TopFaceDrawOrder = new List<int>()
+    private static readonly List<int> TopFaceDrawOrder = new List<int>()
     {
         0,1,2,3,2,1
     };
-    static readonly List<Vector3> FrontFaceVerts = new List<Vector3>
+    private static readonly List<Vector3> FrontFaceVerts = new List<Vector3>
     {
         new Vector3(0,0,0),
         new Vector3(0,0,1),
         new Vector3(0,1,0),
         new Vector3(0,1,1)
     };
-    static readonly List<int> FrontFaceDrawOrder = new List<int>()
+    private static readonly List<int> FrontFaceDrawOrder = new List<int>()
     {
         0,1,2,3,2,1
     };
-    static readonly List<Vector3> BackFaceVerts = new List<Vector3>()
+    private static readonly List<Vector3> BackFaceVerts = new List<Vector3>()
     {
         new Vector3(1,0,0),
         new Vector3(1,0,1),
         new Vector3(1,1,0),
         new Vector3(1,1,1)
     };
-    static readonly List<int> BackFaceDrawOrder = new List<int>()
+    private static readonly List<int> BackFaceDrawOrder = new List<int>()
     {
         0,2,1,3,1,2
     };
-    static readonly List<Vector3> LeftFaceVerts = new List<Vector3>()
+    private static readonly List<Vector3> LeftFaceVerts = new List<Vector3>()
     {
         new Vector3(0,0,0),
         new Vector3(1,0,0),
         new Vector3(0,1,0),
         new Vector3(1,1,0)
     };
-    static readonly List<int> LeftFaceDrawOrder = new List<int>()
+    private static readonly List<int> LeftFaceDrawOrder = new List<int>()
     {
         0,2,1,3,1,2
     };
-    static readonly List<Vector3> RightFaceVerts = new List<Vector3>()
+    private static readonly List<Vector3> RightFaceVerts = new List<Vector3>()
     {
         new Vector3(0,0,1),
         new Vector3(1,0,1),
         new Vector3(0,1,1),
         new Vector3(1,1,1)
     };
-    static readonly List<int> RightFaceDrawOrder = new List<int>()
+    private static readonly List<int> RightFaceDrawOrder = new List<int>()
     {
         0,1,2,3,2,1
     };
@@ -201,7 +186,7 @@ public class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw Grass Block
-    public static MeshData DrawCubeGrass(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3)
+    public static MeshData DrawCubeGrass(int x, int y, int z, Int3 position, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -209,7 +194,6 @@ public class MathHelper
         {
             return data;
         }
-        Int3 position = block.Position;
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -371,7 +355,7 @@ public class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw Log Block
-    public static MeshData DrawCubeLogs(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2)
+    public static MeshData DrawCubeLogs(int x, int y, int z, Int3 position, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -379,7 +363,6 @@ public class MathHelper
         {
             return data;
         }
-        Int3 position = block.Position;
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -477,7 +460,7 @@ public class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMap
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw block with all sides the same
-    public static MeshData DrawCube(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap)
+    public static MeshData DrawCube(int x, int y, int z, Int3 position, Block[,,] blocks, Block block, Vector2[] _uvmap)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -485,7 +468,10 @@ public class MathHelper
         {
             return data;
         }
-        Int3 position = block.Position;
+        Debug.Log($@"Checking Faces of Block: {x}, {y}, {z}");
+        Debug.Log($@"At World Pos: {position.x}, {position.y}, {position.z}");
+        Logger.Log($@"Checking Faces of Block: {x}, {y}, {z}");
+        Logger.Log($@"At World Pos: {position.x}, {position.y}, {position.z}");
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -665,7 +651,7 @@ public class MathHelper
     }
 
     // Add Block to Chunk
-    internal static void AddBlock(Vector3 position, Block block)
+    public static void AddBlock(Vector3 position, Block block)
     {
         Int3 chunkPos = new Int3(position);
         chunkPos.ToChunkCoords();
@@ -714,7 +700,7 @@ public class MathHelper
         {
             if(blocks[x, i, z].IsTransparent && blocks[x, i + 1, z].IsTransparent && blocks[x, i + 2, z].IsTransparent
                 && blocks[x, i + 3, z].IsTransparent && blocks[x, i + 4, z].IsTransparent && blocks[x, i + 5, z].IsTransparent
-                && blocks[x, i + 6, z].IsTransparent && !blocks[x, i - 1, z].IsTransparent && blocks[x, i - 1, z] != Block.Leaves && blocks[x, i - 1, z] != Block.Logs)
+                && blocks[x, i + 6, z].IsTransparent && !blocks[x, i - 1, z].IsTransparent && !blocks[x, i - 1, z].Equals(Block.Leaves) && !blocks[x, i - 1, z].Equals(Block.Logs))
             {
                 y = i;
                 return y;
@@ -766,6 +752,5 @@ public class MathHelper
             currentchunk.StructureSetBlock(x + 1, y + 6, z - 1, Block.Leaves);
             currentchunk.StructureSetBlock(x + 1, y + 6, z + 1, Block.Leaves);
         }
-
     }
 }

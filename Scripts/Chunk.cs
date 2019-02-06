@@ -29,7 +29,6 @@ public class Chunk : ITickable
     public bool NeedToUpdatePosYNeighbor = false;
     public bool NeedToUpdateNegZNeighbor = false;
     public bool NeedToUpdatePosZNeighbor = false;
-    private readonly World world;
     private MeshData data;
     private GameObject go;
     private Block[,,] Blocks;
@@ -43,12 +42,11 @@ public class Chunk : ITickable
     public int PosZ { get; private set; }
 
     // Chunk constructor for new chunks
-    public Chunk(int px, int py, int pz, World world)
+    public Chunk(int px, int py, int pz)
     {
         this.PosX = px;
         this.PosY = py;
         this.PosZ = pz;
-        this.world = world;
         this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
         this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
         this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
@@ -58,12 +56,11 @@ public class Chunk : ITickable
     }
 
     // Chunk constructor for new chunks
-    public Chunk(Int3 pos, World world)
+    public Chunk(Int3 pos)
     {
         this.PosX = pos.x;
         this.PosY = pos.y;
         this.PosZ = pos.z;
-        this.world = world;
         this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
         this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
         this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
@@ -73,12 +70,11 @@ public class Chunk : ITickable
     }
 
     // Chunk constructor for saved data
-    public Chunk(int px, int py, int pz, int[,,] data, World world)
+    public Chunk(int px, int py, int pz, int[,,] data)
     {
         this.PosX = px;
         this.PosY = py;
         this.PosZ = pz;
-        this.world = world;
         this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
         this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
         this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
@@ -90,12 +86,11 @@ public class Chunk : ITickable
     }
 
     // Chunk constructor for saved data
-    public Chunk(Int3 pos, int[,,] data, World world)
+    public Chunk(Int3 pos, int[,,] data)
     {
         this.PosX = pos.x;
         this.PosY = pos.y;
         this.PosZ = pos.z;
-        this.world = world;
         this.NegXNeighbor = new Int3(this.PosX - 1, this.PosY, this.PosZ);
         this.PosXNeighbor = new Int3(this.PosX + 1, this.PosY, this.PosZ);
         this.NegYNeighbor = new Int3(this.PosX, this.PosY - 1, this.PosZ);
@@ -238,6 +233,8 @@ public class Chunk : ITickable
         //    }
         //}
         this.HasGenerated = true;
+        Debug.Log($@"Generated Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+        Logger.Log($@"Generated Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
     }
 
     // Chunk Tick
@@ -274,6 +271,8 @@ public class Chunk : ITickable
             }
             this.drawnLock = false;
             this.hasDrawn = true;
+            Debug.Log($@"Meshed Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"Meshed Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         }
     }
 
@@ -315,6 +314,8 @@ public class Chunk : ITickable
                 PlayerStartPosition.y = MathHelper.GetHighestClearBlockPosition(this.Blocks, PlayerStartPosition.x, PlayerStartPosition.z, this.PosX, this.PosZ);
                 GameManager.Instance.StartPlayer(PlayerStartPosition, this.go);
             }
+            Debug.Log($@"Rendered Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"Rendered Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         }
     }
 
@@ -324,7 +325,7 @@ public class Chunk : ITickable
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        return (float)World.WorldInstance.perlin.GetValue(x, y, z) + ((y - (ChunkSize * 0.3f)) * GameManager.STATICyMultiplier);
+        return (float)World.perlin.GetValue(x, y, z) + ((y - (ChunkSize * 0.3f)) * GameManager.STATICyMultiplier);
     }
 
     // Get noise for Cave Generation
@@ -333,7 +334,7 @@ public class Chunk : ITickable
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        return (float)World.WorldInstance.ridged.GetValue(x, y, z) - (y / (ChunkSize * 0.5f) * GameManager.STATICCaveyMultiplier);
+        return (float)World.ridged.GetValue(x, y, z) - (y / (ChunkSize * 0.5f) * GameManager.STATICCaveyMultiplier);
     }
 
     // Get noise tree generation
@@ -457,7 +458,7 @@ public class Chunk : ITickable
             GameObject.Destroy(this.go);
         }));
         // Third: Remove chunk from World
-        this.world.RemoveChunk(this);
+        World.WorldInstance.RemoveChunk(this);
     }
 
     // Get ChunkData as array of Ints

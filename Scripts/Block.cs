@@ -34,8 +34,8 @@ public class Block : ITickable
     public string BlockName { get; private set; }
     public bool IsTransparent { get; private set; }
     public bool IsSemiTransparent { get; private set; }
-    private readonly int lightValue;
-    private readonly int orientation;
+    public int lightValue { get; private set; }
+    public int orientation { get; private set; }
     private readonly string bottomImageName;
     private readonly string topImageName;
     private readonly string frontImageName;
@@ -153,7 +153,7 @@ public class Block : ITickable
     }
 
     // Draw Block using MathHelper DrawCube
-    public virtual MeshData Draw(int x, int y, int z, Block[,,] blocks)
+    public MeshData Draw(int x, int y, int z, Block[,,] blocks)
     {
         // If block is air, don't bother drawing
         if(this.Equals(Air))
@@ -165,12 +165,12 @@ public class Block : ITickable
         {
             try
             {
-                return MathHelper.DrawCubeGrass(x, y, z, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3);
+                return MathHelper.DrawCubeGrass(x, y, z, this.Position, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3);
             }
             catch(System.Exception e)
             {
                 Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log(e);
+                Logger.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }
@@ -179,12 +179,12 @@ public class Block : ITickable
         {
             try
             {
-                return MathHelper.DrawCubeLogs(x, y, z, blocks, this, this._UVMap1, this._UVMap2);
+                return MathHelper.DrawCubeLogs(x, y, z, this.Position, blocks, this, this._UVMap1, this._UVMap2);
             }
             catch(System.Exception e)
             {
                 Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log(e);
+                Logger.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }
@@ -193,12 +193,12 @@ public class Block : ITickable
         {
             try
             {
-                return MathHelper.DrawCube(x, y, z, blocks, this, this._UVMap1);
+                return MathHelper.DrawCube(x, y, z, this.Position, blocks, this, this._UVMap1);
             }
             catch(System.Exception e)
             {
                 Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log(e);
+                Logger.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }
