@@ -11,9 +11,9 @@ public class Chunk : ITickable
     private static bool firstChunk = false;
     public bool IsFirstChunk = false;
     public bool HasGenerated = false;
-    protected bool hasDrawn = false;
-    protected bool hasRendered = false;
-    protected bool drawnLock = false;
+    private bool hasDrawn = false;
+    private bool hasRendered = false;
+    private bool drawnLock = false;
     private bool renderingLock = false;
     public bool NeedToUpdate = false;
     public bool HasBeenModified = false;
@@ -257,6 +257,8 @@ public class Chunk : ITickable
         }
         if(!this.hasDrawn && this.HasGenerated && !this.drawnLock)
         {
+            Debug.Log($@"Meshing Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"Meshing Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             this.drawnLock = true;
             this.data = new MeshData();
             for(int x = 0; x < ChunkSize; x++)

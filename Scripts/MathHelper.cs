@@ -186,7 +186,7 @@ public static class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw Grass Block
-    public static MeshData DrawCubeGrass(int x, int y, int z, Int3 position, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3)
+    public static MeshData DrawCubeGrass(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -194,6 +194,7 @@ public static class MathHelper
         {
             return data;
         }
+        Int3 position = block.Position;
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -355,7 +356,7 @@ public static class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw Log Block
-    public static MeshData DrawCubeLogs(int x, int y, int z, Int3 position, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2)
+    public static MeshData DrawCubeLogs(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -363,6 +364,7 @@ public static class MathHelper
         {
             return data;
         }
+        Int3 position = block.Position;
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -460,7 +462,7 @@ public static class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMap
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw block with all sides the same
-    public static MeshData DrawCube(int x, int y, int z, Int3 position, Block[,,] blocks, Block block, Vector2[] _uvmap)
+    public static MeshData DrawCube(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -468,6 +470,7 @@ public static class MathHelper
         {
             return data;
         }
+        Int3 position = block.Position;
         Debug.Log($@"Checking Faces of Block: {x}, {y}, {z}");
         Debug.Log($@"At World Pos: {position.x}, {position.y}, {position.z}");
         Logger.Log($@"Checking Faces of Block: {x}, {y}, {z}");
