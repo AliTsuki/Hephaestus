@@ -17,34 +17,26 @@ public class GameManager : MonoBehaviour
     private MainLoopable main;
     private readonly List<Delegate> _Delegates = new List<Delegate>();
     public static string WorldName = "DevWorld";
+    public static int WorldSeed = 0;
+    public static string time;
 
     // New Noise Variables
-    public static float STATICyMultiplier = 0.04f;
-    public static float STATICLand2NDLayerCutoff = 0.6f;
-    public static float STATICLandTopLayerCutoff = 0.9f;
-    public static float STATICAirAndLandIntersectionCutoff = 1.4f;
-    public static float STATICPerlinFrequency = 0.015f;
-    public static float STATICPerlinLacunarity = 2f;
-    public static int STATICPerlinOctaveCount = 4;
-    public static float STATICPerlinPersistance = 0.4f;
-    public static int STATICPerlinSeed = 0;
+    public static float YMultiplier = 0.04f;
+    public static float Land2NDLayerCutoff = 0.6f;
+    public static float LandTopLayerCutoff = 0.9f;
+    public static float AirAndLandIntersectionCutoff = 1.4f;
+    public static float PerlinFrequency = 0.015f;
+    public static float PerlinLacunarity = 2f;
+    public static int PerlinOctaveCount = 4;
+    public static float PerlinPersistence = 0.25f;
+    public static int PerlinSeed = WorldSeed;
     // New Cave Noise Variables
-    public static float STATICCaveyMultiplier = 0.3f;
-    public static float STATICCaveCutoff = 0.6f;
-    public static float STATICRidgedFrequency = 0.03f;
-    public static float STATICRidgedLacunarity = 2f;
-    public static int STATICRidgedOctaveCount = 4;
-    public static int STATICRidgedSeed = 0;
-    // Static Tree noise variables
-    public static float Streedx = 5f;
-    public static float Streedz = 5f;
-    public static float Streemul = 0.6f;
-    public static float Streeoffset = -1000f;
-    public static float Sdcutofftreemax = 0.166f;
-    public static float Sdcutofftreemin = 0.165f;
-    public static float Streendx = 100f;
-    public static float Streendz = 100f;
-    public static float Streenmul = 0.4f;
+    public static float CaveYMultiplier = 0.3f;
+    public static float CaveCutoff = 0.6f;
+    public static float RidgedFrequency = 0.03f;
+    public static float RidgedLacunarity = 2f;
+    public static int RidgedOctaveCount = 4;
+    public static int RidgedSeed = WorldSeed;
 
     // Start is called before the first frame update
     // GameManager Start: Register Files, Create Texture Atlas
@@ -56,12 +48,21 @@ public class GameManager : MonoBehaviour
         MainLoopable.Instantiate();
         this.main = MainLoopable.MLInstance;
         this.main.Start();
+        
+        int minutes = (int)(Time.time / 60);
+        int seconds = (int)(Time.time % 60);
+        int milliseconds = (int)(Time.time * 100) % 100;
+        time = $@"{minutes}:{seconds}:{milliseconds}";
     }
 
     // Update is called once per frame
     // GameManager Update: Set Player position if Player exists, Update MainLoopable Instance, Invoke Delegates and Remove them
     void Update()
     {
+        int minutes = (int)(Time.time / 60);
+        int seconds = (int)(Time.time % 60);
+        int milliseconds = (int)(Time.time * 100) % 100;
+        time = $@"{minutes}:{seconds}:{milliseconds}";
         if(this.Player.activeSelf)
         {
             this.PlayerPos = this.Player.transform.position;
@@ -75,7 +76,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Can't update MainLoopable due to Exception.");
             Debug.Log(e.ToString());
-            Logger.Log("Can't update MainLoopable due to Exception.");
+            Logger.Log($@"{time}: Can't update MainLoopable due to Exception.");
             Logger.Log(e);
             World.WorldInstance.IsRunning = false;
         }
@@ -92,14 +93,14 @@ public class GameManager : MonoBehaviour
         this.main.OnApplicationQuit();
     }
 
-    // Exit Game internal
-    internal static void ExitGame()
+    // Exit Game
+    public static void ExitGame()
     {
         Instance.ExitGameInstance();
     }
 
-    // Exit Game method
-    public void ExitGameInstance()
+    // Exit Game
+    private void ExitGameInstance()
     {
         this.OnApplicationQuit();
     }
@@ -111,7 +112,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Check if Player is loaded into world
-    internal static bool PlayerLoaded()
+    public static bool PlayerLoaded()
     {
         return Instance.isPlayerLoaded;
     }

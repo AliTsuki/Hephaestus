@@ -10,7 +10,7 @@ public class MeshData
     private List<int> _tris = new List<int>();
     private List<Vector2> _uvs = new List<Vector2>();
 
-    // MeshData constructor
+    // MeshData constructor with parameters
     public MeshData(List<Vector3> v, List<int> i, Vector2[] u)
     {
         this._verts = v;
@@ -18,7 +18,7 @@ public class MeshData
         this._uvs = new List<Vector2>(u);
     }
 
-    // MeshData constructor
+    // MeshData default constructor
     public MeshData()
     {
         

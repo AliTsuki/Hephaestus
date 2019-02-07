@@ -48,7 +48,6 @@ public class Block : ITickable
     private readonly Vector2[] _UVMap4;
     private readonly Vector2[] _UVMap5;
     private readonly Vector2[] _UVMap6;
-    public Int3 Position { get; private set; }
 
     // Block constructor for Blocks with unique top, sides, bottom textures (Grass)
     public Block(string BlockName, bool IsTransparent, bool IsSemiTransparent, string TopImageName, string SideImageName, string BottomImageName)
@@ -138,22 +137,8 @@ public class Block : ITickable
         BlockRegistry.RegisterBlock(this);
     }
 
-    // Set Block Position
-    public void SetPosition(int x, int y, int z, int PosX, int PosY, int PosZ)
-    {
-        Int3 position = new Int3(x, y, z);
-        position.ToWorldCoords(PosX, PosY, PosZ);
-        this.Position = position;
-    }
-
-    // Set Block Position
-    public void SetPosition(Int3 pos)
-    {
-        this.Position = pos;
-    }
-
     // Draw Block using MathHelper DrawCube
-    public MeshData Draw(int x, int y, int z, Block[,,] blocks)
+    public MeshData Draw(int x, int y, int z, Block[,,] blocks, int PosX, int PosY, int PosZ)
     {
         // If block is air, don't bother drawing
         if(this.Equals(Air))
@@ -165,7 +150,7 @@ public class Block : ITickable
         {
             try
             {
-                return MathHelper.DrawCubeGrass(x, y, z, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3);
+                return MathHelper.DrawCubeGrass(x, y, z, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3, PosX, PosY, PosZ);
             }
             catch(System.Exception e)
             {
@@ -179,7 +164,7 @@ public class Block : ITickable
         {
             try
             {
-                return MathHelper.DrawCubeLogs(x, y, z, blocks, this, this._UVMap1, this._UVMap2);
+                return MathHelper.DrawCubeLogs(x, y, z, blocks, this, this._UVMap1, this._UVMap2, PosX, PosY, PosZ);
             }
             catch(System.Exception e)
             {
@@ -193,7 +178,7 @@ public class Block : ITickable
         {
             try
             {
-                return MathHelper.DrawCube(x, y, z, blocks, this, this._UVMap1);
+                return MathHelper.DrawCube(x, y, z, blocks, this, this._UVMap1, PosX, PosY, PosZ);
             }
             catch(System.Exception e)
             {

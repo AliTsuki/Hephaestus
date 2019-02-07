@@ -19,10 +19,10 @@ public class Logger : ILoopable
 
     }
 
-    // Logger Update: Write mainlogtxt to Lob.txt FILE
+    // Logger Update: Write mainlogtxt to Log.txt FILE
     public void Update()
     {
-        System.IO.File.WriteAllLines("Log.txt", new List<string>(this.mainlogtxt).ToArray());
+        System.IO.File.WriteAllLines("Log.txt", this.mainlogtxt.ToArray());
     }
 
     // Logger On Application Quit

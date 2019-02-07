@@ -68,17 +68,64 @@ public struct Int3
     // Get Chunk coords from given World coords
     public void ToChunkCoords()
     {
-        this.x = Mathf.FloorToInt(this.x / Chunk.ChunkSize);
-        this.y = Mathf.FloorToInt(this.y / Chunk.ChunkSize);
-        this.z = Mathf.FloorToInt(this.z / Chunk.ChunkSize);
+        Int3 chunkcoords = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
+        if(this.x < 0)
+        {
+            if(this.x % Chunk.ChunkSize < 0)
+            {
+                chunkcoords.x -= 1;
+            }
+        }
+        if(this.y < 0)
+        {
+            if(this.y % Chunk.ChunkSize < 0)
+            {
+                chunkcoords.y -= 1;
+            }
+        }
+        if(this.z < 0)
+        {
+            if(this.z % Chunk.ChunkSize < 0)
+            {
+                chunkcoords.z -= 1;
+            }
+        }
+        this.x = chunkcoords.x;
+        this.y = chunkcoords.y;
+        this.z = chunkcoords.z;
     }
 
     // Get Internal Chunk coords from World coords
     public void ToInternalChunkCoords()
     {
-        this.x = Math.Abs(this.x - (Mathf.FloorToInt(this.x / Chunk.ChunkSize) * Chunk.ChunkSize));
-        this.y = Math.Abs(this.y - (Mathf.FloorToInt(this.y / Chunk.ChunkSize) * Chunk.ChunkSize));
-        this.z = Math.Abs(this.z - (Mathf.FloorToInt(this.z / Chunk.ChunkSize) * Chunk.ChunkSize));
+        Int3 chunkblocks = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
+        if(this.x < 0)
+        {
+            if(this.x % Chunk.ChunkSize < 0)
+            {
+                chunkblocks.x -= 1;
+            }
+        }
+        chunkblocks.x *= Chunk.ChunkSize;
+        if(this.y < 0)
+        {
+            if(this.y % Chunk.ChunkSize < 0)
+            {
+                chunkblocks.y -= 1;
+            }
+        }
+        chunkblocks.y *= Chunk.ChunkSize;
+        if(this.z < 0)
+        {
+            if(this.z % Chunk.ChunkSize < 0)
+            {
+                chunkblocks.z -= 1;
+            }
+        }
+        chunkblocks.z *= Chunk.ChunkSize;
+        this.x = this.x - chunkblocks.x;
+        this.y = this.y - chunkblocks.y;
+        this.z = this.z - chunkblocks.z;
     }
 
     // Get World coords from Within-Chunk coords by passing Chunk coords
@@ -186,7 +233,7 @@ public static class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw Grass Block
-    public static MeshData DrawCubeGrass(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3)
+    public static MeshData DrawCubeGrass(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3, int PosX, int PosY, int PosZ)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -194,7 +241,8 @@ public static class MathHelper
         {
             return data;
         }
-        Int3 position = block.Position;
+        Int3 position = new Int3(x, y, z);
+        position.ToWorldCoords(PosX, PosY, PosZ);
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -356,7 +404,7 @@ public static class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw Log Block
-    public static MeshData DrawCubeLogs(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2)
+    public static MeshData DrawCubeLogs(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, int PosX, int PosY, int PosZ)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -364,7 +412,8 @@ public static class MathHelper
         {
             return data;
         }
-        Int3 position = block.Position;
+        Int3 position = new Int3(x, y, z);
+        position.ToWorldCoords(PosX, PosY, PosZ);
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -462,7 +511,7 @@ public static class MathHelper
     // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMap
     // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
     // Draw block with all sides the same
-    public static MeshData DrawCube(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap)
+    public static MeshData DrawCube(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, int PosX, int PosY, int PosZ)
     {
         MeshData data = new MeshData();
         // If Air don't bother looping through draw below
@@ -470,11 +519,8 @@ public static class MathHelper
         {
             return data;
         }
-        Int3 position = block.Position;
-        Debug.Log($@"Checking Faces of Block: {x}, {y}, {z}");
-        Debug.Log($@"At World Pos: {position.x}, {position.y}, {position.z}");
-        Logger.Log($@"Checking Faces of Block: {x}, {y}, {z}");
-        Logger.Log($@"At World Pos: {position.x}, {position.y}, {position.z}");
+        Int3 position = new Int3(x, y, z);
+        position.ToWorldCoords(PosX, PosY, PosZ);
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
         bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
         bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
@@ -578,7 +624,8 @@ public static class MathHelper
         }
         else if(x == 0)
         {
-            return World.WorldInstance.GetBlockFromWorldCoords(position.x - 1, position.y, position.z).IsTransparent || World.WorldInstance.GetBlockFromWorldCoords(position.x - 1, position.y, position.z).IsSemiTransparent;
+            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x - 1, position.y, position.z);
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
     }
@@ -592,7 +639,8 @@ public static class MathHelper
         }
         else if(x == Chunk.ChunkSize - 1)
         {
-            return World.WorldInstance.GetBlockFromWorldCoords(position.x + 1, position.y, position.z).IsTransparent || World.WorldInstance.GetBlockFromWorldCoords(position.x + 1, position.y, position.z).IsSemiTransparent;
+            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x + 1, position.y, position.z);
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
     }
@@ -606,7 +654,8 @@ public static class MathHelper
         }
         else if(y == 0)
         {
-            return World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y - 1, position.z).IsTransparent || World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y - 1, position.z).IsSemiTransparent;
+            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y - 1, position.z);
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
     }
@@ -620,7 +669,8 @@ public static class MathHelper
         }
         else if(y == Chunk.ChunkSize - 1)
         {
-            return World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y + 1, position.z).IsTransparent || World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y + 1, position.z).IsSemiTransparent;
+            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y + 1, position.z);
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
     }
@@ -634,7 +684,8 @@ public static class MathHelper
         }
         else if(z == 0)
         {
-            return World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z - 1).IsTransparent || World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z - 1).IsSemiTransparent;
+            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z - 1);
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
     }
@@ -648,7 +699,8 @@ public static class MathHelper
         }
         else if(z == Chunk.ChunkSize - 1)
         {
-            return World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z + 1).IsTransparent || World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z + 1).IsSemiTransparent;
+            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z + 1);
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
     }

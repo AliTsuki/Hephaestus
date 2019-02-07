@@ -1,7 +1,5 @@
 ﻿using System;
 
-using SharpNoise.Modules;
-
 using UnityEngine;
 
 // Class containing Chunk functions
@@ -11,8 +9,8 @@ public class Chunk : ITickable
     private static bool firstChunk = false;
     public bool IsFirstChunk = false;
     public bool HasGenerated = false;
-    private bool hasDrawn = false;
-    private bool hasRendered = false;
+    protected bool hasDrawn = false;
+    protected bool hasRendered = false;
     private bool drawnLock = false;
     private bool renderingLock = false;
     public bool NeedToUpdate = false;
@@ -113,6 +111,8 @@ public class Chunk : ITickable
         {
             return;
         }
+        Debug.Log($@"Generating Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+        Logger.Log($@"{GameManager.time}: Generating Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         this.Blocks = new Block[ChunkSize, ChunkSize, ChunkSize];
         System.Random r = new System.Random();
         int check;
@@ -128,89 +128,75 @@ public class Chunk : ITickable
                     float perlinNewCave = this.GetNoiseNewCave(x, y, z);
                     // Above Ground Generation
                     // Air Layer
-                    if(perlinNew > GameManager.STATICAirAndLandIntersectionCutoff)
+                    if(perlinNew > GameManager.AirAndLandIntersectionCutoff)
                     {
                         this.Blocks[x, y, z] = Block.Air;
-                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                     // Top layer
-                    else if(perlinNew < GameManager.STATICAirAndLandIntersectionCutoff && perlinNew > GameManager.STATICLandTopLayerCutoff)
+                    else if(perlinNew < GameManager.AirAndLandIntersectionCutoff && perlinNew > GameManager.LandTopLayerCutoff)
                     {
                         check = r.Next(-4, 4);
                         if(check + pos.y > 110)
                         {
                             this.Blocks[x, y, z] = Block.Snow;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 110 && check + pos.y > 100)
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 100 && check + pos.y > 90)
                         {
                             this.Blocks[x, y, z] = Block.Dirt;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 90 && check + pos.y > 62)
                         {
                             this.Blocks[x, y, z] = Block.Grass;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 62 && check + pos.y > 30)
                         {
                             this.Blocks[x, y, z] = Block.Sand;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                     }
                     // Secondary Layer
-                    else if(perlinNew < GameManager.STATICLandTopLayerCutoff && perlinNew > GameManager.STATICLand2NDLayerCutoff)
+                    else if(perlinNew < GameManager.LandTopLayerCutoff && perlinNew > GameManager.Land2NDLayerCutoff)
                     {
                         check = r.Next(-4, 4);
                         if(check + pos.y > 100)
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 100 && check + pos.y > 62)
                         {
                             this.Blocks[x, y, z] = Block.Dirt;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else if(check + pos.y < 62 && check + pos.y > 30)
                         {
                             this.Blocks[x, y, z] = Block.Dirt;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                         else
                         {
                             this.Blocks[x, y, z] = Block.Stone;
-                            this.Blocks[x, y, z].SetPosition(pos);
                         }
                     }
                     // Inner Layer
                     else
                     {
                         this.Blocks[x, y, z] = Block.Stone;
-                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                     // Cave Generation
-                    if(perlinNewCave > GameManager.STATICCaveCutoff)
+                    if(perlinNewCave > GameManager.CaveCutoff)
                     {
                         this.Blocks[x, y, z] = Block.Air;
-                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                     // Bedrock Generation
                     check = r.Next(-1, 1);
                     if(pos.y + check <= 2)
                     {
                         this.Blocks[x, y, z] = Block.Bedrock;
-                        this.Blocks[x, y, z].SetPosition(pos);
                     }
                 }
             }
@@ -234,7 +220,7 @@ public class Chunk : ITickable
         //}
         this.HasGenerated = true;
         Debug.Log($@"Generated Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-        Logger.Log($@"Generated Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+        Logger.Log($@"{GameManager.time}: Generated Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
     }
 
     // Chunk Tick
@@ -258,7 +244,7 @@ public class Chunk : ITickable
         if(!this.hasDrawn && this.HasGenerated && !this.drawnLock)
         {
             Debug.Log($@"Meshing Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"Meshing Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"{GameManager.time}: Meshing Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             this.drawnLock = true;
             this.data = new MeshData();
             for(int x = 0; x < ChunkSize; x++)
@@ -267,14 +253,14 @@ public class Chunk : ITickable
                 {
                     for(int z = 0; z < ChunkSize; z++)
                     {
-                        this.data.Merge(this.Blocks[x, y, z].Draw(x, y, z, this.Blocks));
+                        this.data.Merge(this.Blocks[x, y, z].Draw(x, y, z, this.Blocks, this.PosX, this.PosY, this.PosZ));
                     }
                 }
             }
             this.drawnLock = false;
             this.hasDrawn = true;
             Debug.Log($@"Meshed Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"Meshed Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"{GameManager.time}: Meshed Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         }
     }
 
@@ -283,6 +269,8 @@ public class Chunk : ITickable
     {
         if (this.HasGenerated && !this.hasRendered && this.hasDrawn && !this.renderingLock)
         {
+            Debug.Log($@"Rendering Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"{GameManager.time}: Rendering Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             this.renderingLock = true;
             Mesh mesh = this.data.ToMesh();
             if(this.go == null)
@@ -317,7 +305,7 @@ public class Chunk : ITickable
                 GameManager.Instance.StartPlayer(PlayerStartPosition, this.go);
             }
             Debug.Log($@"Rendered Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"Rendered Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"{GameManager.time}: Rendered Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         }
     }
 
@@ -327,7 +315,7 @@ public class Chunk : ITickable
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        return (float)World.perlin.GetValue(x, y, z) + ((y - (ChunkSize * 0.3f)) * GameManager.STATICyMultiplier);
+        return (float)World.perlin.GetValue(x, y, z) + ((y - (ChunkSize * 0.3f)) * GameManager.YMultiplier);
     }
 
     // Get noise for Cave Generation
@@ -336,19 +324,19 @@ public class Chunk : ITickable
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        return (float)World.ridged.GetValue(x, y, z) - (y / (ChunkSize * 0.5f) * GameManager.STATICCaveyMultiplier);
+        return (float)World.ridged.GetValue(x, y, z) - (y / (ChunkSize * 0.5f) * GameManager.CaveYMultiplier);
     }
 
-    // Get noise tree generation
-    private float GetNoiseForTree(float x, float z)
-    {
-        x += this.PosX * ChunkSize;
-        z += this.PosZ * ChunkSize;
-        float xz = Mathf.PerlinNoise(x / GameManager.Streedx, z / GameManager.Streedz) * GameManager.Streemul;
-        float oxz = Mathf.PerlinNoise((x / GameManager.Streendx) + GameManager.Streeoffset, (z / GameManager.Streendz) - GameManager.Streeoffset) * GameManager.Streenmul;
-        xz = (xz + oxz) / 2f;
-        return xz;
-    }
+    //// Get noise tree generation
+    //private float GetNoiseForTree(float x, float z)
+    //{
+    //    x += this.PosX * ChunkSize;
+    //    z += this.PosZ * ChunkSize;
+    //    float xz = Mathf.PerlinNoise(x / GameManager.Streedx, z / GameManager.Streedz) * GameManager.Streemul;
+    //    float oxz = Mathf.PerlinNoise((x / GameManager.Streendx) + GameManager.Streeoffset, (z / GameManager.Streendz) - GameManager.Streeoffset) * GameManager.Streenmul;
+    //    xz = (xz + oxz) / 2f;
+    //    return xz;
+    //}
 
     // Get Block at position
     public Block GetBlockFromChunkInternalCoords(int x, int y, int z)
@@ -368,7 +356,6 @@ public class Chunk : ITickable
     internal void PlayerSetBlock(int x, int y, int z, Block block)
     {
         this.Blocks[x, y, z] = block;
-        this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
         this.NeedToUpdate = true;
         this.HasBeenModified = true;
         if(x == 0)
@@ -401,7 +388,6 @@ public class Chunk : ITickable
     internal void PlayerSetBlock(Int3 pos, Block block)
     {
         this.Blocks[pos.x, pos.y, pos.z] = block;
-        this.Blocks[pos.x, pos.y, pos.z].SetPosition(pos.x, pos.y, pos.z, this.PosX, this.PosY, this.PosZ);
         this.NeedToUpdate = true;
         this.HasBeenModified = true;
         if(pos.x == 0)
@@ -434,7 +420,6 @@ public class Chunk : ITickable
     internal void StructureSetBlock(int x, int y, int z, Block block)
     {
         this.Blocks[x, y, z] = block;
-        this.Blocks[x, y, z].SetPosition(x, y, z, this.PosX, this.PosY, this.PosZ);
     }
 
     // Degenerate Chunks

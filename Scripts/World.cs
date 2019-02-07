@@ -27,10 +27,10 @@ public class World : ILoopable
 
     public static readonly RidgedMulti ridged = new RidgedMulti()
     {
-        Frequency = GameManager.STATICRidgedFrequency,
-        Lacunarity = GameManager.STATICRidgedLacunarity,
-        OctaveCount = GameManager.STATICRidgedOctaveCount,
-        Seed = GameManager.STATICRidgedSeed,
+        Frequency = GameManager.RidgedFrequency,
+        Lacunarity = GameManager.RidgedLacunarity,
+        OctaveCount = GameManager.RidgedOctaveCount,
+        Seed = GameManager.RidgedSeed,
     };
 
     // World instance getter/setter
@@ -54,7 +54,7 @@ public class World : ILoopable
         this.worldThread = 
         new Thread(() =>
         {
-            Logger.Log("Initalizing world thread...");
+            Logger.Log($@"{GameManager.time}: Initalizing world thread...");
             while(this.IsRunning)
             {
                 try
@@ -103,8 +103,8 @@ public class World : ILoopable
                         }
                         Debug.Log("Finished Adding New Chunks First Round");
                         Debug.Log($@"Loaded Chunks: {this._LoadedChunks.Count}");
-                        Logger.Log("Finished Adding New Chunks First Round");
-                        Logger.Log($@"Loaded Chunks: {this._LoadedChunks.Count}");
+                        Logger.Log($@"{GameManager.time}: Finished Adding New Chunks First Round");
+                        Logger.Log($@"{GameManager.time}: Loaded Chunks: {this._LoadedChunks.Count}");
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
                             //Int3 chunkPos = new Int3(_LoadedChunks[i].PosX, _LoadedChunks[i].PosY, _LoadedChunks[i].PosZ);
@@ -114,30 +114,15 @@ public class World : ILoopable
                                  && this.ChunkExists(this._LoadedChunks[i].NegYNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosYNeighbor)
                                  && this.ChunkExists(this._LoadedChunks[i].NegZNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosZNeighbor))
                                 {
-                                    Debug.Log("////////////////////////////////////////////////////////////////////////////////");
-                                    Logger.Log("////////////////////////////////////////////////////////////////////////////////");
-                                    Debug.Log($@"Chunk HAS ALL neighbors: C_{this._LoadedChunks[i].PosX}_{this._LoadedChunks[i].PosY}_{this._LoadedChunks[i].PosZ}");
-                                    Logger.Log($@"Chunk HAS ALL neighbors: C_{this._LoadedChunks[i].PosX}_{this._LoadedChunks[i].PosY}_{this._LoadedChunks[i].PosZ}");
-                                    Debug.Log($@"Neighbors Checked: ({this._LoadedChunks[i].NegXNeighbor}), ({this._LoadedChunks[i].PosXNeighbor}), ({this._LoadedChunks[i].NegYNeighbor}), ({this._LoadedChunks[i].PosYNeighbor}), ({this._LoadedChunks[i].NegZNeighbor}), ({this._LoadedChunks[i].PosZNeighbor})");
-                                    Logger.Log($@"Neighbors Checked: ({this._LoadedChunks[i].NegXNeighbor}), ({this._LoadedChunks[i].PosXNeighbor}), ({this._LoadedChunks[i].NegYNeighbor}), ({this._LoadedChunks[i].PosYNeighbor}), ({this._LoadedChunks[i].NegZNeighbor}), ({this._LoadedChunks[i].PosZNeighbor})");
-                                this._LoadedChunks[i].Update();
-                                    Debug.Log("////////////////////////////////////////////////////////////////////////////////");
-                                    Logger.Log("////////////////////////////////////////////////////////////////////////////////");
-                            }
-                                else
-                                {
-                                    Debug.Log($@"Chunk does not have all neighbors: C_{this._LoadedChunks[i].PosX}_{this._LoadedChunks[i].PosY}_{this._LoadedChunks[i].PosZ}");
-                                    Logger.Log($@"Chunk does not have all neighbors: C_{this._LoadedChunks[i].PosX}_{this._LoadedChunks[i].PosY}_{this._LoadedChunks[i].PosZ}");
-                                    Debug.Log($@"Neighbors Checked: ({this._LoadedChunks[i].NegXNeighbor}), ({this._LoadedChunks[i].PosXNeighbor}), ({this._LoadedChunks[i].NegYNeighbor}), ({this._LoadedChunks[i].PosYNeighbor}), ({this._LoadedChunks[i].NegZNeighbor}), ({this._LoadedChunks[i].PosZNeighbor})");
-                                    Logger.Log($@"Neighbors Checked: ({this._LoadedChunks[i].NegXNeighbor}), ({this._LoadedChunks[i].PosXNeighbor}), ({this._LoadedChunks[i].NegYNeighbor}), ({this._LoadedChunks[i].PosYNeighbor}), ({this._LoadedChunks[i].NegZNeighbor}), ({this._LoadedChunks[i].PosZNeighbor})");
+                                    this._LoadedChunks[i].Update();
                                 }
                             //}
                         }
                         Debug.Log("Finished Updating Chunks First Round");
-                        Logger.Log("Finished Updating Chunks First Round");
+                        Logger.Log($@"{GameManager.time}: Finished Updating Chunks First Round");
                         this.ranOnce = true;
                         Debug.Log("Finished Starter Zone Initialization");
-                        Logger.Log("Finished Starter Zone Initialization");
+                        Logger.Log($@"{GameManager.time}: Finished Starter Zone Initialization");
                     }
                     // After ran once, continuously update
                     // If Player has been loaded in, keep generating chunks around player and degenerating chunks that are too far from player
@@ -237,8 +222,8 @@ public class World : ILoopable
                     Logger.Log(e);
                 }
             }
-            Logger.Log("World thread successfully stopped.");
-            Logger.MainLog.Update(); // TODO: FIX IN FUTURE, BAD PRACTICE, This reruns last log
+            Logger.Log($@"{GameManager.time}: World thread successfully stopped.");
+            Logger.MainLog.Update();
         });
         this.worldThread.Start();
     }
@@ -274,7 +259,7 @@ public class World : ILoopable
             }
         }
         this.IsRunning = false;
-        Logger.Log("Stopping world thread...");
+        Logger.Log($@"{GameManager.time}: Stopping world thread...");
     }
 
     // Remove Chunk from world
@@ -345,7 +330,7 @@ public class World : ILoopable
                 return i;
             }
         }
-        Logger.Log("Trying to get Chunk Index of Chunk that doesn't exist.");
+        Logger.Log($@"{GameManager.time}: Trying to get Chunk Index of Chunk that doesn't exist.");
         throw new System.Exception("Trying to get Chunk Index of Chunk that doesn't exist.");
     }
 
@@ -359,7 +344,7 @@ public class World : ILoopable
                 return i;
             }
         }
-        Logger.Log("Trying to get Chunk Index of Chunk that doesn't exist.");
+        Logger.Log($@"{GameManager.time}: Trying to get Chunk Index of Chunk that doesn't exist.");
         throw new System.Exception("Trying to get Chunk Index of Chunk that doesn't exist.");
     }
 
@@ -368,12 +353,8 @@ public class World : ILoopable
     {
         Int3 chunkCoords = new Int3(x, y, z);
         chunkCoords.ToChunkCoords();
-        Debug.Log($@"Checking Chunk: C_{chunkCoords.x}_{chunkCoords.y}_{chunkCoords.z}");
-        Logger.Log($@"Checking Chunk: C_{chunkCoords.x}_{chunkCoords.y}_{chunkCoords.z}");
         Int3 pos = new Int3(x, y, z);
         pos.ToInternalChunkCoords();
-        Debug.Log($@"Checking Block at internal pos: {pos.x}, {pos.y}, {pos.z}");
-        Logger.Log($@"Checking Block at internal pos: {pos.x}, {pos.y}, {pos.z}");
         if(this.ChunkExists(chunkCoords))
         {
             Block b = this.GetChunk(chunkCoords).GetBlockFromChunkInternalCoords(pos);
@@ -382,7 +363,7 @@ public class World : ILoopable
         else
         {
             Debug.Log($@"Chunk: {chunkCoords.ToString()} does not exist.");
-            Logger.Log($@"Chunk: {chunkCoords.ToString()} does not exist.");
+            Logger.Log($@"{GameManager.time}: Chunk: {chunkCoords.ToString()} does not exist.");
             throw new System.Exception("Trying to get Blocks from Chunk that doesn't exist.");
         }
     }
