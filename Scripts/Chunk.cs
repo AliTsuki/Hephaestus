@@ -28,8 +28,8 @@ public class Chunk : ITickable
     public bool NeedToUpdateNegZNeighbor = false;
     public bool NeedToUpdatePosZNeighbor = false;
     private MeshData data;
-    private GameObject go;
-    private Block[,,] Blocks;
+    public GameObject go;
+    public Block[,,] Blocks;
 
     // Chunk size in blocks
     public static readonly int ChunkSize = 16;
@@ -99,7 +99,7 @@ public class Chunk : ITickable
         this.LoadChunkFromData(data);
     }
 
-    // Chunk Start: Generate Chunks
+    // Chunk Start: Generate Blocks in Chunk
     public virtual void Start()
     {
         if(!firstChunk)
@@ -111,8 +111,6 @@ public class Chunk : ITickable
         {
             return;
         }
-        Debug.Log($@"Generating Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-        Logger.Log($@"{GameManager.time}: Generating Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         this.Blocks = new Block[ChunkSize, ChunkSize, ChunkSize];
         System.Random r = new System.Random();
         int check;
@@ -124,8 +122,8 @@ public class Chunk : ITickable
                 {
                     Int3 pos = new Int3(x, y, z);
                     pos.ToWorldCoords(this.PosX, this.PosY, this.PosZ);
-                    float perlinNew = this.GetNoiseNew(x, y, z);
-                    float perlinNewCave = this.GetNoiseNewCave(x, y, z);
+                    float perlinNew = this.GetNoise(x, y, z);
+                    float perlinNewCave = this.GetNoiseCave(x, y, z);
                     // Above Ground Generation
                     // Air Layer
                     if(perlinNew > GameManager.AirAndLandIntersectionCutoff)
@@ -192,12 +190,6 @@ public class Chunk : ITickable
                     {
                         this.Blocks[x, y, z] = Block.Air;
                     }
-                    // Bedrock Generation
-                    check = r.Next(-1, 1);
-                    if(pos.y + check <= 2)
-                    {
-                        this.Blocks[x, y, z] = Block.Bedrock;
-                    }
                 }
             }
         }
@@ -219,8 +211,8 @@ public class Chunk : ITickable
         //    }
         //}
         this.HasGenerated = true;
-        Debug.Log($@"Generated Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-        Logger.Log($@"{GameManager.time}: Generated Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+        Debug.Log($@"{GameManager.time}: Generated chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+        Logger.Log($@"{GameManager.time}: Generated chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
     }
 
     // Chunk Tick
@@ -229,7 +221,7 @@ public class Chunk : ITickable
 
     }
 
-    // Chunk Update: Draw Chunks
+    // Chunk Update: Mesh Chunks
     public virtual void Update()
     {
         if(this.NeedToUpdate)
@@ -243,8 +235,6 @@ public class Chunk : ITickable
         }
         if(!this.hasDrawn && this.HasGenerated && !this.drawnLock)
         {
-            Debug.Log($@"Meshing Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"{GameManager.time}: Meshing Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             this.drawnLock = true;
             this.data = new MeshData();
             for(int x = 0; x < ChunkSize; x++)
@@ -259,18 +249,16 @@ public class Chunk : ITickable
             }
             this.drawnLock = false;
             this.hasDrawn = true;
-            Debug.Log($@"Meshed Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"{GameManager.time}: Meshed Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Debug.Log($@"{GameManager.time}: Meshed chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"{GameManager.time}: Meshed chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         }
     }
 
-    // Chunk On Unity Update: Render Chunks
+    // Chunk On Unity Update: Render Chunks / Create Chunk GameObjects and Assign Meshes
     public virtual void OnUnityUpdate()
     {
         if (this.HasGenerated && !this.hasRendered && this.hasDrawn && !this.renderingLock)
         {
-            Debug.Log($@"Rendering Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"{GameManager.time}: Rendering Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             this.renderingLock = true;
             Mesh mesh = this.data.ToMesh();
             if(this.go == null)
@@ -298,19 +286,13 @@ public class Chunk : ITickable
             cTransform.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
             this.renderingLock = false;
             this.hasRendered = true;
-            if(this.IsFirstChunk)
-            {
-                Vector3 PlayerStartPosition = World.WorldInstance.PlayerStartingPos.GetVec3();
-                PlayerStartPosition.y = MathHelper.GetHighestClearBlockPosition(this.Blocks, PlayerStartPosition.x, PlayerStartPosition.z, this.PosX, this.PosZ);
-                GameManager.Instance.StartPlayer(PlayerStartPosition, this.go);
-            }
-            Debug.Log($@"Rendered Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
-            Logger.Log($@"{GameManager.time}: Rendered Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Debug.Log($@"{GameManager.time}: Rendered chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
+            Logger.Log($@"{GameManager.time}: Rendered chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         }
     }
 
     // Get noise
-    private float GetNoiseNew(float x, float y, float z)
+    private float GetNoise(float x, float y, float z)
     {
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
@@ -319,7 +301,7 @@ public class Chunk : ITickable
     }
 
     // Get noise for Cave Generation
-    private float GetNoiseNewCave(float x, float y, float z)
+    private float GetNoiseCave(float x, float y, float z)
     {
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;

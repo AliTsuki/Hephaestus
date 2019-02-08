@@ -13,9 +13,9 @@ public class MeshData
     // MeshData constructor with parameters
     public MeshData(List<Vector3> v, List<int> i, Vector2[] u)
     {
-        this._verts = v;
-        this._tris = i;
-        this._uvs = new List<Vector2>(u);
+        this._verts.AddRange(v);
+        this._tris.AddRange(i);
+        this._uvs.AddRange(u);
     }
 
     // MeshData default constructor
@@ -42,17 +42,19 @@ public class MeshData
         }
         if(this._verts.Count <= 0)
         {
-            this._verts = data._verts;
-            this._tris = data._tris;
-            this._uvs = data._uvs;
+            this._verts.AddRange(data._verts);
+            this._tris.AddRange(data._tris);
+            this._uvs.AddRange(data._uvs);
             return;
         }
         int count = this._verts.Count;
         this._verts.AddRange(data._verts);
+        List<int> newtris = new List<int>();
         for(int i = 0; i < data._tris.Count; i++)
         {
-            this._tris.Add(data._tris[i] + count);
+            newtris.Add(data._tris[i] + count);
         }
+        this._tris.AddRange(newtris);
         this._uvs.AddRange(data._uvs);
     }
 

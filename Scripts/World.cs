@@ -10,11 +10,11 @@ public class World : ILoopable
     public bool IsRunning;
     private bool ranOnce = false;
     // How far to render chunks from Playerpos
-    private readonly int renderDistanceFirstPass = 2;
-    private readonly int renderDistance = 2;
+    public readonly int renderDistanceFirstPass = 7;
+    private readonly int renderDistance = 5;
     private Thread worldThread;
-    public Int3 PlayerStartingPos;
-    public readonly List<Chunk> _LoadedChunks = new List<Chunk>();
+    public Int3 WorldStartPos;
+    public volatile List<Chunk> _LoadedChunks = new List<Chunk>();
 
     public static readonly Perlin perlin = new Perlin()
     {
@@ -42,8 +42,7 @@ public class World : ILoopable
         WorldInstance = new World();
         MainLoopable.MLInstance.RegisterLoops(WorldInstance);
         System.Random r = new System.Random();
-        //this.PlayerStartingPos = new Int3(r.Next(-1000, 1000), 62, r.Next(-1000, 1000));
-        WorldInstance.PlayerStartingPos = new Int3(0, 0, 0);
+        WorldInstance.WorldStartPos = new Int3(r.Next(-1000, 1000), 0, r.Next(-1000, 1000));
     }
 
     // Start is called before the first frame update
@@ -59,7 +58,7 @@ public class World : ILoopable
             {
                 try
                 {
-                    Int3 startingChunkPos = this.PlayerStartingPos;
+                    Int3 startingChunkPos = this.WorldStartPos;
                     startingChunkPos.ToChunkCoords();
                     if(!this.ranOnce)
                     {
@@ -71,11 +70,11 @@ public class World : ILoopable
                             {
                                 for(int z = -this.renderDistanceFirstPass; z < this.renderDistanceFirstPass; z++)
                                 {
-                                    Int3 newChunkPos = this.PlayerStartingPos;
+                                    Int3 newChunkPos = this.WorldStartPos;
                                     newChunkPos.AddPos(x * Chunk.ChunkSize, y * Chunk.ChunkSize, z * Chunk.ChunkSize);
                                     newChunkPos.ToChunkCoords();
-                                    //if(Vector3.Distance(newChunkPos.GetVec3(), startingChunkPos.GetVec3()) <= renderDistanceFirstPass)
-                                    //{
+                                    if(Vector3.Distance(newChunkPos.GetVec3(), startingChunkPos.GetVec3()) <= this.renderDistanceFirstPass)
+                                    {
                                         // If file exists for Chunk, read chunk data from file and add Chunk to _LoadedChunks
                                         if(System.IO.File.Exists(FileManager.GetChunkString(newChunkPos)))
                                         {
@@ -97,32 +96,38 @@ public class World : ILoopable
                                         this._LoadedChunks.Add(chunk);
                                             chunk.Start();
                                         }
-                                    //}
+                                    }
                                 }
                             }
                         }
-                        Debug.Log("Finished Adding New Chunks First Round");
-                        Debug.Log($@"Loaded Chunks: {this._LoadedChunks.Count}");
-                        Logger.Log($@"{GameManager.time}: Finished Adding New Chunks First Round");
-                        Logger.Log($@"{GameManager.time}: Loaded Chunks: {this._LoadedChunks.Count}");
                         for(int i = 0; i < this._LoadedChunks.Count; i++)
                         {
-                            //Int3 chunkPos = new Int3(_LoadedChunks[i].PosX, _LoadedChunks[i].PosY, _LoadedChunks[i].PosZ);
-                            //if(Vector3.Distance(chunkPos.GetVec3(), startingChunkPos.GetVec3()) <= renderDistance)
-                            //{
+                            Int3 chunkPos = new Int3(this._LoadedChunks[i].PosX, this._LoadedChunks[i].PosY, this._LoadedChunks[i].PosZ);
+                            if(Vector3.Distance(chunkPos.GetVec3(), startingChunkPos.GetVec3()) <= this.renderDistance)
+                            {
                                 if(this.ChunkExists(this._LoadedChunks[i].NegXNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosXNeighbor)
                                  && this.ChunkExists(this._LoadedChunks[i].NegYNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosYNeighbor)
                                  && this.ChunkExists(this._LoadedChunks[i].NegZNeighbor) && this.ChunkExists(this._LoadedChunks[i].PosZNeighbor))
                                 {
                                     this._LoadedChunks[i].Update();
                                 }
-                            //}
+                            }
                         }
-                        Debug.Log("Finished Updating Chunks First Round");
-                        Logger.Log($@"{GameManager.time}: Finished Updating Chunks First Round");
                         this.ranOnce = true;
-                        Debug.Log("Finished Starter Zone Initialization");
+                        Debug.Log($@"{GameManager.time}: Finished Starter Zone Initialization");
                         Logger.Log($@"{GameManager.time}: Finished Starter Zone Initialization");
+                    }
+                    if(this.ranOnce == true && !GameManager.PlayerLoaded())
+                    {
+                        Int3 PlayerStartPos = this.WorldStartPos;
+                        PlayerStartPos = MathHelper.GetPlayerStartPosition(PlayerStartPos);
+                        Int3 PlayerStartChunkPos = PlayerStartPos;
+                        PlayerStartChunkPos.ToChunkCoords();
+                        Chunk chunk = this.GetChunk(PlayerStartChunkPos);
+                        GameObject go = chunk.go;
+                        Debug.Log($@"{GameManager.time}: Trying to place player...");
+                        Logger.Log($@"{GameManager.time}: Trying to place player...");
+                        GameManager.Instance.StartPlayer(PlayerStartPos.GetVec3(), go);
                     }
                     // After ran once, continuously update
                     // If Player has been loaded in, keep generating chunks around player and degenerating chunks that are too far from player

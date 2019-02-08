@@ -36,7 +36,8 @@ public class BlockRegistry
         {
             if(_REGISTEREDBLOCKS == null)
             {
-                Debug.Log("Trying to GetBlockFromID with NULL BlockRegistry!!");
+                Debug.Log($@"{GameManager.time}: Trying to GetBlockFromID with NULL BlockRegistry!");
+                Logger.Log($@"{GameManager.time}: Trying to GetBlockFromID with NULL BlockRegistry!");
             }
             return _REGISTEREDBLOCKS[v];
         }

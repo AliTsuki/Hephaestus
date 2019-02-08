@@ -716,7 +716,7 @@ public static class MathHelper
             currentchunk = World.WorldInstance.GetChunk(chunkPos);
             if(currentchunk.GetType().Equals(typeof(ErroredChunk)))
             {
-                Debug.Log($@"Current CHUNK is ERRORED: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
+                Debug.Log($@"{GameManager.time}: Current CHUNK is ERRORED: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
                 return;
             }
             Int3 pos = new Int3(position);
@@ -730,22 +730,52 @@ public static class MathHelper
         }
     }
 
-    // Get highest clear block: for player start position
-    public static float GetHighestClearBlockPosition(Block[,,] blocks, float x, float z, int ChunkPosX, int ChunkPosZ)
+    // Return highest chunk loaded at that X, Z position by checking chunks above recursively
+    public static Int3 GetHighestChunk(Int3 chunkpos)
     {
-        float y = Chunk.ChunkSize - 1;
-        int newx = (int)System.Math.Abs(x - (ChunkPosX * Chunk.ChunkSize));
-        int newz = (int)System.Math.Abs(z - (ChunkPosZ * Chunk.ChunkSize));
-        for(int i = Chunk.ChunkSize - 2; i >= 1; i--)
+        Int3 highestchunk = chunkpos;
+        Int3 chunkabove = new Int3(chunkpos.x, chunkpos.y + 1, chunkpos.z);
+        if(World.WorldInstance.ChunkExists(chunkabove))
         {
-            if(blocks[newx, i, newz].IsTransparent && blocks[newx, i + 1, newz].IsTransparent && !blocks[newx, i - 1, newz].IsTransparent)
-            { 
-                y = i + 3.7f;
-                return y;
+            highestchunk = GetHighestChunk(chunkabove);
+        }
+        return highestchunk;
+    }
+
+    // Get highest clear block position for the player start
+    public static Int3 GetPlayerStartPosition(Int3 worldstartpos)
+    {
+        Int3 playerstartpos = worldstartpos;
+        for(int i = (Chunk.ChunkSize * World.WorldInstance.renderDistanceFirstPass) - 3; i >= 0; i--)
+        {
+            if(!World.WorldInstance.GetBlockFromWorldCoords(worldstartpos.x, i, worldstartpos.z).IsTransparent && World.WorldInstance.GetBlockFromWorldCoords(worldstartpos.x, i + 1, worldstartpos.z).IsTransparent && World.WorldInstance.GetBlockFromWorldCoords(worldstartpos.x, i + 2, worldstartpos.z).IsTransparent)
+            {
+                playerstartpos.SetPos(playerstartpos.x, i + 1, playerstartpos.z);
+                return playerstartpos;
             }
         }
-        return y;
+        System.Random r = new System.Random();
+        playerstartpos.SetPos(GetPlayerStartPosition(new Int3(r.Next(-20, 20) + playerstartpos.x, worldstartpos.y, r.Next(-20, 20) + playerstartpos.z)));
+        return playerstartpos;
     }
+
+
+    // Get highest clear block: for player start position
+    //public static float GetHighestClearBlockPosition(Block[,,] blocks, float x, float z, int ChunkPosX, int ChunkPosZ)
+    //{
+    //    float y = Chunk.ChunkSize - 1;
+    //    int newx = (int)System.Math.Abs(x - (ChunkPosX * Chunk.ChunkSize));
+    //    int newz = (int)System.Math.Abs(z - (ChunkPosZ * Chunk.ChunkSize));
+    //    for(int i = Chunk.ChunkSize - 2; i >= 1; i--)
+    //    {
+    //        if(blocks[newx, i, newz].IsTransparent && blocks[newx, i + 1, newz].IsTransparent && !blocks[newx, i - 1, newz].IsTransparent)
+    //        { 
+    //            y = i + 3.7f;
+    //            return y;
+    //        }
+    //    }
+    //    return y;
+    //}
 
     // Get highest clear block: for tree generation
     public static int GetHighestClearBlockPositionTree(Block[,,] blocks, int x, int z)

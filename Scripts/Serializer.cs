@@ -58,7 +58,7 @@ public class Serializer
             }
             catch(System.Exception e)
             {
-                Logger.Log(e.ToString() + "Error in Deserialization of: " + path);
+                Logger.Log($@"{GameManager.time}: {e.ToString()}: Error in Deserialization of: {path}");
             }
         }
         else

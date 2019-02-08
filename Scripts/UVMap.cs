@@ -30,7 +30,7 @@ public class UVMap
                 return m;
             }
         }
-        Debug.Log($@"Can't find associated image: {name}");
+        Debug.Log($@"{GameManager.time}: Can't find associated image: {name}");
         List<string> _names = new List<string>
         {
             "Broken Images"
@@ -39,7 +39,7 @@ public class UVMap
         {
             _names.Add(m.name + "!=" + name);
         }
-        System.IO.File.WriteAllLines("names.txt", _names.ToArray());
+        System.IO.File.WriteAllLines("BrokenImageNames.txt", _names.ToArray());
         GameManager.ExitGame();
         return _Maps[0];
     }

@@ -74,7 +74,7 @@ public class GameManager : MonoBehaviour
         }
         catch(System.Exception e)
         {
-            Debug.Log("Can't update MainLoopable due to Exception.");
+            Debug.Log($@"{time}: Can't update MainLoopable due to Exception.");
             Debug.Log(e.ToString());
             Logger.Log($@"{time}: Can't update MainLoopable due to Exception.");
             Logger.Log(e);
@@ -122,15 +122,18 @@ public class GameManager : MonoBehaviour
     {
         Instance.RegisterDelegate(new Action(() =>
         {
+            if(go != null && go.GetComponent<MeshCollider>() != null)
             {
-                if(go.gameObject.GetComponent<MeshCollider>().sharedMesh != null)
-                {
-                    Destroy(this.StartCamera);
-                    Destroy(this.UITEXT);
-                    this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
-                    this.Player.SetActive(true);
-                    this.PlayerPos = this.Player.transform.position;
-                }
+                Destroy(this.StartCamera);
+                Destroy(this.UITEXT);
+                this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
+                this.PlayerPos = this.Player.transform.position;
+                this.Player.SetActive(true);
+            }
+            else
+            {
+                Debug.Log($@"{GameManager.time}: GameObject is null can't place player...");
+                Logger.Log($@"{GameManager.time}: GameObject is null can't place player...");
             }
         }));
     }

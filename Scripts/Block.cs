@@ -154,8 +154,8 @@ public class Block : ITickable
             }
             catch(System.Exception e)
             {
-                Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Debug.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Logger.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }
@@ -168,8 +168,8 @@ public class Block : ITickable
             }
             catch(System.Exception e)
             {
-                Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Debug.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Logger.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }
@@ -182,8 +182,8 @@ public class Block : ITickable
             }
             catch(System.Exception e)
             {
-                Debug.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log($@"Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Debug.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
+                Logger.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
             }
             return new MeshData();
         }
