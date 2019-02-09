@@ -148,44 +148,17 @@ public class Block : ITickable
         // If block is Grass draw with special rules (3 UVs)
         else if(this.Equals(Grass))
         {
-            try
-            {
-                return MathHelper.DrawCubeGrass(x, y, z, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3, PosX, PosY, PosZ);
-            }
-            catch(System.Exception e)
-            {
-                Debug.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-            }
-            return new MeshData();
+            return MathHelper.DrawCubeGrass(x, y, z, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3, PosX, PosY, PosZ);
         }
         // If block is Logs draw with special rules (2 UVs)
         else if(this.Equals(Logs))
         {
-            try
-            {
-                return MathHelper.DrawCubeLogs(x, y, z, blocks, this, this._UVMap1, this._UVMap2, PosX, PosY, PosZ);
-            }
-            catch(System.Exception e)
-            {
-                Debug.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-            }
-            return new MeshData();
+            return MathHelper.DrawCubeLogs(x, y, z, blocks, this, this._UVMap1, this._UVMap2, PosX, PosY, PosZ);
         }
         // If block is anything else draw with normal rules (1 UV)
         else
         {
-            try
-            {
-                return MathHelper.DrawCube(x, y, z, blocks, this, this._UVMap1, PosX, PosY, PosZ);
-            }
-            catch(System.Exception e)
-            {
-                Debug.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-                Logger.Log($@"{GameManager.time}: Error in Drawing Cube at X:{x}, Y:{y}, Z:{z} ERROR:{e.ToString()}");
-            }
-            return new MeshData();
+            return MathHelper.DrawCube(x, y, z, blocks, this, this._UVMap1, PosX, PosY, PosZ);
         }
     } 
 }

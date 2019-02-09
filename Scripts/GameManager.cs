@@ -19,8 +19,7 @@ public class GameManager : MonoBehaviour
     public static string WorldName = "DevWorld";
     public static int WorldSeed = 0;
     public static string time;
-
-    // New Noise Variables
+    // Noise Variables
     public static float YMultiplier = 0.04f;
     public static float Land2NDLayerCutoff = 0.6f;
     public static float LandTopLayerCutoff = 0.9f;
@@ -30,7 +29,7 @@ public class GameManager : MonoBehaviour
     public static int PerlinOctaveCount = 4;
     public static float PerlinPersistence = 0.25f;
     public static int PerlinSeed = WorldSeed;
-    // New Cave Noise Variables
+    // Cave Noise Variables
     public static float CaveYMultiplier = 0.3f;
     public static float CaveCutoff = 0.6f;
     public static float RidgedFrequency = 0.03f;
@@ -48,21 +47,14 @@ public class GameManager : MonoBehaviour
         MainLoopable.Instantiate();
         this.main = MainLoopable.MLInstance;
         this.main.Start();
-        
-        int minutes = (int)(Time.time / 60);
-        int seconds = (int)(Time.time % 60);
-        int milliseconds = (int)(Time.time * 100) % 100;
-        time = $@"{minutes}:{seconds}:{milliseconds}";
+        this.GetTime();
     }
 
     // Update is called once per frame
     // GameManager Update: Set Player position if Player exists, Update MainLoopable Instance, Invoke Delegates and Remove them
     void Update()
     {
-        int minutes = (int)(Time.time / 60);
-        int seconds = (int)(Time.time % 60);
-        int milliseconds = (int)(Time.time * 100) % 100;
-        time = $@"{minutes}:{seconds}:{milliseconds}";
+        this.GetTime();
         if(this.Player.activeSelf)
         {
             this.PlayerPos = this.Player.transform.position;
@@ -78,7 +70,6 @@ public class GameManager : MonoBehaviour
             Debug.Log(e.ToString());
             Logger.Log($@"{time}: Can't update MainLoopable due to Exception.");
             Logger.Log(e);
-            World.WorldInstance.IsRunning = false;
         }
         for(int i = 0; i < this._Delegates.Count; i++)
         {
@@ -124,6 +115,8 @@ public class GameManager : MonoBehaviour
         {
             if(go != null && go.GetComponent<MeshCollider>() != null)
             {
+                Debug.Log($@"{time}: Placing player in world...");
+                Logger.Log($@"{time}: Placing player in world...");
                 Destroy(this.StartCamera);
                 Destroy(this.UITEXT);
                 this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
@@ -132,9 +125,33 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                Debug.Log($@"{GameManager.time}: GameObject is null can't place player...");
-                Logger.Log($@"{GameManager.time}: GameObject is null can't place player...");
+                Debug.Log($@"{time}: Can't place player...");
+                Logger.Log($@"{time}: Can't place player...");
             }
         }));
+    }
+
+    // Get time for logging
+    public void GetTime()
+    {
+        int minutes = (int)(Time.time / 60);
+        string Sminutes = minutes.ToString();
+        if(minutes < 10)
+        {
+            Sminutes = $@"0{minutes}";
+        }
+        int seconds = (int)(Time.time % 60);
+        string Sseconds = seconds.ToString();
+        if(seconds < 10)
+        {
+            Sseconds = $@"0{seconds}";
+        }
+        int milliseconds = (int)(Time.time * 100) % 100;
+        string Smilliseconds = milliseconds.ToString();
+        if(milliseconds < 10)
+        {
+            Smilliseconds = $@"0{milliseconds}";
+        }
+        time = $@"{Sminutes}:{Sseconds}:{Smilliseconds}";
     }
 }

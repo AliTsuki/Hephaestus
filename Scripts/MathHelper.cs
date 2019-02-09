@@ -9,7 +9,7 @@ public struct Int3
     // Int3 variables
     public int x, y, z;
 
-    // Int3 constructor for Ints
+    // Int3 constructor, given int x, y, z
     public Int3(int x, int y, int z)
     {
         this.x = x;
@@ -17,7 +17,7 @@ public struct Int3
         this.z = z;
     }
 
-    // Int3 constructor for Vec3s
+    // Int3 constructor, given Vector3
     public Int3(Vector3 pos)
     {
         this.x = (int)pos.x;
@@ -25,7 +25,7 @@ public struct Int3
         this.z = (int)pos.z;
     }
 
-    // Int3 constructor for Vec3Ints
+    // Int3 constructor, given Vector3Int
     public Int3(Vector3Int pos)
     {
         this.x = pos.x;
@@ -33,7 +33,7 @@ public struct Int3
         this.z = pos.z;
     }
 
-    // Sets x,y,z position
+    // Sets x, y, z position, given int x, y, z
     public void SetPos(int x, int y, int z)
     {
         this.x = x;
@@ -41,7 +41,7 @@ public struct Int3
         this.z = z;
     }
 
-    // Sets x,y,z position
+    // Sets x, y, z position, given Int3
     public void SetPos(Int3 pos)
     {
         this.x = pos.x;
@@ -49,7 +49,7 @@ public struct Int3
         this.z = pos.z;
     }
 
-    // Add x,y,z position
+    // Add x, y, z position, given int x, y, z
     public void AddPos(int x, int y, int z)
     {
         this.x += x;
@@ -57,7 +57,7 @@ public struct Int3
         this.z += z;
     }
 
-    // Add x,y,z position
+    // Add x, y, z position, given Int3
     public void AddPos(Int3 pos)
     {
         this.x += pos.x;
@@ -65,7 +65,7 @@ public struct Int3
         this.z += pos.z;
     }
 
-    // Get Chunk coords from given World coords
+    // Get Chunk coords, used on World Coords
     public void ToChunkCoords()
     {
         Int3 chunkcoords = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
@@ -95,7 +95,7 @@ public struct Int3
         this.z = chunkcoords.z;
     }
 
-    // Get Internal Chunk coords from World coords
+    // Get Internal Chunk Coords, used on World Coords
     public void ToInternalChunkCoords()
     {
         Int3 chunkblocks = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
@@ -128,7 +128,7 @@ public struct Int3
         this.z = this.z - chunkblocks.z;
     }
 
-    // Get World coords from Within-Chunk coords by passing Chunk coords
+    // Get World Coords, used on Chunk Internal Coords, given int Chunk Coords
     public void ToWorldCoords(int PosX, int PosY, int PosZ)
     {
         this.x = this.x + (PosX * Chunk.ChunkSize);
@@ -136,7 +136,7 @@ public struct Int3
         this.z = this.z + (PosZ * Chunk.ChunkSize);
     }
 
-    // Get World coords from Within-Chunk coords by passing Chunk coords
+    // Get World Coords, used on Chunk Internal Coords, given Int3 Chunk Coords
     public void ToWorldCoords(Int3 chunkPos)
     {
         this.x = this.x + (chunkPos.x * Chunk.ChunkSize);
@@ -144,14 +144,14 @@ public struct Int3
         this.z = this.z + (chunkPos.z * Chunk.ChunkSize);
     }
 
-    // Get Vec3 from Int3
+    // Get Vector3 from Int3
     public Vector3 GetVec3()
     {
         Vector3 vec3 = new Vector3(this.x, this.y, this.z);
         return vec3;
     }
 
-    // Get block position as string in format "X:#, Y:#, Z:#"
+    // Get position as string in format "X:#, Y:#, Z:#"
     public override string ToString()
     {
         return $@"X:{this.x}, Y:{this.y}, Z:{this.z}";
@@ -161,7 +161,7 @@ public struct Int3
 // Class for Mesh maths
 public static class MathHelper
 {
-    // List of Face Vertices and Draw Orders
+    // List of Face Vertices and Triangle Draw Orders
     private static readonly List<Vector3> BottomFaceVerts = new List<Vector3>()
     {
         new Vector3(0,0,0),
@@ -228,19 +228,13 @@ public static class MathHelper
     {
         0,1,2,3,2,1
     };
-    // End of list of Face Vertices and Draw Orders
+    // End of list of Face Vertices and Triangle Draw Orders
 
-    // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
-    // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
+    // Create Mesh for Cube, given Chunk Internal Coords as int(x,y,z), Block 3D Array blocks, Block block, UVMaps as Vector2 Arrays, and Chunk Coords as int(PosX, PosY, PosZ)
     // Draw Grass Block
     public static MeshData DrawCubeGrass(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, Vector2[] _uvmap3, int PosX, int PosY, int PosZ)
     {
         MeshData data = new MeshData();
-        // If Air don't bother looping through draw below
-        if(block.Equals(Block.Air))
-        {
-            return data;
-        }
         Int3 position = new Int3(x, y, z);
         position.ToWorldCoords(PosX, PosY, PosZ);
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
@@ -252,7 +246,7 @@ public static class MathHelper
         // Bottom Face
         if(blockNegYVis)
         {
-            data.Merge(new MeshData( // Bottom Face
+            data.Merge(new MeshData(
                 BottomFaceVerts,
                 BottomFaceDrawOrder,
                 new Vector2[]
@@ -266,7 +260,7 @@ public static class MathHelper
         // Top Face
         if(blockPosYVis)
         {
-            data.Merge(new MeshData( // Top Face
+            data.Merge(new MeshData(
                 TopFaceVerts,
                 TopFaceDrawOrder,
                 new Vector2[]
@@ -282,7 +276,7 @@ public static class MathHelper
         {
             if(blockPosYVis)
             {
-                data.Merge(new MeshData( // Front Face
+                data.Merge(new MeshData(
                 FrontFaceVerts,
                 FrontFaceDrawOrder,
                 new Vector2[]
@@ -295,7 +289,7 @@ public static class MathHelper
             }
             else
             {
-                data.Merge(new MeshData( // Front Face
+                data.Merge(new MeshData(
                 FrontFaceVerts,
                 FrontFaceDrawOrder,
                 new Vector2[]
@@ -312,7 +306,7 @@ public static class MathHelper
         {
             if(blockPosYVis)
             {
-                data.Merge(new MeshData( // Back Face
+                data.Merge(new MeshData(
                 BackFaceVerts,
                 BackFaceDrawOrder,
                 new Vector2[]
@@ -325,7 +319,7 @@ public static class MathHelper
             }
             else
             {
-                data.Merge(new MeshData( // Back Face
+                data.Merge(new MeshData(
                 BackFaceVerts,
                 BackFaceDrawOrder,
                 new Vector2[]
@@ -342,7 +336,7 @@ public static class MathHelper
         {
             if(blockPosYVis)
             {
-                data.Merge(new MeshData( // Left Face
+                data.Merge(new MeshData(
                 LeftFaceVerts,
                 LeftFaceDrawOrder,
                 new Vector2[]
@@ -355,7 +349,7 @@ public static class MathHelper
             }
             else
             {
-                data.Merge(new MeshData( // Left Face
+                data.Merge(new MeshData(
                 LeftFaceVerts,
                 LeftFaceDrawOrder,
                 new Vector2[]
@@ -372,7 +366,7 @@ public static class MathHelper
         {
             if(blockPosYVis)
             {
-                data.Merge(new MeshData( // Right Face
+                data.Merge(new MeshData(
                 RightFaceVerts,
                 RightFaceDrawOrder,
                 new Vector2[]
@@ -385,7 +379,7 @@ public static class MathHelper
             }
             else
             {
-                data.Merge(new MeshData( // Right Face
+                data.Merge(new MeshData(
                 RightFaceVerts,
                 RightFaceDrawOrder,
                 new Vector2[]
@@ -401,17 +395,11 @@ public static class MathHelper
         return data;
     }
 
-    // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMaps for different sides
-    // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
+    // Create Mesh for Cube, given Chunk Internal Coords as int(x,y,z), Block 3D Array blocks, Block block, UVMaps as Vector2 Arrays, and Chunk Coords as int(PosX, PosY, PosZ)
     // Draw Log Block
     public static MeshData DrawCubeLogs(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, Vector2[] _uvmap2, int PosX, int PosY, int PosZ)
     {
         MeshData data = new MeshData();
-        // If Air don't bother looping through draw below
-        if(block.Equals(Block.Air))
-        {
-            return data;
-        }
         Int3 position = new Int3(x, y, z);
         position.ToWorldCoords(PosX, PosY, PosZ);
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
@@ -423,7 +411,7 @@ public static class MathHelper
         // Bottom Face
         if(blockNegYVis)
         {
-            data.Merge(new MeshData( // Bottom Face
+            data.Merge(new MeshData(
                 BottomFaceVerts,
                 BottomFaceDrawOrder,
                 new Vector2[]
@@ -437,7 +425,7 @@ public static class MathHelper
         // Top Face
         if(blockPosYVis)
         {
-            data.Merge(new MeshData( // Top Face
+            data.Merge(new MeshData(
                 TopFaceVerts,
                 TopFaceDrawOrder,
                 new Vector2[]
@@ -451,7 +439,7 @@ public static class MathHelper
         // Front Face
         if(blockNegXVis)
         {
-            data.Merge(new MeshData( // Front Face
+            data.Merge(new MeshData(
                 FrontFaceVerts,
                 FrontFaceDrawOrder,
                 new Vector2[]
@@ -465,7 +453,7 @@ public static class MathHelper
         // Back Face
         if(blockPosXVis)
         {
-            data.Merge(new MeshData( // Back Face
+            data.Merge(new MeshData(
                 BackFaceVerts,
                 BackFaceDrawOrder,
                 new Vector2[]
@@ -479,7 +467,7 @@ public static class MathHelper
         // Left Face
         if(blockNegZVis)
         {
-            data.Merge(new MeshData( // Left Face
+            data.Merge(new MeshData(
                 LeftFaceVerts,
                 LeftFaceDrawOrder,
                 new Vector2[]
@@ -493,7 +481,7 @@ public static class MathHelper
         // Right Face
         if(blockPosZVis)
         {
-            data.Merge(new MeshData( // Right Face
+            data.Merge(new MeshData(
                 RightFaceVerts,
                 RightFaceDrawOrder,
                 new Vector2[]
@@ -508,17 +496,11 @@ public static class MathHelper
         return data;
     }
 
-    // Draw Cube at location using Chunk, Blocks, Block, pos x,y,z and UVMap
-    // Uses Vec3 list of Vertex positions, int list of what order to draw vertices, and uvmap coords for vertices
+    // Create Mesh for Cube, given Chunk Internal Coords as int(x,y,z), Block 3D Array blocks, Block block, UVMap as Vector2 Array, and Chunk Coords as int(PosX, PosY, PosZ)
     // Draw block with all sides the same
     public static MeshData DrawCube(int x, int y, int z, Block[,,] blocks, Block block, Vector2[] _uvmap, int PosX, int PosY, int PosZ)
     {
         MeshData data = new MeshData();
-        // If Air don't bother looping through draw below
-        if(block.Equals(Block.Air))
-        {
-            return data;
-        }
         Int3 position = new Int3(x, y, z);
         position.ToWorldCoords(PosX, PosY, PosZ);
         bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
@@ -530,7 +512,7 @@ public static class MathHelper
         // Bottom Face
         if(blockNegYVis)
         {
-            data.Merge(new MeshData( // Bottom Face
+            data.Merge(new MeshData(
                 BottomFaceVerts,
                 BottomFaceDrawOrder,
                 new Vector2[]
@@ -544,7 +526,7 @@ public static class MathHelper
         // Top Face
         if(blockPosYVis)
         {
-            data.Merge(new MeshData( // Top Face
+            data.Merge(new MeshData(
                 TopFaceVerts,
                 TopFaceDrawOrder,
                 new Vector2[]
@@ -558,7 +540,7 @@ public static class MathHelper
         // Front Face
         if(blockNegXVis)
         {
-            data.Merge(new MeshData( // Front Face
+            data.Merge(new MeshData(
                 FrontFaceVerts,
                 FrontFaceDrawOrder,
                 new Vector2[]
@@ -572,7 +554,7 @@ public static class MathHelper
         // Back Face
         if(blockPosXVis)
         {
-            data.Merge(new MeshData( // Back Face
+            data.Merge(new MeshData(
                 BackFaceVerts,
                 BackFaceDrawOrder,
                 new Vector2[]
@@ -586,7 +568,7 @@ public static class MathHelper
         // Left Face
         if(blockNegZVis)
         {
-            data.Merge(new MeshData( // Left Face
+            data.Merge(new MeshData(
                 LeftFaceVerts,
                 LeftFaceDrawOrder,
                 new Vector2[]
@@ -600,7 +582,7 @@ public static class MathHelper
         // Right Face
         if(blockPosZVis)
         {
-            data.Merge(new MeshData( // Right Face
+            data.Merge(new MeshData(
                 RightFaceVerts,
                 RightFaceDrawOrder,
                 new Vector2[]
@@ -777,6 +759,7 @@ public static class MathHelper
     //    return y;
     //}
 
+    // TODO: this Tree Gen needs overhaul
     // Get highest clear block: for tree generation
     public static int GetHighestClearBlockPositionTree(Block[,,] blocks, int x, int z)
     {
@@ -798,6 +781,7 @@ public static class MathHelper
         return 0;
     }
 
+    // TODO: Tree gen needs overhaul
     // Generate tree at position
     public static void GenerateTree(Block[,,] blocks, int x, int y, int z, int ChunkPosX, int ChunkPosY, int ChunkPosZ)
     {

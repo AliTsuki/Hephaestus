@@ -30,16 +30,14 @@ public class Chunk : ITickable
     private MeshData data;
     public GameObject go;
     public Block[,,] Blocks;
-
     // Chunk size in blocks
     public static readonly int ChunkSize = 16;
-
     // Chunk position getter/setter
     public int PosX { get; private set; }
     public int PosY { get; private set; }
     public int PosZ { get; private set; }
 
-    // Chunk constructor for new chunks
+    // Chunk constructor, given int x, y, z
     public Chunk(int px, int py, int pz)
     {
         this.PosX = px;
@@ -53,7 +51,7 @@ public class Chunk : ITickable
         this.PosZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ + 1);
     }
 
-    // Chunk constructor for new chunks
+    // Chunk constructor, given Int3
     public Chunk(Int3 pos)
     {
         this.PosX = pos.x;
@@ -67,7 +65,7 @@ public class Chunk : ITickable
         this.PosZNeighbor = new Int3(this.PosX, this.PosY, this.PosZ + 1);
     }
 
-    // Chunk constructor for saved data
+    // Chunk constructor for saved data, given int x, y, z and int 3D Array data
     public Chunk(int px, int py, int pz, int[,,] data)
     {
         this.PosX = px;
@@ -83,7 +81,7 @@ public class Chunk : ITickable
         this.LoadChunkFromData(data);
     }
 
-    // Chunk constructor for saved data
+    // Chunk constructor for saved data, given Int3 and int 3D Array data
     public Chunk(Int3 pos, int[,,] data)
     {
         this.PosX = pos.x;
@@ -99,7 +97,7 @@ public class Chunk : ITickable
         this.LoadChunkFromData(data);
     }
 
-    // Chunk Start: Generate Blocks in Chunk
+    // Chunk Start: Generate Blocks in Chunk from noise
     public virtual void Start()
     {
         if(!firstChunk)
@@ -193,7 +191,7 @@ public class Chunk : ITickable
                 }
             }
         }
-        // TODO: Tree Gen is broken, needs to be fixed for new vertical stacking chunks
+        // TODO: Tree gen needs overhaul
         // Tree generation
         //for(int x = 0; x < ChunkSize; x++)
         //{
@@ -221,7 +219,7 @@ public class Chunk : ITickable
 
     }
 
-    // Chunk Update: Mesh Chunks
+    // Chunk Update: Create Mesh for Chunk
     public virtual void Update()
     {
         if(this.NeedToUpdate)
@@ -243,7 +241,17 @@ public class Chunk : ITickable
                 {
                     for(int z = 0; z < ChunkSize; z++)
                     {
-                        this.data.Merge(this.Blocks[x, y, z].Draw(x, y, z, this.Blocks, this.PosX, this.PosY, this.PosZ));
+                        try
+                        {
+                            this.data.Merge(this.Blocks[x, y, z].Draw(x, y, z, this.Blocks, this.PosX, this.PosY, this.PosZ));
+                        }
+                        catch(Exception e)
+                        {
+                            Debug.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}: {e.ToString()}");
+                            Logger.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}: {e.ToString()}");
+                            this.drawnLock = false;
+                            goto end;
+                        }
                     }
                 }
             }
@@ -252,6 +260,7 @@ public class Chunk : ITickable
             Debug.Log($@"{GameManager.time}: Meshed chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
             Logger.Log($@"{GameManager.time}: Meshed chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
         }
+        end:;
     }
 
     // Chunk On Unity Update: Render Chunks / Create Chunk GameObjects and Assign Meshes
@@ -297,7 +306,7 @@ public class Chunk : ITickable
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        return (float)World.perlin.GetValue(x, y, z) + ((y - (ChunkSize * 0.3f)) * GameManager.YMultiplier);
+        return (float)World.perlin.GetValue(x, y, z) + ((y - (128 * 0.3f)) * GameManager.YMultiplier);
     }
 
     // Get noise for Cave Generation
@@ -306,10 +315,11 @@ public class Chunk : ITickable
         x += this.PosX * ChunkSize;
         y += this.PosY * ChunkSize;
         z += this.PosZ * ChunkSize;
-        return (float)World.ridged.GetValue(x, y, z) - (y / (ChunkSize * 0.5f) * GameManager.CaveYMultiplier);
+        return (float)World.ridged.GetValue(x, y, z) - (y / (128 * 0.5f) * GameManager.CaveYMultiplier);
     }
 
-    //// Get noise tree generation
+    // TODO: Tree gen needs overhaul
+    // Get noise for tree generation
     //private float GetNoiseForTree(float x, float z)
     //{
     //    x += this.PosX * ChunkSize;
@@ -320,21 +330,21 @@ public class Chunk : ITickable
     //    return xz;
     //}
 
-    // Get Block at position
+    // Get Block, given Chunk Internal Coords as int x, y, z
     public Block GetBlockFromChunkInternalCoords(int x, int y, int z)
     {
         Block b = this.Blocks[x, y, z];
         return b;
     }
 
-    // Get Block at position
+    // Get Block, given Chunk Internal Coords as Int3
     public Block GetBlockFromChunkInternalCoords(Int3 pos)
     {
         Block b = this.Blocks[pos.x, pos.y, pos.z];
         return b;
     }
 
-    // Set Block at position: used by player
+    // Set Block at position called by player, given int x, y, z, and Block
     internal void PlayerSetBlock(int x, int y, int z, Block block)
     {
         this.Blocks[x, y, z] = block;
@@ -366,7 +376,7 @@ public class Chunk : ITickable
         }
     }
 
-    // Set Block at position: used by player
+    // Set Block at position called by player, given Int3 and Block
     internal void PlayerSetBlock(Int3 pos, Block block)
     {
         this.Blocks[pos.x, pos.y, pos.z] = block;
@@ -398,13 +408,13 @@ public class Chunk : ITickable
         }
     }
 
-    // Set Block at position: used by Structure Generator
+    // Set Block at position called by Structure Generator, given int x, y, z and Block
     internal void StructureSetBlock(int x, int y, int z, Block block)
     {
         this.Blocks[x, y, z] = block;
     }
 
-    // Degenerate Chunks
+    // Degenerate Chunk
     public void Degenerate()
     {
         // First: save unloading chunks to file
@@ -424,13 +434,13 @@ public class Chunk : ITickable
         // Second: Destroy Chunk GameObject
         GameManager.Instance.RegisterDelegate(new Action(() =>
         {
-            GameObject.Destroy(this.go);
+            UnityEngine.Object.Destroy(this.go);
         }));
-        // Third: Remove chunk from World
+        // Third: Remove Chunk from World
         World.WorldInstance.RemoveChunk(this);
     }
 
-    // Get ChunkData as array of Ints
+    // Get ChunkData as array of ints
     public int[,,] GetChunkSaveData()
     {
         return this.Blocks.ToIntArray();
