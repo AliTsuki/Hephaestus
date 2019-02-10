@@ -39,20 +39,20 @@ public class GameManager : MonoBehaviour
 
     // Start is called before the first frame update
     // GameManager Start: Register Files, Create Texture Atlas
-    void Start()
+    private void Start()
     {
+        this.GetTime();
         Instance = this;
         FileManager.RegisterFiles();
         TextureAtlas.Instance.CreateAtlas();
         MainLoopable.Instantiate();
         this.main = MainLoopable.MLInstance;
         this.main.Start();
-        this.GetTime();
     }
 
     // Update is called once per frame
     // GameManager Update: Set Player position if Player exists, Update MainLoopable Instance, Invoke Delegates and Remove them
-    void Update()
+    private void Update()
     {
         this.GetTime();
         if(this.Player.activeSelf)
@@ -78,8 +78,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Fixed Update called on timer, more than one per Update on slow FPS, less than one per Update on fast FPS
+    private void FixedUpdate()
+    {
+        this.main.FixedUpdate();
+    }
+
     // GameManager On Application Quit
-    void OnApplicationQuit()
+    private void OnApplicationQuit()
     {
         this.main.OnApplicationQuit();
     }
@@ -132,7 +138,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Get time for logging
-    public void GetTime()
+    private void GetTime()
     {
         int minutes = (int)(Time.time / 60);
         string Sminutes = minutes.ToString();
@@ -146,9 +152,13 @@ public class GameManager : MonoBehaviour
         {
             Sseconds = $@"0{seconds}";
         }
-        int milliseconds = (int)(Time.time * 100) % 100;
+        int milliseconds = (int)(Time.time * 1000) % 1000;
         string Smilliseconds = milliseconds.ToString();
         if(milliseconds < 10)
+        {
+            Smilliseconds = $@"00{milliseconds}";
+        }
+        else if(milliseconds < 100)
         {
             Smilliseconds = $@"0{milliseconds}";
         }

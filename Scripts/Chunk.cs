@@ -6,9 +6,7 @@ using UnityEngine;
 public class Chunk : ITickable
 {
     // Chunk variables/objects
-    private static bool firstChunk = false;
-    public bool IsFirstChunk = false;
-    public bool HasGenerated = false;
+    protected bool HasGenerated = false;
     protected bool hasDrawn = false;
     protected bool hasRendered = false;
     private bool drawnLock = false;
@@ -29,7 +27,7 @@ public class Chunk : ITickable
     public bool NeedToUpdatePosZNeighbor = false;
     private MeshData data;
     public GameObject go;
-    public Block[,,] Blocks;
+    private Block[,,] Blocks;
     // Chunk size in blocks
     public static readonly int ChunkSize = 16;
     // Chunk position getter/setter
@@ -100,11 +98,6 @@ public class Chunk : ITickable
     // Chunk Start: Generate Blocks in Chunk from noise
     public virtual void Start()
     {
-        if(!firstChunk)
-        {
-            firstChunk = true;
-            this.IsFirstChunk = true;
-        }
         if(this.HasGenerated)
         {
             return;
@@ -216,7 +209,22 @@ public class Chunk : ITickable
     // Chunk Tick
     public void Tick()
     {
-
+        if(this.Blocks != null)
+        {
+            for(int x = 0; x < ChunkSize; x++)
+            {
+                for(int y = 0; y < ChunkSize; y++)
+                {
+                    for(int z = 0; z < ChunkSize; z++)
+                    {
+                        if(this.Blocks[x, y, z] != Block.Air)
+                        {
+                            this.Blocks[x, y, z].Tick();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Chunk Update: Create Mesh for Chunk
@@ -293,6 +301,7 @@ public class Chunk : ITickable
             }
             cTransform.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
             cTransform.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
+            this.go.isStatic = true;
             this.renderingLock = false;
             this.hasRendered = true;
             Debug.Log($@"{GameManager.time}: Rendered chunk: C_{this.PosX}_{this.PosY}_{this.PosZ}");
