@@ -34,15 +34,15 @@ public class World : ILoopable
         Seed = GameManager.RidgedSeed,
     };
     // World instance getter/setter
-    public static World WorldInstance { get; private set; }
+    public static World Instance { get; private set; }
 
     // Instantiate World, Register loops, set Random World start position
     public static void Instantiate()
     {
-        WorldInstance = new World();
-        MainLoopable.MLInstance.RegisterLoops(WorldInstance);
+        Instance = new World();
+        MainLoopable.Instance.RegisterLoops(Instance);
         System.Random r = new System.Random();
-        WorldInstance.WorldStartPos = new Int3(r.Next(-1000, 1000), 0, r.Next(-1000, 1000));
+        Instance.WorldStartPos = new Int3(r.Next(-1000, 1000), 0, r.Next(-1000, 1000));
     }
 
     // Start is called before the first frame update

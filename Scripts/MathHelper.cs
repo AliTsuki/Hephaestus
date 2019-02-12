@@ -1,162 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using UnityEngine;
-
-// Class of Int3 container
-public struct Int3
-{
-    // Int3 variables
-    public int x, y, z;
-
-    // Int3 constructor, given int x, y, z
-    public Int3(int x, int y, int z)
-    {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    // Int3 constructor, given Vector3
-    public Int3(Vector3 pos)
-    {
-        this.x = (int)pos.x;
-        this.y = (int)pos.y;
-        this.z = (int)pos.z;
-    }
-
-    // Int3 constructor, given Vector3Int
-    public Int3(Vector3Int pos)
-    {
-        this.x = pos.x;
-        this.y = pos.y;
-        this.z = pos.z;
-    }
-
-    // Sets x, y, z position, given int x, y, z
-    public void SetPos(int x, int y, int z)
-    {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    // Sets x, y, z position, given Int3
-    public void SetPos(Int3 pos)
-    {
-        this.x = pos.x;
-        this.y = pos.y;
-        this.z = pos.z;
-    }
-
-    // Add x, y, z position, given int x, y, z
-    public void AddPos(int x, int y, int z)
-    {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-    }
-
-    // Add x, y, z position, given Int3
-    public void AddPos(Int3 pos)
-    {
-        this.x += pos.x;
-        this.y += pos.y;
-        this.z += pos.z;
-    }
-
-    // Get Chunk coords, used on World Coords
-    public void ToChunkCoords()
-    {
-        Int3 chunkcoords = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
-        if(this.x < 0)
-        {
-            if(this.x % Chunk.ChunkSize < 0)
-            {
-                chunkcoords.x -= 1;
-            }
-        }
-        if(this.y < 0)
-        {
-            if(this.y % Chunk.ChunkSize < 0)
-            {
-                chunkcoords.y -= 1;
-            }
-        }
-        if(this.z < 0)
-        {
-            if(this.z % Chunk.ChunkSize < 0)
-            {
-                chunkcoords.z -= 1;
-            }
-        }
-        this.x = chunkcoords.x;
-        this.y = chunkcoords.y;
-        this.z = chunkcoords.z;
-    }
-
-    // Get Internal Chunk Coords, used on World Coords
-    public void ToInternalChunkCoords()
-    {
-        Int3 chunkblocks = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
-        if(this.x < 0)
-        {
-            if(this.x % Chunk.ChunkSize < 0)
-            {
-                chunkblocks.x -= 1;
-            }
-        }
-        chunkblocks.x *= Chunk.ChunkSize;
-        if(this.y < 0)
-        {
-            if(this.y % Chunk.ChunkSize < 0)
-            {
-                chunkblocks.y -= 1;
-            }
-        }
-        chunkblocks.y *= Chunk.ChunkSize;
-        if(this.z < 0)
-        {
-            if(this.z % Chunk.ChunkSize < 0)
-            {
-                chunkblocks.z -= 1;
-            }
-        }
-        chunkblocks.z *= Chunk.ChunkSize;
-        this.x = this.x - chunkblocks.x;
-        this.y = this.y - chunkblocks.y;
-        this.z = this.z - chunkblocks.z;
-    }
-
-    // Get World Coords, used on Chunk Internal Coords, given int Chunk Coords
-    public void ToWorldCoords(int PosX, int PosY, int PosZ)
-    {
-        this.x = this.x + (PosX * Chunk.ChunkSize);
-        this.y = this.y + (PosY * Chunk.ChunkSize);
-        this.z = this.z + (PosZ * Chunk.ChunkSize);
-    }
-
-    // Get World Coords, used on Chunk Internal Coords, given Int3 Chunk Coords
-    public void ToWorldCoords(Int3 chunkPos)
-    {
-        this.x = this.x + (chunkPos.x * Chunk.ChunkSize);
-        this.y = this.y + (chunkPos.y * Chunk.ChunkSize);
-        this.z = this.z + (chunkPos.z * Chunk.ChunkSize);
-    }
-
-    // Get Vector3 from Int3
-    public Vector3 GetVec3()
-    {
-        Vector3 vec3 = new Vector3(this.x, this.y, this.z);
-        return vec3;
-    }
-
-    // Get position as string in format "X:#, Y:#, Z:#"
-    public override string ToString()
-    {
-        return $@"X:{this.x}, Y:{this.y}, Z:{this.z}";
-    }
-}
 
 // Class for Mesh maths
 public static class MathHelper
@@ -602,11 +446,12 @@ public static class MathHelper
     {
         if(x > 0)
         {
-            return blocks[x - 1, y, z].IsTransparent || blocks[x - 1, y, z].IsSemiTransparent;
+            Block b = blocks[x - 1, y, z];
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         else if(x == 0)
         {
-            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x - 1, position.y, position.z);
+            Block b = World.Instance.GetBlockFromWorldCoords(position.x - 1, position.y, position.z);
             return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
@@ -617,11 +462,12 @@ public static class MathHelper
     {
         if(x < Chunk.ChunkSize - 1)
         {
-            return blocks[x + 1, y, z].IsTransparent || blocks[x + 1, y, z].IsSemiTransparent;
+            Block b = blocks[x + 1, y, z];
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         else if(x == Chunk.ChunkSize - 1)
         {
-            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x + 1, position.y, position.z);
+            Block b = World.Instance.GetBlockFromWorldCoords(position.x + 1, position.y, position.z);
             return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
@@ -632,11 +478,12 @@ public static class MathHelper
     {
         if(y > 0)
         {
-            return blocks[x, y - 1, z].IsTransparent || blocks[x, y - 1, z].IsSemiTransparent;
+            Block b = blocks[x, y - 1, z];
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         else if(y == 0)
         {
-            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y - 1, position.z);
+            Block b = World.Instance.GetBlockFromWorldCoords(position.x, position.y - 1, position.z);
             return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
@@ -647,11 +494,12 @@ public static class MathHelper
     {
         if(y < Chunk.ChunkSize - 1)
         {
-            return blocks[x, y + 1, z].IsTransparent || blocks[x, y + 1, z].IsSemiTransparent;
+            Block b = blocks[x, y + 1, z];
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         else if(y == Chunk.ChunkSize - 1)
         {
-            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y + 1, position.z);
+            Block b = World.Instance.GetBlockFromWorldCoords(position.x, position.y + 1, position.z);
             return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
@@ -662,11 +510,12 @@ public static class MathHelper
     {
         if(z > 0)
         {
-            return blocks[x, y, z - 1].IsTransparent || blocks[x, y, z - 1].IsSemiTransparent;
+            Block b = blocks[x, y, z - 1];
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         else if(z == 0)
         {
-            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z - 1);
+            Block b = World.Instance.GetBlockFromWorldCoords(position.x, position.y, position.z - 1);
             return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
@@ -677,17 +526,18 @@ public static class MathHelper
     {
         if(z < Chunk.ChunkSize - 1)
         {
-            return blocks[x, y, z + 1].IsTransparent || blocks[x, y, z + 1].IsSemiTransparent;
+            Block b = blocks[x, y, z + 1];
+            return b.IsTransparent || b.IsSemiTransparent;
         }
         else if(z == Chunk.ChunkSize - 1)
         {
-            Block b = World.WorldInstance.GetBlockFromWorldCoords(position.x, position.y, position.z + 1);
+            Block b = World.Instance.GetBlockFromWorldCoords(position.x, position.y, position.z + 1);
             return b.IsTransparent || b.IsSemiTransparent;
         }
         return false;
     }
 
-    // Add Block to Chunk
+    // Add Block to Chunk, used by Player, given World Coords as Vector3 and Block
     public static void AddBlock(Vector3 position, Block block)
     {
         Int3 chunkPos = new Int3(position);
@@ -695,7 +545,7 @@ public static class MathHelper
         Chunk currentchunk;
         try
         {
-            currentchunk = World.WorldInstance.GetChunk(chunkPos);
+            currentchunk = World.Instance.GetChunk(chunkPos);
             if(currentchunk.GetType().Equals(typeof(ErroredChunk)))
             {
                 Debug.Log($@"{GameManager.time}: Current CHUNK is ERRORED: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
@@ -717,7 +567,7 @@ public static class MathHelper
     {
         Int3 highestchunk = chunkpos;
         Int3 chunkabove = new Int3(chunkpos.x, chunkpos.y + 1, chunkpos.z);
-        if(World.WorldInstance.ChunkExists(chunkabove))
+        if(World.Instance.ChunkExists(chunkabove))
         {
             highestchunk = GetHighestChunk(chunkabove);
         }
@@ -728,9 +578,9 @@ public static class MathHelper
     public static Int3 GetPlayerStartPosition(Int3 worldstartpos)
     {
         Int3 playerstartpos = worldstartpos;
-        for(int i = (Chunk.ChunkSize * World.WorldInstance.renderDistanceFirstPass) - 3; i >= 0; i--)
+        for(int i = (Chunk.ChunkSize * World.Instance.renderDistanceFirstPass) - 3; i >= 0; i--)
         {
-            if(!World.WorldInstance.GetBlockFromWorldCoords(worldstartpos.x, i, worldstartpos.z).IsTransparent && World.WorldInstance.GetBlockFromWorldCoords(worldstartpos.x, i + 1, worldstartpos.z).IsTransparent && World.WorldInstance.GetBlockFromWorldCoords(worldstartpos.x, i + 2, worldstartpos.z).IsTransparent)
+            if(!World.Instance.GetBlockFromWorldCoords(worldstartpos.x, i, worldstartpos.z).IsTransparent && World.Instance.GetBlockFromWorldCoords(worldstartpos.x, i + 1, worldstartpos.z).IsTransparent && World.Instance.GetBlockFromWorldCoords(worldstartpos.x, i + 2, worldstartpos.z).IsTransparent)
             {
                 playerstartpos.SetPos(playerstartpos.x, i + 1, playerstartpos.z);
                 return playerstartpos;
@@ -741,25 +591,7 @@ public static class MathHelper
         return playerstartpos;
     }
 
-
-    // Get highest clear block: for player start position
-    //public static float GetHighestClearBlockPosition(Block[,,] blocks, float x, float z, int ChunkPosX, int ChunkPosZ)
-    //{
-    //    float y = Chunk.ChunkSize - 1;
-    //    int newx = (int)System.Math.Abs(x - (ChunkPosX * Chunk.ChunkSize));
-    //    int newz = (int)System.Math.Abs(z - (ChunkPosZ * Chunk.ChunkSize));
-    //    for(int i = Chunk.ChunkSize - 2; i >= 1; i--)
-    //    {
-    //        if(blocks[newx, i, newz].IsTransparent && blocks[newx, i + 1, newz].IsTransparent && !blocks[newx, i - 1, newz].IsTransparent)
-    //        { 
-    //            y = i + 3.7f;
-    //            return y;
-    //        }
-    //    }
-    //    return y;
-    //}
-
-    // TODO: this Tree Gen needs overhaul
+    // TODO: Tree Gen needs overhaul
     // Get highest clear block: for tree generation
     public static int GetHighestClearBlockPositionTree(Block[,,] blocks, int x, int z)
     {
@@ -786,7 +618,7 @@ public static class MathHelper
     public static void GenerateTree(Block[,,] blocks, int x, int y, int z, int ChunkPosX, int ChunkPosY, int ChunkPosZ)
     {
         Chunk currentchunk;
-        currentchunk = World.WorldInstance.GetChunk(ChunkPosX, ChunkPosY, ChunkPosZ);
+        currentchunk = World.Instance.GetChunk(ChunkPosX, ChunkPosY, ChunkPosZ);
         if(x - 2 > 0 && x + 2 < Chunk.ChunkSize - 1 && z - 2 > 0 && z + 2 < Chunk.ChunkSize - 1)
         {
             currentchunk.StructureSetBlock(x, y, z, Block.Logs);

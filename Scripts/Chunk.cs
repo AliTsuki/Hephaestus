@@ -446,7 +446,7 @@ public class Chunk : ITickable
             UnityEngine.Object.Destroy(this.go);
         }));
         // Third: Remove Chunk from World
-        World.WorldInstance.RemoveChunk(this);
+        World.Instance.RemoveChunk(this);
     }
 
     // Get ChunkData as array of ints

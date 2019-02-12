@@ -5,7 +5,7 @@ public class Character : MonoBehaviour
 {
     // Character objects
     public GameObject BlockSelector;
-    public float MaxInteractableDistance = 8f;
+    public static float MaxInteractableDistance = 8f;
 
     // Start is called before the first frame update
     // Character Start
@@ -21,7 +21,7 @@ public class Character : MonoBehaviour
     {
         // Block Selector Cube
         Ray BlockSelectorRay = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        if(Physics.Raycast(BlockSelectorRay, out RaycastHit BlockSelectorRayHit, this.MaxInteractableDistance))
+        if(Physics.Raycast(BlockSelectorRay, out RaycastHit BlockSelectorRayHit, MaxInteractableDistance))
         {
             this.BlockSelector.SetActive(true);
             this.BlockSelector.transform.GetComponent<MeshRenderer>().enabled = true;
@@ -42,7 +42,7 @@ public class Character : MonoBehaviour
         if(Input.GetMouseButtonDown(1))
         {
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-            if(Physics.Raycast(ray, out RaycastHit hit, this.MaxInteractableDistance))
+            if(Physics.Raycast(ray, out RaycastHit hit, MaxInteractableDistance))
             {
                 Vector3 rawposition = hit.point + (hit.normal * 0.5f);
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
@@ -54,7 +54,7 @@ public class Character : MonoBehaviour
         if(Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-            if(Physics.Raycast(ray, out RaycastHit hit, this.MaxInteractableDistance))
+            if(Physics.Raycast(ray, out RaycastHit hit, MaxInteractableDistance))
             {
                 Vector3 rawposition = hit.point - (hit.normal * 0.5f);
                 Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));

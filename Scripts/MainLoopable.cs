@@ -4,13 +4,13 @@
 public class MainLoopable : ILoopable
 {
     //MainLoopable objects
-    public static MainLoopable MLInstance { get; private set; }
+    public static MainLoopable Instance { get; private set; }
     private readonly List<ILoopable> _RegisteredLoops = new List<ILoopable>();
 
     // Instantiate MainLoopable, Logger, and World, also Register Blocks
     public static void Instantiate()
     {
-        MLInstance = new MainLoopable();
+        Instance = new MainLoopable();
         Logger.Instantiate();
         World.Instantiate();
         Block.Instantiate();
@@ -40,13 +40,13 @@ public class MainLoopable : ILoopable
     // Fixed Update called on timer, more than one per Update on slow FPS, less than one per Update on fast FPS
     public void FixedUpdate()
     {
-        if(World.WorldInstance._LoadedChunks != null)
-        {
-            for(int i = 0; i < World.WorldInstance._LoadedChunks.Count; i++)
-            {
-                World.WorldInstance._LoadedChunks[i].Tick();
-            }
-        }
+        //if(World.WorldInstance._LoadedChunks != null)
+        //{
+        //    for(int i = 0; i < World.WorldInstance._LoadedChunks.Count; i++)
+        //    {
+        //        World.WorldInstance._LoadedChunks[i].Tick();
+        //    }
+        //}
     }
 
     // Main Loopable On Application Quit

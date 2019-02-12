@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviour
         FileManager.RegisterFiles();
         TextureAtlas.Instance.CreateAtlas();
         MainLoopable.Instantiate();
-        this.main = MainLoopable.MLInstance;
+        this.main = MainLoopable.Instance;
         this.main.Start();
     }
 
