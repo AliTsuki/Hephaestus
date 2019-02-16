@@ -2,7 +2,7 @@
 public class DevChunk : Chunk
 {
     // DevChunk constructor
-    public DevChunk(int px, int py, int pz) : base(px, py, pz)
+    public DevChunk(Int3 pos) : base(pos)
     {
 
     }
@@ -10,10 +10,10 @@ public class DevChunk : Chunk
     // DevChunk On Unity Update: Set HasGenerated, HasDrawn, and HasRendered to false so chunks continuously update to reflect noise changes
     public override void OnUnityUpdate()
     {
-        if(this.HasGenerated && !this.hasRendered && this.hasDrawn)
+        if(this.hasGenerated && !this.hasRendered && this.hasDrawn)
         {
             base.OnUnityUpdate();
-            this.HasGenerated = false;
+            this.hasGenerated = false;
             this.hasDrawn = false;
             this.hasRendered = false;
             this.Start();

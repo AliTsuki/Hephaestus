@@ -25,9 +25,9 @@ public class Character : MonoBehaviour
         {
             this.BlockSelector.SetActive(true);
             this.BlockSelector.transform.GetComponent<MeshRenderer>().enabled = true;
-            Vector3 rawposition = BlockSelectorRayHit.point - (BlockSelectorRayHit.normal * 0.5f);
-            Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
-            this.BlockSelector.transform.position = roundedposition;
+            Vector3 rawPos = BlockSelectorRayHit.point - (BlockSelectorRayHit.normal * 0.5f);
+            Vector3 roundedPos = new Vector3(Mathf.RoundToInt(rawPos.x), Mathf.RoundToInt(rawPos.y), Mathf.RoundToInt(rawPos.z));
+            this.BlockSelector.transform.position = roundedPos;
         }
         else
         {
@@ -44,9 +44,9 @@ public class Character : MonoBehaviour
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
             if(Physics.Raycast(ray, out RaycastHit hit, MaxInteractableDistance))
             {
-                Vector3 rawposition = hit.point + (hit.normal * 0.5f);
-                Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
-                MathHelper.AddBlock(roundedposition, Block.Grass);
+                Vector3 rawPos = hit.point + (hit.normal * 0.5f);
+                Vector3 roundedPos = new Vector3(Mathf.RoundToInt(rawPos.x), Mathf.RoundToInt(rawPos.y), Mathf.RoundToInt(rawPos.z));
+                MathHelper.AddBlock(roundedPos, Block.Grass);
             }
         }
 
@@ -56,9 +56,9 @@ public class Character : MonoBehaviour
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
             if(Physics.Raycast(ray, out RaycastHit hit, MaxInteractableDistance))
             {
-                Vector3 rawposition = hit.point - (hit.normal * 0.5f);
-                Vector3 roundedposition = new Vector3(Mathf.RoundToInt(rawposition.x), Mathf.RoundToInt(rawposition.y), Mathf.RoundToInt(rawposition.z));
-                MathHelper.AddBlock(roundedposition, Block.Air);
+                Vector3 rawPos = hit.point - (hit.normal * 0.5f);
+                Vector3 roundedPos = new Vector3(Mathf.RoundToInt(rawPos.x), Mathf.RoundToInt(rawPos.y), Mathf.RoundToInt(rawPos.z));
+                MathHelper.AddBlock(roundedPos, Block.Air);
             }
         }
     }

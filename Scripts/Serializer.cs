@@ -63,7 +63,7 @@ public class Serializer
         }
         else
         {
-            throw new System.Exception("File cannot be found at: " + path);
+            throw new System.Exception("File can't be found at: " + path);
         }
         return null;
     }

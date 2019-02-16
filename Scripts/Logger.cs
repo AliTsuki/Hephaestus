@@ -5,7 +5,7 @@ public class Logger : ILoopable
 {
     // Logger objects
     public static Logger MainLog = new Logger();
-    private readonly List<string> mainlogtxt = new List<string>();
+    private readonly List<string> mainLogTxt = new List<string>();
 
     // Instantiate Logger
     public static void Instantiate()
@@ -22,7 +22,7 @@ public class Logger : ILoopable
     // Logger Update: Write mainlogtxt to Log.txt FILE
     public void Update()
     {
-        System.IO.File.WriteAllLines("Log.txt", this.mainlogtxt.ToArray());
+        System.IO.File.WriteAllLines("Log.txt", this.mainLogTxt.ToArray());
     }
 
     // Logger On Application Quit
@@ -42,10 +42,10 @@ public class Logger : ILoopable
     }
     public void log(string ll)
     {
-        this.mainlogtxt.Add(ll);
+        this.mainLogTxt.Add(ll);
     }
     public void log(System.Exception e)
     {
-        this.mainlogtxt.Add(e.ToString());
+        this.mainLogTxt.Add(e.ToString());
     }
 }

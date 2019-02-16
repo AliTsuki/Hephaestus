@@ -6,41 +6,41 @@ using UnityEngine;
 public class UVMap
 {
     // UVMap objects
-    public static List<UVMap> _Maps = new List<UVMap>();
-    public string name;
-    public Vector2[] _UVMAP;
+    public static List<UVMap> Maps = new List<UVMap>();
+    public string Name;
+    public Vector2[] UVMaps;
 
     // UVMap constructor
-    public UVMap(string name, Vector2[] _UVMAP)
+    public UVMap(string name, Vector2[] uvMap)
     {
-        this.name = name;
-        this._UVMAP = _UVMAP;
+        this.Name = name;
+        this.UVMaps = uvMap;
     }
 
     // Register UVMaps
-    public void Register() => _Maps.Add(this);
+    public void Register() => Maps.Add(this);
 
     // Get UVMap
     public static UVMap GetUVMap(string name)
     {
-        foreach(UVMap m in _Maps)
+        foreach(UVMap m in Maps)
         {
-            if(m.name.Equals(name))
+            if(m.Name.Equals(name))
             {
                 return m;
             }
         }
         Debug.Log($@"{GameManager.time}: Can't find associated image: {name}");
-        List<string> _names = new List<string>
+        List<string> names = new List<string>
         {
             "Broken Images"
         };
-        foreach(UVMap m in _Maps)
+        foreach(UVMap m in Maps)
         {
-            _names.Add(m.name + "!=" + name);
+            names.Add(m.Name + "!=" + name);
         }
-        System.IO.File.WriteAllLines("BrokenImageNames.txt", _names.ToArray());
+        System.IO.File.WriteAllLines("BrokenImageNames.txt", names.ToArray());
         GameManager.ExitGame();
-        return _Maps[0];
+        return Maps[0];
     }
 }

@@ -6,16 +6,16 @@ using UnityEngine;
 public class MeshData
 {
     // MeshData objects
-    private List<Vector3> _verts = new List<Vector3>();
-    private List<int> _tris = new List<int>();
-    private List<Vector2> _uvs = new List<Vector2>();
+    private List<Vector3> verts = new List<Vector3>();
+    private List<int> tris = new List<int>();
+    private List<Vector2> uvs = new List<Vector2>();
 
     // MeshData constructor with parameters
     public MeshData(List<Vector3> v, List<int> i, Vector2[] u)
     {
-        this._verts.AddRange(v);
-        this._tris.AddRange(i);
-        this._uvs.AddRange(u);
+        this.verts.AddRange(v);
+        this.tris.AddRange(i);
+        this.uvs.AddRange(u);
     }
 
     // MeshData default constructor
@@ -27,35 +27,35 @@ public class MeshData
     // Add Position
     public void AddPos(Vector3 pos)
     {
-        for(int i = 0; i < this._verts.Count; i++)
+        for(int i = 0; i < this.verts.Count; i++)
         {
-            this._verts[i] = this._verts[i] + pos;
+            this.verts[i] = this.verts[i] + pos;
         }
     }
 
     // Merge Mesh Data
     public void Merge(MeshData data)
     {
-        if(data._verts.Count <= 0)
+        if(data.verts.Count <= 0)
         {
             return;
         }
-        if(this._verts.Count <= 0)
+        if(this.verts.Count <= 0)
         {
-            this._verts.AddRange(data._verts);
-            this._tris.AddRange(data._tris);
-            this._uvs.AddRange(data._uvs);
+            this.verts.AddRange(data.verts);
+            this.tris.AddRange(data.tris);
+            this.uvs.AddRange(data.uvs);
             return;
         }
-        int count = this._verts.Count;
-        this._verts.AddRange(data._verts);
+        int count = this.verts.Count;
+        this.verts.AddRange(data.verts);
         List<int> newtris = new List<int>();
-        for(int i = 0; i < data._tris.Count; i++)
+        for(int i = 0; i < data.tris.Count; i++)
         {
-            newtris.Add(data._tris[i] + count);
+            newtris.Add(data.tris[i] + count);
         }
-        this._tris.AddRange(newtris);
-        this._uvs.AddRange(data._uvs);
+        this.tris.AddRange(newtris);
+        this.uvs.AddRange(data.uvs);
     }
 
     // Sends verts, tris, and uvs to Mesh
@@ -63,9 +63,9 @@ public class MeshData
     {
         Mesh mesh = new Mesh
         {
-            vertices = this._verts.ToArray(),
-            triangles = this._tris.ToArray(),
-            uv = this._uvs.ToArray()
+            vertices = this.verts.ToArray(),
+            triangles = this.tris.ToArray(),
+            uv = this.uvs.ToArray()
         };
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();

@@ -58,9 +58,9 @@ public class Block : ITickable
         this.topImageName = TopImageName;
         this.leftImageName = SideImageName;
         this.bottomImageName = BottomImageName;
-        this._UVMap1 = UVMap.GetUVMap(this.topImageName)._UVMAP;
-        this._UVMap2 = UVMap.GetUVMap(this.leftImageName)._UVMAP;
-        this._UVMap3 = UVMap.GetUVMap(this.bottomImageName)._UVMAP;
+        this._UVMap1 = UVMap.GetUVMap(this.topImageName).UVMaps;
+        this._UVMap2 = UVMap.GetUVMap(this.leftImageName).UVMaps;
+        this._UVMap3 = UVMap.GetUVMap(this.bottomImageName).UVMaps;
         this.REGISTER();
     }
 
@@ -72,8 +72,8 @@ public class Block : ITickable
         this.IsSemiTransparent = IsSemiTransparent;
         this.topImageName = TopImageName;
         this.leftImageName = SideImageName;
-        this._UVMap1 = UVMap.GetUVMap(this.topImageName)._UVMAP;
-        this._UVMap2 = UVMap.GetUVMap(this.leftImageName)._UVMAP;
+        this._UVMap1 = UVMap.GetUVMap(this.topImageName).UVMaps;
+        this._UVMap2 = UVMap.GetUVMap(this.leftImageName).UVMaps;
         this.REGISTER();
     }
 
@@ -84,7 +84,7 @@ public class Block : ITickable
         this.IsTransparent = IsTransparent;
         this.IsSemiTransparent = IsSemiTransparent;
         this.topImageName = MainImageName;
-        this._UVMap1 = UVMap.GetUVMap(this.topImageName)._UVMAP;
+        this._UVMap1 = UVMap.GetUVMap(this.topImageName).UVMaps;
         this.REGISTER();
     }
 
@@ -138,7 +138,7 @@ public class Block : ITickable
     }
 
     // Draw Block using MathHelper DrawCube
-    public MeshData Draw(int x, int y, int z, Block[,,] blocks, int PosX, int PosY, int PosZ)
+    public MeshData Draw(int x, int y, int z, Block[,,] blocks, Int3 chunkPos)
     {
         // If block is air, don't bother drawing
         if(this.Equals(Air))
@@ -148,17 +148,17 @@ public class Block : ITickable
         // If block is Grass draw with special rules (3 UVs)
         else if(this.Equals(Grass))
         {
-            return MathHelper.DrawCubeGrass(x, y, z, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3, PosX, PosY, PosZ);
+            return MathHelper.DrawCubeGrass(x, y, z, blocks, this, this._UVMap1, this._UVMap2, this._UVMap3, chunkPos);
         }
         // If block is Logs draw with special rules (2 UVs)
         else if(this.Equals(Logs))
         {
-            return MathHelper.DrawCubeLogs(x, y, z, blocks, this, this._UVMap1, this._UVMap2, PosX, PosY, PosZ);
+            return MathHelper.DrawCubeLogs(x, y, z, blocks, this, this._UVMap1, this._UVMap2, chunkPos);
         }
         // If block is anything else draw with normal rules (1 UV)
         else
         {
-            return MathHelper.DrawCube(x, y, z, blocks, this, this._UVMap1, PosX, PosY, PosZ);
+            return MathHelper.DrawCube(x, y, z, blocks, this, this._UVMap1, chunkPos);
         }
     } 
 }

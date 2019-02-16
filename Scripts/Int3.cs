@@ -30,6 +30,16 @@ public struct Int3
         this.z = pos.z;
     }
 
+    // Overload for * operator, multiplies an Int3 by an integer
+    public static Int3 operator *(Int3 multiplicand, int multiplier)
+    {
+        Int3 result = multiplicand;
+        result.x *= multiplier;
+        result.y *= multiplier;
+        result.z *= multiplier;
+        return result;
+    }
+
     // Sets x, y, z position, given int x, y, z
     public void SetPos(int x, int y, int z)
     {
@@ -46,14 +56,6 @@ public struct Int3
         this.z = pos.z;
     }
 
-    // Add x, y, z position, given int x, y, z
-    public void AddPos(int x, int y, int z)
-    {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-    }
-
     // Add x, y, z position, given Int3
     public void AddPos(Int3 pos)
     {
@@ -62,75 +64,75 @@ public struct Int3
         this.z += pos.z;
     }
 
+    // Add x, y, z position, given Int3
+    public void AddPos(int x, int y, int z)
+    {
+        this.x += x;
+        this.y += y;
+        this.z += z;
+    }
+
     // Get Chunk coords, used on World Coords
     public void ToChunkCoords()
     {
-        Int3 chunkcoords = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
+        Int3 chunkPos = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
         if(this.x < 0)
         {
             if(this.x % Chunk.ChunkSize < 0)
             {
-                chunkcoords.x -= 1;
+                chunkPos.x -= 1;
             }
         }
         if(this.y < 0)
         {
             if(this.y % Chunk.ChunkSize < 0)
             {
-                chunkcoords.y -= 1;
+                chunkPos.y -= 1;
             }
         }
         if(this.z < 0)
         {
             if(this.z % Chunk.ChunkSize < 0)
             {
-                chunkcoords.z -= 1;
+                chunkPos.z -= 1;
             }
         }
-        this.x = chunkcoords.x;
-        this.y = chunkcoords.y;
-        this.z = chunkcoords.z;
+        this.x = chunkPos.x;
+        this.y = chunkPos.y;
+        this.z = chunkPos.z;
     }
 
     // Get Internal Chunk Coords, used on World Coords
     public void ToInternalChunkCoords()
     {
-        Int3 chunkblocks = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
+        Int3 chunkBlocks = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
         if(this.x < 0)
         {
             if(this.x % Chunk.ChunkSize < 0)
             {
-                chunkblocks.x -= 1;
+                chunkBlocks.x -= 1;
             }
         }
-        chunkblocks.x *= Chunk.ChunkSize;
+        chunkBlocks.x *= Chunk.ChunkSize;
         if(this.y < 0)
         {
             if(this.y % Chunk.ChunkSize < 0)
             {
-                chunkblocks.y -= 1;
+                chunkBlocks.y -= 1;
             }
         }
-        chunkblocks.y *= Chunk.ChunkSize;
+        chunkBlocks.y *= Chunk.ChunkSize;
         if(this.z < 0)
         {
             if(this.z % Chunk.ChunkSize < 0)
             {
-                chunkblocks.z -= 1;
+                chunkBlocks.z -= 1;
             }
         }
-        chunkblocks.z *= Chunk.ChunkSize;
-        this.x = this.x - chunkblocks.x;
-        this.y = this.y - chunkblocks.y;
-        this.z = this.z - chunkblocks.z;
-    }
-
-    // Get World Coords, used on Chunk Internal Coords, given int Chunk Coords
-    public void ToWorldCoords(int PosX, int PosY, int PosZ)
-    {
-        this.x = this.x + (PosX * Chunk.ChunkSize);
-        this.y = this.y + (PosY * Chunk.ChunkSize);
-        this.z = this.z + (PosZ * Chunk.ChunkSize);
+        chunkBlocks.z *= Chunk.ChunkSize;
+        this.x = this.x - chunkBlocks.x;
+        this.y = this.y - chunkBlocks.y;
+        this.z = this.z - chunkBlocks.z;
     }
 
     // Get World Coords, used on Chunk Internal Coords, given Int3 Chunk Coords

@@ -6,12 +6,12 @@ using UnityEngine;
 public class BlockRegistry
 {
     // BlockRegistry variables/objects
-    private static List<Block> _REGISTEREDBLOCKS = new List<Block>();
+    private static List<Block> registeredBlocks = new List<Block>();
 
     // Register Block
     public static void RegisterBlock(Block b)
     {
-        _REGISTEREDBLOCKS.Add(b);
+        registeredBlocks.Add(b);
     }
 
     // Register All Blocks to BlockRegistry.txt FILE
@@ -20,12 +20,12 @@ public class BlockRegistry
         if(GameManager.Instance.IsDebug)
         {
             int CurrentID = 0;
-            List<string> _names = new List<string>();
-            foreach(Block b in _REGISTEREDBLOCKS)
+            List<string> names = new List<string>();
+            foreach(Block b in registeredBlocks)
             {
-                _names.Add($@"CurrentID: {CurrentID}, BlockName: {b.BlockName}, BlockID: {b.ID}");
+                names.Add($@"CurrentID: {CurrentID}, BlockName: {b.BlockName}, BlockID: {b.ID}");
             }
-            System.IO.File.WriteAllLines("BlockRegistry.txt", _names.ToArray());
+            System.IO.File.WriteAllLines("BlockRegistry.txt", names.ToArray());
         }
     }
 
@@ -34,12 +34,12 @@ public class BlockRegistry
     {
         try
         {
-            if(_REGISTEREDBLOCKS == null)
+            if(registeredBlocks == null)
             {
                 Debug.Log($@"{GameManager.time}: Trying to GetBlockFromID with NULL BlockRegistry!");
                 Logger.Log($@"{GameManager.time}: Trying to GetBlockFromID with NULL BlockRegistry!");
             }
-            return _REGISTEREDBLOCKS[v];
+            return registeredBlocks[v];
         }
         catch(System.Exception e)
         {

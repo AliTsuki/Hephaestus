@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     public Vector3 PlayerPos { get; private set; }
     public static GameManager Instance;
     private MainLoopable main;
-    private readonly List<Delegate> _Delegates = new List<Delegate>();
+    private readonly List<Delegate> delegates = new List<Delegate>();
     public static string WorldName = "DevWorld";
     public static int WorldSeed = 0;
     public static string time;
@@ -66,15 +66,23 @@ public class GameManager : MonoBehaviour
         }
         catch(System.Exception e)
         {
-            Debug.Log($@"{time}: Can't update MainLoopable due to Exception.");
-            Debug.Log(e.ToString());
-            Logger.Log($@"{time}: Can't update MainLoopable due to Exception.");
+            Debug.Log($@"{time}: Can't update MainLoopable due to Exception: {e.ToString()}");
+            Logger.Log($@"{time}: Can't update MainLoopable due to Exception: ");
             Logger.Log(e);
         }
-        for(int i = 0; i < this._Delegates.Count; i++)
+        for(int i = 0; i < this.delegates.Count; i++)
         {
-            this._Delegates[i].DynamicInvoke();
-            this._Delegates.Remove(this._Delegates[i]);
+            try
+            {
+                this.delegates[i].DynamicInvoke();
+                this.delegates.Remove(this.delegates[i]);
+            }
+            catch(Exception e)
+            {
+                Debug.Log($@"{time}: Can't Invoke Delegate due to Exception: {e.ToString()}");
+                Logger.Log($@"{time}: Can't Invoke Delegate due to Exception: ");
+                Logger.Log(e);
+            }
         }
     }
 
@@ -105,7 +113,7 @@ public class GameManager : MonoBehaviour
     // Register Delegates
     public void RegisterDelegate(Delegate d)
     {
-        this._Delegates.Add(d);
+        this.delegates.Add(d);
     }
 
     // Check if Player is loaded into world
