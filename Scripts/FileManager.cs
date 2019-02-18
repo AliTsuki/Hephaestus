@@ -1,7 +1,7 @@
 ﻿// Class for managing save files
 public class FileManager
 {
-    // FileManager variables
+    // FileManager fields
     public static readonly string ChunkSaveDirectory = $@"Data/World/{GameManager.WorldName}/Chunks/";
 
     // Register Files

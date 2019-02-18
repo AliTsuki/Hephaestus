@@ -3,7 +3,7 @@
 // Class for Main Loop
 public class MainLoopable : ILoopable
 {
-    //MainLoopable objects
+    //MainLoopable fields
     public static MainLoopable Instance { get; private set; }
     private readonly List<ILoopable> registeredLoops = new List<ILoopable>();
 

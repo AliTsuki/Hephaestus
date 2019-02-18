@@ -5,7 +5,7 @@ using UnityEngine;
 // Class containing Chunk functions
 public class Chunk : ITickable
 {
-    // Chunk variables/objects
+    // Chunk fields
     protected bool hasGenerated = false;
     protected bool hasDrawn = false;
     protected bool hasRendered = false;

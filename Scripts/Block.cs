@@ -28,7 +28,7 @@ public class Block : ITickable
     public static Block Wood_Planks = new Block("Wood Planks", false, false, "Assets/Resources/Textures/Blocks/WoodPlanks.png");
     // End of Block List
 
-    //Block variables/objects
+    //Block fields
     private static int currentID = 0;
     public int ID { get; private set; }
     public string BlockName { get; private set; }

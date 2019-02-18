@@ -3,7 +3,7 @@
 // Class for Logging-to-file functions
 public class Logger : ILoopable
 {
-    // Logger objects
+    // Logger fields
     public static Logger MainLog = new Logger();
     private readonly List<string> mainLogTxt = new List<string>();
 

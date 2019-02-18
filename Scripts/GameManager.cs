@@ -6,7 +6,7 @@ using UnityEngine;
 // Class for managing the Game functions
 public class GameManager : MonoBehaviour
 {
-    // GameManager variables/objects
+    // GameManager fields
     public bool IsDebug = false;
     private bool isPlayerLoaded = false;
     public GameObject StartCamera;
@@ -148,28 +148,6 @@ public class GameManager : MonoBehaviour
     // Get time for logging
     private void GetTime()
     {
-        int minutes = (int)(Time.time / 60);
-        string Sminutes = minutes.ToString();
-        if(minutes < 10)
-        {
-            Sminutes = $@"0{minutes}";
-        }
-        int seconds = (int)(Time.time % 60);
-        string Sseconds = seconds.ToString();
-        if(seconds < 10)
-        {
-            Sseconds = $@"0{seconds}";
-        }
-        int milliseconds = (int)(Time.time * 1000) % 1000;
-        string Smilliseconds = milliseconds.ToString();
-        if(milliseconds < 10)
-        {
-            Smilliseconds = $@"00{milliseconds}";
-        }
-        else if(milliseconds < 100)
-        {
-            Smilliseconds = $@"0{milliseconds}";
-        }
-        time = $@"{Sminutes}:{Sseconds}:{Smilliseconds}";
+        time = DateTime.Now.ToLongTimeString();
     }
 }

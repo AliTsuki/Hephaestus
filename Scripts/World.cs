@@ -8,18 +8,24 @@ using UnityEngine;
 // Class containing World functions
 public class World : ILoopable
 {
-    // World variables/objects
+    // World fields
     public bool IsRunning;
     private bool initialChunkStartComplete = false;
     private bool initialChunkUpdateComplete = false;
+    private bool chunkBufferNeedsUpdate = false;
+    private bool chunkBufferNeedsPropogation = false;
+    private bool chunkBufferLock = false;
+    private bool loadedChunksInitialized = false;
     private Thread worldGenThread;
     private Thread worldUpdateThread;
     public Int3 WorldStartPos;
-    public volatile Dictionary<Int3, Chunk> LoadedChunks = new Dictionary<Int3, Chunk>();
+    private Dictionary<Int3, Chunk> LoadedChunks = new Dictionary<Int3, Chunk>();
+    private Dictionary<Int3, Chunk> ChunkBuffer = new Dictionary<Int3, Chunk>();
+    private Dictionary<Int3, Chunk> LoadedChunksForUpdate = new Dictionary<Int3, Chunk>();
     private List<Int3> chunksToRemove = new List<Int3>();
     // Chunks to render around player, FirstPass is initialization, renderDistance is during regular gameplay
-    public readonly int RenderDistanceFirstPass = 2;
-    private readonly int renderDistance = 1;
+    public readonly int RenderDistanceFirstPass = 4;
+    private readonly int renderDistance = 3;
     // Noise generators
     public static readonly Perlin perlin = new Perlin()
     {
@@ -36,7 +42,6 @@ public class World : ILoopable
         OctaveCount = GameManager.RidgedOctaveCount,
         Seed = GameManager.RidgedSeed,
     };
-    // World instance getter/setter
     public static World Instance { get; private set; }
 
     // Instantiate World, Register loops, set Random World start position
@@ -77,7 +82,7 @@ public class World : ILoopable
                                 {
                                     xyz.SetPos(x, y, z);
                                     Int3 newChunkPos = this.WorldStartPos;
-                                    newChunkPos.AddPos(xyz * Chunk.ChunkSize);
+                                    newChunkPos += xyz * Chunk.ChunkSize;
                                     newChunkPos.ToChunkCoords();
                                     // x,y,z for loop makes a cube of chunks of renderDistanceFirstPass^3, distance function below cuts that into a smaller sphere, saves 30+% in generation time
                                     if(Vector3.Distance(newChunkPos.GetVec3(), startingChunkPos.GetVec3()) <= this.RenderDistanceFirstPass)
@@ -89,6 +94,7 @@ public class World : ILoopable
                                             {
                                                 Chunk chunk = new Chunk(newChunkPos, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos)));
                                                 this.LoadedChunks.Add(newChunkPos, chunk);
+                                                this.chunkBufferNeedsUpdate = true;
                                                 chunk.Start();
                                             }
                                             catch(System.Exception e)
@@ -102,6 +108,7 @@ public class World : ILoopable
                                         {
                                             Chunk chunk = new Chunk(newChunkPos);
                                             this.LoadedChunks.Add(newChunkPos, chunk);
+                                            this.chunkBufferNeedsUpdate = true;
                                             chunk.Start();
                                         }
                                     }
@@ -125,7 +132,7 @@ public class World : ILoopable
                                 {
                                     xyz.SetPos(x, y, z);
                                     Int3 newChunkPos = currentPlayerPos;
-                                    newChunkPos.AddPos(xyz * Chunk.ChunkSize);
+                                    newChunkPos += xyz * Chunk.ChunkSize;
                                     newChunkPos.ToChunkCoords();
                                     // If currently pointed to Chunk hasn't already been added to World
                                     if(!this.ChunkExists(newChunkPos))
@@ -137,6 +144,7 @@ public class World : ILoopable
                                             {
                                                 Chunk chunk = new Chunk(newChunkPos, Serializer.Deserialize_From_File<int[,,]>(FileManager.GetChunkString(newChunkPos)));
                                                 this.LoadedChunks.Add(newChunkPos, chunk);
+                                                this.chunkBufferNeedsUpdate = true;
                                                 chunk.Start();
                                             }
                                             catch(System.Exception e)
@@ -150,6 +158,7 @@ public class World : ILoopable
                                         {
                                             Chunk chunk = new Chunk(newChunkPos);
                                             this.LoadedChunks.Add(newChunkPos, chunk);
+                                            this.chunkBufferNeedsUpdate = true;
                                             chunk.Start();
                                         }
                                     }
@@ -162,10 +171,25 @@ public class World : ILoopable
                             Int3 chunkPos = chunk.Value.Pos * Chunk.ChunkSize;
                             if(Vector3.Distance(chunkPos.GetVec3(), currentPlayerPos.GetVec3()) >= (this.renderDistance * 1.5 * Chunk.ChunkSize))
                             {
-                                chunk.Value.Degenerate();
+                                if(!this.chunksToRemove.Contains(chunk.Key))
+                                {
+                                    chunk.Value.Degenerate();
+                                }
                             }
-                            this.RemoveChunks();
                         }
+                        this.RemoveChunks();
+                    }
+                    if(this.chunkBufferNeedsUpdate && !this.chunkBufferLock)
+                    {
+                        this.chunkBufferLock = true;
+                        this.ChunkBuffer.Clear();
+                        foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunks)
+                        {
+                            this.ChunkBuffer.Add(chunk.Key, chunk.Value);
+                        }
+                        this.chunkBufferNeedsPropogation = true;
+                        this.chunkBufferNeedsUpdate = false;
+                        this.chunkBufferLock = false;
                     }
                 }
                 catch(System.Exception e)
@@ -187,9 +211,9 @@ public class World : ILoopable
                 {
                     // After initial Chunk generation, and before player is instantiated, update all Chunks that have existing neighbors
                     // Neighbor existence is required to avoid problems in meshing the edges of the Chunk when neighbors don't exist yet
-                    if(this.initialChunkStartComplete && !this.initialChunkUpdateComplete && !GameManager.PlayerLoaded())
+                    if(!this.initialChunkUpdateComplete && this.loadedChunksInitialized && this.initialChunkStartComplete && !GameManager.PlayerLoaded())
                     {
-                        foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunks)
+                        foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunksForUpdate)
                         {
                             if(this.ChunkExists(chunk.Value.NegXNeighbor) && this.ChunkExists(chunk.Value.PosXNeighbor)
                                 && this.ChunkExists(chunk.Value.NegYNeighbor) && this.ChunkExists(chunk.Value.PosYNeighbor)
@@ -216,7 +240,7 @@ public class World : ILoopable
                     if(this.initialChunkStartComplete &&  this.initialChunkUpdateComplete && GameManager.PlayerLoaded())
                     {
                         Int3 currentPlayerPos = new Int3(GameManager.Instance.PlayerPos);
-                        foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunks)
+                        foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunksForUpdate)
                         {
                             Int3 chunkPos = chunk.Value.Pos * Chunk.ChunkSize;
                             if(Vector3.Distance(chunkPos.GetVec3(), currentPlayerPos.GetVec3()) <= (this.renderDistance * Chunk.ChunkSize))
@@ -261,6 +285,21 @@ public class World : ILoopable
                                 }
                             }
                         }
+                    }
+                    if(this.chunkBufferNeedsPropogation && !this.chunkBufferLock)
+                    {
+                        this.chunkBufferLock = true;
+                        this.LoadedChunksForUpdate.Clear();
+                        foreach(KeyValuePair<Int3, Chunk> chunk in this.ChunkBuffer)
+                        {
+                            this.LoadedChunksForUpdate.Add(chunk.Key, chunk.Value);
+                        }
+                        if(!this.loadedChunksInitialized)
+                        {
+                            this.loadedChunksInitialized = true;
+                        }
+                        this.chunkBufferNeedsPropogation = false;
+                        this.chunkBufferLock = false;
                     }
                 }
                 catch(System.Exception e)
@@ -322,13 +361,16 @@ public class World : ILoopable
     // Remove Chunk from World
     private void RemoveChunks()
     {
-        foreach(Int3 chunkPos in this.chunksToRemove)
+        if(this.chunksToRemove.Count > 0)
         {
-            this.LoadedChunks.Remove(chunkPos);
-            Debug.Log($@"{GameManager.time}: Removed Chunk: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
-            Logger.Log($@"{GameManager.time}: Removed Chunk: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
+            foreach(Int3 chunkPos in this.chunksToRemove)
+            {
+                this.LoadedChunks.Remove(chunkPos);
+                Debug.Log($@"{GameManager.time}: Removed Chunk: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
+                Logger.Log($@"{GameManager.time}: Removed Chunk: C_{chunkPos.x}_{chunkPos.y}_{chunkPos.z}");
+            }
+            this.chunksToRemove.Clear();
         }
-        this.chunksToRemove = null;
     }
 
     // Check if Chunk currently exists, given Chunk Coords
@@ -358,16 +400,13 @@ public class World : ILoopable
         chunkPos.ToChunkCoords();
         Int3 internalPos = pos;
         internalPos.ToInternalChunkCoords();
-        try
+        if(this.ChunkExists(chunkPos))
         {
             Block b = this.GetChunk(chunkPos).GetBlockFromChunkInternalCoords(internalPos);
             return b;
         }
-        catch(System.Exception e)
-        {
-            Debug.Log($@"{GameManager.time}: Chunk: {chunkPos.ToString()} does not exist.");
-            Logger.Log($@"{GameManager.time}: Chunk: {chunkPos.ToString()} does not exist.");
-            throw new System.Exception("Trying to get Blocks from Chunk that doesn't exist: " + e);
-        }
+        Debug.Log($@"{GameManager.time}: Chunk: {chunkPos.ToString()} does not exist.");
+        Logger.Log($@"{GameManager.time}: Chunk: {chunkPos.ToString()} does not exist.");
+        throw new System.Exception("Trying to get Blocks from Chunk that doesn't exist: ");
     }
 }

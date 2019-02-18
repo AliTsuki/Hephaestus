@@ -3,7 +3,7 @@
 // Class for Character Controller
 public class Character : MonoBehaviour
 {
-    // Character objects
+    // Character fields
     public GameObject BlockSelector;
     public static float MaxInteractableDistance = 8f;
 

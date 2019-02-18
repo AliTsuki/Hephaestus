@@ -590,19 +590,30 @@ public static class MathHelper
     public static Int3 GetPlayerStartPosition(Int3 worldStartPos)
     {
         Int3 playerStartPos = worldStartPos;
-        for(int i = (Chunk.ChunkSize * World.Instance.RenderDistanceFirstPass) - 3; i >= 0; i--)
+        for(int i = playerStartPos.y + (Chunk.ChunkSize * World.Instance.RenderDistanceFirstPass); i >= playerStartPos.y - (Chunk.ChunkSize * World.Instance.RenderDistanceFirstPass); i--)
         {
             Int3 checkPos = new Int3(worldStartPos.x, i, worldStartPos.z);
-            Int3 checkPos1 = new Int3(worldStartPos.x, i + 1, worldStartPos.z);
-            Int3 checkPos2 = new Int3(worldStartPos.x, i + 2, worldStartPos.z);
-            if(!World.Instance.GetBlockFromWorldCoords(checkPos).IsTransparent && World.Instance.GetBlockFromWorldCoords(checkPos1).IsTransparent && World.Instance.GetBlockFromWorldCoords(checkPos2).IsTransparent)
+            Int3 checkPos1 = checkPos;
+            checkPos1.AddPos(0, 1, 0);
+            Int3 checkPos2 = checkPos;
+            checkPos2.AddPos(0, 2, 0);
+            Int3 checkPosChunk = checkPos;
+            checkPosChunk.ToChunkCoords();
+            Int3 checkPos1Chunk = checkPos1;
+            checkPos1Chunk.ToChunkCoords();
+            Int3 checkPos2Chunk = checkPos2;
+            checkPos2Chunk.ToChunkCoords();
+            if(World.Instance.ChunkExists(checkPosChunk) && World.Instance.ChunkExists(checkPos1Chunk) && World.Instance.ChunkExists(checkPos2Chunk))
             {
-                playerStartPos.SetPos(playerStartPos.x, i + 1, playerStartPos.z);
-                return playerStartPos;
+                if(!World.Instance.GetBlockFromWorldCoords(checkPos).IsTransparent && World.Instance.GetBlockFromWorldCoords(checkPos1).IsTransparent && World.Instance.GetBlockFromWorldCoords(checkPos2).IsTransparent)
+                {
+                    playerStartPos.SetPos(playerStartPos.x, i + 1, playerStartPos.z);
+                    return playerStartPos;
+                }
             }
         }
         System.Random r = new System.Random();
-        playerStartPos.SetPos(GetPlayerStartPosition(new Int3(r.Next(-20, 20) + playerStartPos.x, worldStartPos.y, r.Next(-20, 20) + playerStartPos.z)));
+        playerStartPos = GetPlayerStartPosition(new Int3(r.Next(-20, 20) + playerStartPos.x, worldStartPos.y, r.Next(-20, 20) + playerStartPos.z));
         return playerStartPos;
     }
 

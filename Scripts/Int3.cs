@@ -3,7 +3,7 @@
 // Class of Int3 container
 public struct Int3
 {
-    // Int3 variables
+    // Int3 fields
     public int x, y, z;
 
     // Int3 constructor, given int x, y, z
@@ -30,6 +30,12 @@ public struct Int3
         this.z = pos.z;
     }
 
+    // Int3 constructor, given Int3
+    public Int3(Int3 pos)
+    {
+        this = pos;
+    }
+
     // Overload for * operator, multiplies an Int3 by an integer
     public static Int3 operator *(Int3 multiplicand, int multiplier)
     {
@@ -40,28 +46,22 @@ public struct Int3
         return result;
     }
 
+    // Overload for + operator, adds an Int3 to another Int3
+    public static Int3 operator +(Int3 addee, Int3 adder)
+    {
+        Int3 result = addee;
+        result.x += adder.x;
+        result.y += adder.y;
+        result.z += adder.z;
+        return result;
+    }
+
     // Sets x, y, z position, given int x, y, z
     public void SetPos(int x, int y, int z)
     {
         this.x = x;
         this.y = y;
         this.z = z;
-    }
-
-    // Sets x, y, z position, given Int3
-    public void SetPos(Int3 pos)
-    {
-        this.x = pos.x;
-        this.y = pos.y;
-        this.z = pos.z;
-    }
-
-    // Add x, y, z position, given Int3
-    public void AddPos(Int3 pos)
-    {
-        this.x += pos.x;
-        this.y += pos.y;
-        this.z += pos.z;
     }
 
     // Add x, y, z position, given Int3

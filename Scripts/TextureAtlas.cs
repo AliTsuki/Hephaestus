@@ -5,7 +5,7 @@ using UnityEngine;
 // Class containg TextureAtlas creation
 public class TextureAtlas
 {
-    // TextureAtlas objects
+    // TextureAtlas fields
     public static readonly TextureAtlas Instance = new TextureAtlas();
 
     // Atlas getter

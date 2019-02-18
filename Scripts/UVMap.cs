@@ -5,7 +5,7 @@ using UnityEngine;
 // Class for creating UVMap
 public class UVMap
 {
-    // UVMap objects
+    // UVMap fields
     public static List<UVMap> Maps = new List<UVMap>();
     public string Name;
     public Vector2[] UVMaps;
