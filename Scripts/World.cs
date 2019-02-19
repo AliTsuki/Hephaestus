@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 
-using SharpNoise.Modules;
-
 using UnityEngine;
 
 // Class containing World functions
@@ -20,28 +18,12 @@ public class World : ILoopable
     private Thread worldUpdateThread;
     public Int3 WorldStartPos;
     private Dictionary<Int3, Chunk> LoadedChunks = new Dictionary<Int3, Chunk>();
-    private Dictionary<Int3, Chunk> ChunkBuffer = new Dictionary<Int3, Chunk>();
-    private Dictionary<Int3, Chunk> LoadedChunksForUpdate = new Dictionary<Int3, Chunk>();
+    private List<Chunk> ChunkBuffer = new List<Chunk>();
+    private List<Chunk> LoadedChunksForUpdate = new List<Chunk>();
     private List<Int3> chunksToRemove = new List<Int3>();
     // Chunks to render around player, FirstPass is initialization, renderDistance is during regular gameplay
     public readonly int RenderDistanceFirstPass = 4;
     private readonly int renderDistance = 3;
-    // Noise generators
-    public static readonly Perlin perlin = new Perlin()
-    {
-        Frequency = GameManager.PerlinFrequency,
-        Lacunarity = GameManager.PerlinLacunarity,
-        OctaveCount = GameManager.PerlinOctaveCount,
-        Persistence = GameManager.PerlinPersistence,
-        Seed = GameManager.PerlinSeed,
-    };
-    public static readonly RidgedMulti ridged = new RidgedMulti()
-    {
-        Frequency = GameManager.RidgedFrequency,
-        Lacunarity = GameManager.RidgedLacunarity,
-        OctaveCount = GameManager.RidgedOctaveCount,
-        Seed = GameManager.RidgedSeed,
-    };
     public static World Instance { get; private set; }
 
     // Instantiate World, Register loops, set Random World start position
@@ -185,7 +167,7 @@ public class World : ILoopable
                         this.ChunkBuffer.Clear();
                         foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunks)
                         {
-                            this.ChunkBuffer.Add(chunk.Key, chunk.Value);
+                            this.ChunkBuffer.Add(chunk.Value);
                         }
                         this.chunkBufferNeedsPropogation = true;
                         this.chunkBufferNeedsUpdate = false;
@@ -213,13 +195,13 @@ public class World : ILoopable
                     // Neighbor existence is required to avoid problems in meshing the edges of the Chunk when neighbors don't exist yet
                     if(!this.initialChunkUpdateComplete && this.loadedChunksInitialized && this.initialChunkStartComplete && !GameManager.PlayerLoaded())
                     {
-                        foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunksForUpdate)
+                        foreach(Chunk chunk in this.LoadedChunksForUpdate)
                         {
-                            if(this.ChunkExists(chunk.Value.NegXNeighbor) && this.ChunkExists(chunk.Value.PosXNeighbor)
-                                && this.ChunkExists(chunk.Value.NegYNeighbor) && this.ChunkExists(chunk.Value.PosYNeighbor)
-                                && this.ChunkExists(chunk.Value.NegZNeighbor) && this.ChunkExists(chunk.Value.PosZNeighbor))
+                            if(this.ChunkExists(chunk.NegXNeighbor) && this.ChunkExists(chunk.PosXNeighbor)
+                                && this.ChunkExists(chunk.NegYNeighbor) && this.ChunkExists(chunk.PosYNeighbor)
+                                && this.ChunkExists(chunk.NegZNeighbor) && this.ChunkExists(chunk.PosZNeighbor))
                             {
-                                chunk.Value.Update();
+                                chunk.Update();
                             }
                         }
                         this.initialChunkUpdateComplete = true;
@@ -240,48 +222,48 @@ public class World : ILoopable
                     if(this.initialChunkStartComplete &&  this.initialChunkUpdateComplete && GameManager.PlayerLoaded())
                     {
                         Int3 currentPlayerPos = new Int3(GameManager.Instance.PlayerPos);
-                        foreach(KeyValuePair<Int3, Chunk> chunk in this.LoadedChunksForUpdate)
+                        foreach(Chunk chunk in this.LoadedChunksForUpdate)
                         {
-                            Int3 chunkPos = chunk.Value.Pos * Chunk.ChunkSize;
+                            Int3 chunkPos = chunk.Pos * Chunk.ChunkSize;
                             if(Vector3.Distance(chunkPos.GetVec3(), currentPlayerPos.GetVec3()) <= (this.renderDistance * Chunk.ChunkSize))
                             {
-                                if(this.ChunkExists(chunk.Value.NegXNeighbor) && this.ChunkExists(chunk.Value.PosXNeighbor)
-                                && this.ChunkExists(chunk.Value.NegYNeighbor) && this.ChunkExists(chunk.Value.PosYNeighbor)
-                                && this.ChunkExists(chunk.Value.NegZNeighbor) && this.ChunkExists(chunk.Value.PosZNeighbor))
+                                if(this.ChunkExists(chunk.NegXNeighbor) && this.ChunkExists(chunk.PosXNeighbor)
+                                && this.ChunkExists(chunk.NegYNeighbor) && this.ChunkExists(chunk.PosYNeighbor)
+                                && this.ChunkExists(chunk.NegZNeighbor) && this.ChunkExists(chunk.PosZNeighbor))
                                 {
                                     // Before update, if Chunk has been set that its neighbors need to update, tell those neighbors they need to update
                                     // Neighbors will need to update meshes if a block is changed at the intersection of chunks to avoid holes between chunks
-                                    if(chunk.Value.NeedToUpdateNegXNeighbor)
+                                    if(chunk.NeedToUpdateNegXNeighbor)
                                     {
-                                        this.GetChunk(chunk.Value.NegXNeighbor).NeedToUpdate = true;
-                                        chunk.Value.NeedToUpdateNegXNeighbor = false;
+                                        this.GetChunk(chunk.NegXNeighbor).NeedToUpdate = true;
+                                        chunk.NeedToUpdateNegXNeighbor = false;
                                     }
-                                    if(chunk.Value.NeedToUpdatePosXNeighbor)
+                                    if(chunk.NeedToUpdatePosXNeighbor)
                                     {
-                                        this.GetChunk(chunk.Value.PosXNeighbor).NeedToUpdate = true;
-                                        chunk.Value.NeedToUpdatePosXNeighbor = false;
+                                        this.GetChunk(chunk.PosXNeighbor).NeedToUpdate = true;
+                                        chunk.NeedToUpdatePosXNeighbor = false;
                                     }
-                                    if(chunk.Value.NeedToUpdateNegYNeighbor)
+                                    if(chunk.NeedToUpdateNegYNeighbor)
                                     {
-                                        this.GetChunk(chunk.Value.NegYNeighbor).NeedToUpdate = true;
-                                        chunk.Value.NeedToUpdateNegYNeighbor = false;
+                                        this.GetChunk(chunk.NegYNeighbor).NeedToUpdate = true;
+                                        chunk.NeedToUpdateNegYNeighbor = false;
                                     }
-                                    if(chunk.Value.NeedToUpdatePosYNeighbor)
+                                    if(chunk.NeedToUpdatePosYNeighbor)
                                     {
-                                        this.GetChunk(chunk.Value.PosYNeighbor).NeedToUpdate = true;
-                                        chunk.Value.NeedToUpdatePosYNeighbor = false;
+                                        this.GetChunk(chunk.PosYNeighbor).NeedToUpdate = true;
+                                        chunk.NeedToUpdatePosYNeighbor = false;
                                     }
-                                    if(chunk.Value.NeedToUpdateNegZNeighbor)
+                                    if(chunk.NeedToUpdateNegZNeighbor)
                                     {
-                                        this.GetChunk(chunk.Value.NegZNeighbor).NeedToUpdate = true;
-                                        chunk.Value.NeedToUpdateNegZNeighbor = false;
+                                        this.GetChunk(chunk.NegZNeighbor).NeedToUpdate = true;
+                                        chunk.NeedToUpdateNegZNeighbor = false;
                                     }
-                                    if(chunk.Value.NeedToUpdatePosZNeighbor)
+                                    if(chunk.NeedToUpdatePosZNeighbor)
                                     {
-                                        this.GetChunk(chunk.Value.PosZNeighbor).NeedToUpdate = true;
-                                        chunk.Value.NeedToUpdateNegZNeighbor = false;
+                                        this.GetChunk(chunk.PosZNeighbor).NeedToUpdate = true;
+                                        chunk.NeedToUpdateNegZNeighbor = false;
                                     }
-                                    chunk.Value.Update();
+                                    chunk.Update();
                                 }
                             }
                         }
@@ -290,9 +272,9 @@ public class World : ILoopable
                     {
                         this.chunkBufferLock = true;
                         this.LoadedChunksForUpdate.Clear();
-                        foreach(KeyValuePair<Int3, Chunk> chunk in this.ChunkBuffer)
+                        foreach(Chunk chunk in this.ChunkBuffer)
                         {
-                            this.LoadedChunksForUpdate.Add(chunk.Key, chunk.Value);
+                            this.LoadedChunksForUpdate.Add(chunk);
                         }
                         if(!this.loadedChunksInitialized)
                         {

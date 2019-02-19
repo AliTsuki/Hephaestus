@@ -19,23 +19,6 @@ public class GameManager : MonoBehaviour
     public static string WorldName = "DevWorld";
     public static int WorldSeed = 0;
     public static string time;
-    // Noise Variables
-    public static float YMultiplier = 0.04f;
-    public static float Land2NDLayerCutoff = 0.6f;
-    public static float LandTopLayerCutoff = 0.9f;
-    public static float AirAndLandIntersectionCutoff = 1.4f;
-    public static float PerlinFrequency = 0.015f;
-    public static float PerlinLacunarity = 2f;
-    public static int PerlinOctaveCount = 4;
-    public static float PerlinPersistence = 0.25f;
-    public static int PerlinSeed = WorldSeed;
-    // Cave Noise Variables
-    public static float CaveYMultiplier = 0.3f;
-    public static float CaveCutoff = 0.6f;
-    public static float RidgedFrequency = 0.03f;
-    public static float RidgedLacunarity = 2f;
-    public static int RidgedOctaveCount = 4;
-    public static int RidgedSeed = WorldSeed;
 
     // Start is called before the first frame update
     // GameManager Start: Register Files, Create Texture Atlas

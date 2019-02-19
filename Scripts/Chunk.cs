@@ -28,6 +28,7 @@ public class Chunk : ITickable
     private MeshData data;
     public GameObject GO;
     private Block[,,] blocks;
+    private Biome biome;
     // Chunk size in blocks
     public static readonly int ChunkSize = 16;
     // Chunk position getter/setter
@@ -66,6 +67,7 @@ public class Chunk : ITickable
         {
             return;
         }
+        this.biome = Biome.GetBiome(this.Pos);
         this.blocks = new Block[ChunkSize, ChunkSize, ChunkSize];
         System.Random r = new System.Random();
         int cutoffMargin;
@@ -77,16 +79,16 @@ public class Chunk : ITickable
                 {
                     Int3 pos = new Int3(x, y, z);
                     pos.ToWorldCoords(this.Pos);
-                    float perlin = this.GetNoise(x, y, z);
-                    float perlinCave = this.GetNoiseCave(x, y, z);
+                    float perlin = this.GetNoise(pos);
+                    float perlinCave = this.GetNoiseCave(pos);
                     // Above Ground Generation
                     // Air Layer
-                    if(perlin > GameManager.AirAndLandIntersectionCutoff)
+                    if(perlin > this.biome.AirAndLandIntersectionCutoff)
                     {
                         this.blocks[x, y, z] = Block.Air;
                     }
                     // Top layer
-                    else if(perlin < GameManager.AirAndLandIntersectionCutoff && perlin > GameManager.LandTopLayerCutoff)
+                    else if(perlin < this.biome.AirAndLandIntersectionCutoff && perlin > this.biome.LandTopLayerCutoff)
                     {
                         cutoffMargin = r.Next(-4, 4);
                         if(cutoffMargin + pos.y > 110)
@@ -115,7 +117,7 @@ public class Chunk : ITickable
                         }
                     }
                     // Secondary Layer
-                    else if(perlin < GameManager.LandTopLayerCutoff && perlin > GameManager.Land2NDLayerCutoff)
+                    else if(perlin < this.biome.LandTopLayerCutoff && perlin > this.biome.Land2NDLayerCutoff)
                     {
                         cutoffMargin = r.Next(-4, 4);
                         if(cutoffMargin + pos.y > 100)
@@ -141,7 +143,7 @@ public class Chunk : ITickable
                         this.blocks[x, y, z] = Block.Stone;
                     }
                     // Cave Generation
-                    if(perlinCave > GameManager.CaveCutoff)
+                    if(perlinCave > this.biome.CaveCutoff)
                     {
                         this.blocks[x, y, z] = Block.Air;
                     }
@@ -275,21 +277,15 @@ public class Chunk : ITickable
     }
 
     // Get noise
-    private float GetNoise(float x, float y, float z)
+    private float GetNoise(Int3 pos)
     {
-        x += this.Pos.x * ChunkSize;
-        y += this.Pos.y * ChunkSize;
-        z += this.Pos.z * ChunkSize;
-        return (float)World.perlin.GetValue(x, y, z) + ((y - (128 * 0.3f)) * GameManager.YMultiplier);
+        return (float)this.biome.perlin.GetValue(pos.x, pos.y, pos.z) + ((pos.y - (128 * 0.3f)) * this.biome.YMultiplier);
     }
 
     // Get noise for Cave Generation
-    private float GetNoiseCave(float x, float y, float z)
+    private float GetNoiseCave(Int3 pos)
     {
-        x += this.Pos.x * ChunkSize;
-        y += this.Pos.y * ChunkSize;
-        z += this.Pos.z * ChunkSize;
-        return (float)World.ridged.GetValue(x, y, z) - (y / (128 * 0.5f) * GameManager.CaveYMultiplier);
+        return (float)this.biome.ridged.GetValue(pos.x, pos.y, pos.z) - (pos.y / (128 * 0.5f) * this.biome.CaveYMultiplier);
     }
 
     // TODO: Tree gen needs overhaul

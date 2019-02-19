@@ -4,28 +4,28 @@
 public class Block : ITickable
 {
     // Start of Block List
-    public static Block Air = new Block("Air", true, false);
-    public static Block Bedrock = new Block("Bedrock", false, false, "Assets/Resources/Textures/Blocks/Bedrock.png");
-    public static Block Clay = new Block("Clay", false, false, "Assets/Resources/Textures/Blocks/Clay.png");
-    public static Block Cobblestone = new Block("Cobblestone", false, false, "Assets/Resources/Textures/Blocks/Cobblestone.png");
-    public static Block Copper_Ore = new Block("Copper Ore", false, false, "Assets/Resources/Textures/Blocks/Copper_Ore.png");
-    public static Block Diamond_Ore = new Block("Diamond Ore", false, false, "Assets/Resources/Textures/Blocks/Diamond_Ore.png");
-    public static Block Dirt = new Block("Dirt", false, false, "Assets/Resources/Textures/Blocks/Dirt.png");
-    public static Block Gold_Ore = new Block("Gold Ore", false, false, "Assets/Resources/Textures/Blocks/Gold_Ore.png");
-    public static Block Grass = new Block("Grass", false, false, "Assets/Resources/Textures/Blocks/Grass_Top.png", "Assets/Resources/Textures/Blocks/Grass_Side.png", "Assets/Resources/Textures/Blocks/Dirt.png");
-    public static Block Gravel = new Block("Gravel", false, false, "Assets/Resources/Textures/Blocks/Gravel.png");
-    public static Block Iron_Ore = new Block("Iron Ore", false, false, "Assets/Resources/Textures/Blocks/Iron_Ore.png");
-    public static Block Leaves = new Block("Leaves", false, false, "Assets/Resources/Textures/Blocks/Leaves.png");
-    public static Block Logs = new Block("Logs", false, false, "Assets/Resources/Textures/Blocks/Logs_Top.png", "Assets/Resources/Textures/Blocks/Logs_Side.png");
-    public static Block Obsidian = new Block("Obsidian", false, false, "Assets/Resources/Textures/Blocks/Obsidian.png");
-    public static Block Purple_Ore = new Block("Purple_Ore", false, false, "Assets/Resources/Textures/Blocks/Purple_Ore.png");
-    public static Block Red_Ore = new Block("Red_Ore", false, false, "Assets/Resources/Textures/Blocks/Red_Ore.png");
-    public static Block Sand = new Block("Sand", false, false, "Assets/Resources/Textures/Blocks/Sand.png");
-    public static Block Snow = new Block("Snow", false, false, "Assets/Resources/Textures/Blocks/Snow.png");
-    public static Block Stone = new Block("Stone", false, false, "Assets/Resources/Textures/Blocks/Stone.png");
-    public static Block Uranium_Ore = new Block("Uranium Ore", false, false, "Assets/Resources/Textures/Blocks/Uranium_Ore.png");
-    public static Block Water = new Block("Water", false, true, "Assets/Resources/Textures/Blocks/Water.png");
-    public static Block Wood_Planks = new Block("Wood Planks", false, false, "Assets/Resources/Textures/Blocks/WoodPlanks.png");
+    public static Block Air =           new Block("Air",            true,  false);
+    public static Block Bedrock =       new Block("Bedrock",        false, false, "Assets/Resources/Textures/Blocks/Bedrock.png");
+    public static Block Clay =          new Block("Clay",           false, false, "Assets/Resources/Textures/Blocks/Clay.png");
+    public static Block Cobblestone =   new Block("Cobblestone",    false, false, "Assets/Resources/Textures/Blocks/Cobblestone.png");
+    public static Block Copper_Ore =    new Block("Copper Ore",     false, false, "Assets/Resources/Textures/Blocks/Copper_Ore.png");
+    public static Block Diamond_Ore =   new Block("Diamond Ore",    false, false, "Assets/Resources/Textures/Blocks/Diamond_Ore.png");
+    public static Block Dirt =          new Block("Dirt",           false, false, "Assets/Resources/Textures/Blocks/Dirt.png");
+    public static Block Gold_Ore =      new Block("Gold Ore",       false, false, "Assets/Resources/Textures/Blocks/Gold_Ore.png");
+    public static Block Grass =         new Block("Grass",          false, false, "Assets/Resources/Textures/Blocks/Grass_Top.png", "Assets/Resources/Textures/Blocks/Grass_Side.png", "Assets/Resources/Textures/Blocks/Dirt.png");
+    public static Block Gravel =        new Block("Gravel",         false, false, "Assets/Resources/Textures/Blocks/Gravel.png");
+    public static Block Iron_Ore =      new Block("Iron Ore",       false, false, "Assets/Resources/Textures/Blocks/Iron_Ore.png");
+    public static Block Leaves =        new Block("Leaves",         false, false, "Assets/Resources/Textures/Blocks/Leaves.png");
+    public static Block Logs =          new Block("Logs",           false, false, "Assets/Resources/Textures/Blocks/Logs_Top.png", "Assets/Resources/Textures/Blocks/Logs_Side.png");
+    public static Block Obsidian =      new Block("Obsidian",       false, false, "Assets/Resources/Textures/Blocks/Obsidian.png");
+    public static Block Purple_Ore =    new Block("Purple_Ore",     false, false, "Assets/Resources/Textures/Blocks/Purple_Ore.png");
+    public static Block Red_Ore =       new Block("Red_Ore",        false, false, "Assets/Resources/Textures/Blocks/Red_Ore.png");
+    public static Block Sand =          new Block("Sand",           false, false, "Assets/Resources/Textures/Blocks/Sand.png");
+    public static Block Snow =          new Block("Snow",           false, false, "Assets/Resources/Textures/Blocks/Snow.png");
+    public static Block Stone =         new Block("Stone",          false, false, "Assets/Resources/Textures/Blocks/Stone.png");
+    public static Block Uranium_Ore =   new Block("Uranium Ore",    false, false, "Assets/Resources/Textures/Blocks/Uranium_Ore.png");
+    public static Block Water =         new Block("Water",          false, true,  "Assets/Resources/Textures/Blocks/Water.png");
+    public static Block Wood_Planks =   new Block("Wood Planks",    false, false, "Assets/Resources/Textures/Blocks/WoodPlanks.png");
     // End of Block List
 
     //Block fields
