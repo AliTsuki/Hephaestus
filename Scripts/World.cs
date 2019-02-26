@@ -3,8 +3,8 @@ using System.Threading;
 
 using UnityEngine;
 
-// Class containing World functions
-public class World : ILoopable
+//// Class containing World functions
+//public class World : ILoopable
 {
     // World fields
     public bool IsRunning;
