@@ -1,27 +1,36 @@
-﻿using SharpNoise.Modules;
-
-using Unity.Entities;
+﻿using Unity.Entities;
 
 public struct BiomeComponent : IComponentData
 {
-    public Perlin Perlin;
-    public RidgedMulti Ridged;
+    public float Frequency;
+    public float Lacunarity;
+    public int OctaveCount;
+    public float Persistence;
+    public int Seed;
+    public int Height;
+    public float HeightMultiplier;
     public float YMultiplier;
-    public float CaveYMultiplier;
-    public float AirAndLandIntersectionCutoff;
-    public float LandTopLayerCutoff;
-    public float Land2NDLayerCutoff;
-    public float CaveCutoff;
-    public int Layer5YStart;
-    public int Layer4YStart;
-    public int Layer3YStart;
-    public int Layer2YStart;
-    public int Layer1YStart;
-    public int Layer0YStart;
-    public int Layer5Block;
-    public int Layer4Block;
-    public int Layer3Block;
-    public int Layer2Block;
-    public int Layer1Block;
-    public int Layer0Block;
+    public float FrequencyCave;
+    public float LacunarityCave;
+    public int OctaveCountCave;
+    public float PersistenceCave;
+    public int HeightCave;
+    public float HeightMultiplierCave;
+    public float YMultiplierCave;
+    public float Cutoff;
+    public float CutoffTopLayer;
+    public float Cutoff2ndLayer;
+    public float CutoffCave;
+    public int LayerTop5YStart;
+    public int LayerTop4YStart;
+    public int LayerTop3YStart;
+    public int LayerTop2YStart;
+    public int LayerTop1YStart;
+    public int LayerTop0YStart;
+    public int LayerTop5Block;
+    public int LayerTop4Block;
+    public int LayerTop3Block;
+    public int LayerTop2Block;
+    public int LayerTop1Block;
+    public int LayerTop0Block;
 }

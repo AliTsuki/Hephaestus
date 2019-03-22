@@ -63,10 +63,53 @@ public class Chunk : ITickable
     // Chunk Start: Generate Blocks in Chunk from noise
     public virtual void Start()
     {
-        if(this.hasGenerated)
+        if(!this.hasGenerated)
         {
-            return;
+            this.GenerateBlocks();
+            Debug.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            Logger.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
         }
+    }
+
+    // Chunk Tick
+    public void Tick()
+    {
+        // TODO: set up chunk/block tick system
+    }
+
+    // Chunk Update: Create Mesh for Chunk
+    public virtual void Update()
+    {
+        if(this.NeedToUpdate)
+        {
+            if(!this.drawnLock && !this.renderingLock)
+            {
+                this.hasDrawn = false;
+                this.hasRendered = false;
+                this.NeedToUpdate = false;
+            }
+        }
+        if(this.hasGenerated && !this.hasDrawn && !this.drawnLock)
+        {
+            this.GenerateMesh();
+            Debug.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            Logger.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+        }
+    }
+
+    // Chunk On Unity Update: Render Chunks / Create Chunk GameObjects and Assign Meshes
+    public virtual void OnUnityUpdate()
+    {
+        if (this.hasGenerated && !this.hasRendered && this.hasDrawn && !this.renderingLock)
+        {
+            this.ApplyMesh();
+            Debug.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            Logger.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+        }
+    }
+
+    private void GenerateBlocks()
+    {
         this.biome = Biome.GetBiome(this.Pos);
         this.blocks = new Block[ChunkSize, ChunkSize, ChunkSize];
         System.Random r = new System.Random();
@@ -150,130 +193,67 @@ public class Chunk : ITickable
                 }
             }
         }
-        // TODO: Tree gen needs overhaul
-        // Tree generation
-        //for(int x = 0; x < ChunkSize; x++)
-        //{
-        //    for(int z = 0; z < ChunkSize; z++)
-        //    {
-        //        float perlinTree = this.GetNoiseForTree(x, z);
-        //        if(perlinTree > GameManager.Sdcutofftreemin && perlinTree < GameManager.Sdcutofftreemax)
-        //        {
-        //            int y = MathHelper.GetHighestClearBlockPositionTree(this.Blocks, x, z);
-        //            if(y < ChunkSize - 7 && y > ChunkSize * 0.3)
-        //            {
-        //                MathHelper.GenerateTree(this.Blocks, x, y, z, this.Pos.x, this.Pos.y, this.Pos.z);
-        //            }
-        //        }
-        //    }
-        //}
         this.hasGenerated = true;
-        Debug.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
-        Logger.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
     }
 
-    // Chunk Tick
-    public void Tick()
+    private void GenerateMesh()
     {
-        // TODO: set up chunk/block tick system
-        //if(this.blocks != null)
-        //{
-        //    for(int x = 0; x < ChunkSize; x++)
-        //    {
-        //        for(int y = 0; y < ChunkSize; y++)
-        //        {
-        //            for(int z = 0; z < ChunkSize; z++)
-        //            {
-        //                if(this.blocks[x, y, z] != Block.Air)
-        //                {
-        //                    this.blocks[x, y, z].Tick();
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-    }
-
-    // Chunk Update: Create Mesh for Chunk
-    public virtual void Update()
-    {
-        if(this.NeedToUpdate)
+        this.drawnLock = true;
+        this.data = new MeshData();
+        for(int x = 0; x < ChunkSize; x++)
         {
-            if(!this.drawnLock && !this.renderingLock)
+            for(int y = 0; y < ChunkSize; y++)
             {
-                this.hasDrawn = false;
-                this.hasRendered = false;
-                this.NeedToUpdate = false;
-            }
-        }
-        if(!this.hasDrawn && this.hasGenerated && !this.drawnLock)
-        {
-            this.drawnLock = true;
-            this.data = new MeshData();
-            for(int x = 0; x < ChunkSize; x++)
-            {
-                for(int y = 0; y < ChunkSize; y++)
+                for(int z = 0; z < ChunkSize; z++)
                 {
-                    for(int z = 0; z < ChunkSize; z++)
+                    try
                     {
-                        try
-                        {
-                            this.data.Merge(this.blocks[x, y, z].Draw(x, y, z, this.blocks, this.Pos));
-                        }
-                        catch(Exception e)
-                        {
-                            Debug.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
-                            Logger.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
-                            this.drawnLock = false;
-                            goto end;
-                        }
+                        this.data.Merge(this.blocks[x, y, z].Draw(x, y, z, this.blocks, this.Pos));
+                    }
+                    catch(Exception e)
+                    {
+                        Debug.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
+                        Logger.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
+                        this.drawnLock = false;
+                        break;
                     }
                 }
             }
-            this.drawnLock = false;
-            this.hasDrawn = true;
-            Debug.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
-            Logger.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
         }
-        end:;
+        this.drawnLock = false;
+        this.hasDrawn = true;
     }
 
-    // Chunk On Unity Update: Render Chunks / Create Chunk GameObjects and Assign Meshes
-    public virtual void OnUnityUpdate()
+    private void ApplyMesh()
     {
-        if (this.hasGenerated && !this.hasRendered && this.hasDrawn && !this.renderingLock)
+        this.renderingLock = true;
+        Mesh mesh = this.data.ToMesh();
+        if(this.GO == null)
         {
-            this.renderingLock = true;
-            Mesh mesh = this.data.ToMesh();
-            if(this.GO == null)
+            this.GO = new GameObject
             {
-                this.GO = new GameObject
-                {
-                    name = $@"C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}"
-                };
-            }
-            Transform cTransform = this.GO.transform;
-            if(cTransform.gameObject.GetComponent<MeshFilter>() == null)
-            {
-                cTransform.gameObject.AddComponent<MeshFilter>();
-                cTransform.gameObject.AddComponent<MeshRenderer>();
-                cTransform.gameObject.AddComponent<MeshCollider>();
-                cTransform.transform.position = new Vector3(this.Pos.x * ChunkSize, this.Pos.y * ChunkSize, this.Pos.z * ChunkSize);
-                Texture2D atlas = new Texture2D(0, 0, TextureFormat.ARGB32, false);
-                atlas.LoadImage(System.IO.File.ReadAllBytes("Assets/Resources/Textures/Atlas/atlas.png"));
-                atlas.filterMode = FilterMode.Point;
-                atlas.wrapMode = TextureWrapMode.Clamp;
-                cTransform.gameObject.GetComponent<MeshRenderer>().material.mainTexture = atlas;
-                cTransform.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Glossiness", 0.0f);
-            }
-            cTransform.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
-            cTransform.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
-            this.GO.isStatic = true;
-            this.renderingLock = false;
-            this.hasRendered = true;
-            Debug.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
-            Logger.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+                name = $@"C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}"
+            };
         }
+        Transform cTransform = this.GO.transform;
+        if(cTransform.gameObject.GetComponent<MeshFilter>() == null)
+        {
+            cTransform.gameObject.AddComponent<MeshFilter>();
+            cTransform.gameObject.AddComponent<MeshRenderer>();
+            cTransform.gameObject.AddComponent<MeshCollider>();
+            cTransform.transform.position = new Vector3(this.Pos.x * ChunkSize, this.Pos.y * ChunkSize, this.Pos.z * ChunkSize);
+            Texture2D atlas = new Texture2D(0, 0, TextureFormat.ARGB32, false);
+            atlas.LoadImage(System.IO.File.ReadAllBytes("Assets/Resources/Textures/Atlas/atlas.png"));
+            atlas.filterMode = FilterMode.Point;
+            atlas.wrapMode = TextureWrapMode.Clamp;
+            cTransform.gameObject.GetComponent<MeshRenderer>().material.mainTexture = atlas;
+            cTransform.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Glossiness", 0.0f);
+        }
+        cTransform.transform.GetComponent<MeshFilter>().sharedMesh = mesh;
+        cTransform.transform.GetComponent<MeshCollider>().sharedMesh = mesh;
+        this.GO.isStatic = true;
+        this.renderingLock = false;
+        this.hasRendered = true;
     }
 
     // Get noise

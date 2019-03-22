@@ -6,7 +6,8 @@ using UnityEngine;
 
 public class Bootstrap : MonoBehaviour
 {
-    public static int ChunkSize = 16;
+    public const int ChunkSize = 16;
+    public const int RenderDistance = 4;
     public static int Seed = 0;
     public static Perlin BMTemp = new Perlin
     {
