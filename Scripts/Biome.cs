@@ -3,9 +3,9 @@
 public class Biome
 {
     // Biome List
-    public static Biome Mountains = new Biome(1.4f, 0.9f, 0.6f, 0.04f, 0.015f, 2f, 4, 0.25f);
-    public static Biome Forest =    new Biome(1.4f, 0.9f, 0.6f, 0.04f, 0.015f, 2f, 4, 0.25f);
-    public static Biome Desert =    new Biome(1.4f, 0.9f, 0.6f, 0.04f, 0.015f, 2f, 4, 0.25f);
+    public static Biome Mountains = new Biome(1.4f, 0.9f, 0.6f, 0.04f, 0.015f, 2f, 2, 0.25f);
+    public static Biome Forest =    new Biome(1.4f, 0.9f, 0.6f, 0.04f, 0.015f, 2f, 2, 0.25f);
+    public static Biome Desert =    new Biome(1.4f, 0.9f, 0.6f, 0.04f, 0.015f, 2f, 2, 0.25f);
     // End of Biome List
 
     // Biome Map fields
@@ -65,6 +65,7 @@ public class Biome
         this.PerlinPersistence = pPers;
         this.perlin = new Perlin()
         {
+            Quality = SharpNoise.NoiseQuality.Fast,
             Frequency = this.PerlinFrequency,
             Lacunarity = this.PerlinLacunarity,
             OctaveCount = this.PerlinOctaveCount,
@@ -73,6 +74,7 @@ public class Biome
         };
         this.ridged = new RidgedMulti()
         {
+            Quality = SharpNoise.NoiseQuality.Fast,
             Frequency = this.RidgedFrequency,
             Lacunarity = this.RidgedLacunarity,
             OctaveCount = this.RidgedOctaveCount,

@@ -9,8 +9,8 @@ public class Chunk : ITickable
     protected bool hasGenerated = false;
     protected bool hasDrawn = false;
     protected bool hasRendered = false;
-    private bool drawnLock = false;
-    private bool renderingLock = false;
+    protected bool drawnLock = false;
+    protected bool renderingLock = false;
     public bool NeedToUpdate = false;
     public bool HasBeenModified = false;
     public Int3 NegXNeighbor;
@@ -30,7 +30,7 @@ public class Chunk : ITickable
     private Block[,,] blocks;
     private Biome biome;
     // Chunk size in blocks
-    public static readonly int ChunkSize = 16;
+    public const int ChunkSize = 16;
     // Chunk position getter/setter
     public Int3 Pos { get; private set; }
 
@@ -66,8 +66,8 @@ public class Chunk : ITickable
         if(!this.hasGenerated)
         {
             this.GenerateBlocks();
-            Debug.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
-            Logger.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            //Debug.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            //Logger.Log($@"{GameManager.time}: Generated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
         }
     }
 
@@ -92,19 +92,19 @@ public class Chunk : ITickable
         if(this.hasGenerated && !this.hasDrawn && !this.drawnLock)
         {
             this.GenerateMesh();
-            Debug.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
-            Logger.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            //Debug.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            //Logger.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
         }
     }
 
     // Chunk On Unity Update: Render Chunks / Create Chunk GameObjects and Assign Meshes
     public virtual void OnUnityUpdate()
     {
-        if (this.hasGenerated && !this.hasRendered && this.hasDrawn && !this.renderingLock)
+        if(this.hasGenerated && !this.hasRendered && this.hasDrawn && !this.renderingLock)
         {
             this.ApplyMesh();
-            Debug.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
-            Logger.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            //Debug.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+            //Logger.Log($@"{GameManager.time}: Rendered chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
         }
     }
 
@@ -121,7 +121,7 @@ public class Chunk : ITickable
                 for(int z = 0; z < ChunkSize; z++)
                 {
                     Int3 pos = new Int3(x, y, z);
-                    pos.ToWorldCoords(this.Pos);
+                    pos.ChunkInternalCoordsToWorldCoords(this.Pos);
                     float perlin = this.GetNoise(pos);
                     float perlinCave = this.GetNoiseCave(pos);
                     // Above Ground Generation
@@ -283,12 +283,11 @@ public class Chunk : ITickable
     // Get Block, given Chunk Internal Coords as Int3
     public Block GetBlockFromChunkInternalCoords(Int3 pos)
     {
-        Block b = this.blocks[pos.x, pos.y, pos.z];
-        return b;
+        return this.blocks[pos.x, pos.y, pos.z];
     }
 
     // Set Block at position called by player, given Int3 and Block
-    internal void PlayerSetBlock(Int3 pos, Block block)
+    public void PlayerSetBlock(Int3 pos, Block block)
     {
         this.blocks[pos.x, pos.y, pos.z] = block;
         this.NeedToUpdate = true;
@@ -320,7 +319,7 @@ public class Chunk : ITickable
     }
 
     // Set Block at position called by Structure Generator, given int x, y, z and Block
-    internal void StructureSetBlock(Int3 pos, Block block)
+    private void StructureSetBlock(Int3 pos, Block block)
     {
         this.blocks[pos.x, pos.y, pos.z] = block;
     }
@@ -334,7 +333,7 @@ public class Chunk : ITickable
             // Only save chunks that have been modified by player to save disk space of save files
             if(this.HasBeenModified)
             {
-                Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.Pos), this.GetChunkSaveData());
+                World.taskFactory.StartNew(() => Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.Pos), this.GetChunkSaveData()));
             }
         }
         catch(System.Exception e)
@@ -349,8 +348,8 @@ public class Chunk : ITickable
         }));
         // Third: Remove Chunk from World
         World.Instance.AddChunkToRemoveList(this.Pos);
-        Debug.Log($@"{GameManager.time}: Degenerated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
-        Logger.Log($@"{GameManager.time}: Degenerated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+        //Debug.Log($@"{GameManager.time}: Degenerated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
+        //Logger.Log($@"{GameManager.time}: Degenerated chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
     }
 
     // Get ChunkData as array of ints

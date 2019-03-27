@@ -110,7 +110,7 @@ public class GameManager : MonoBehaviour
     {
         Instance.RegisterDelegate(new Action(() =>
         {
-            if(go != null && go.GetComponent<MeshCollider>() != null)
+            if(go.GetComponent<MeshCollider>() != null)
             {
                 Debug.Log($@"{time}: Placing player in world...");
                 Logger.Log($@"{time}: Placing player in world...");

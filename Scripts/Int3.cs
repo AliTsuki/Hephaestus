@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-// Class of Int3 container
+// Struct of Int3 container
 public struct Int3
 {
     // Int3 fields
@@ -64,7 +64,7 @@ public struct Int3
         this.z = z;
     }
 
-    // Add x, y, z position, given Int3
+    // Add x, y, z position, given int x, y, z
     public void AddPos(int x, int y, int z)
     {
         this.x += x;
@@ -73,7 +73,7 @@ public struct Int3
     }
 
     // Get Chunk coords, used on World Coords
-    public void ToChunkCoords()
+    public void WorldCoordsToChunkCoords()
     {
         Int3 chunkPos = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
         if(this.x < 0)
@@ -103,7 +103,7 @@ public struct Int3
     }
 
     // Get Internal Chunk Coords, used on World Coords
-    public void ToInternalChunkCoords()
+    public void WorldCoordsToInternalChunkCoords()
     {
         Int3 chunkBlocks = new Int3(this.x / Chunk.ChunkSize, this.y / Chunk.ChunkSize, this.z / Chunk.ChunkSize);
         if(this.x < 0)
@@ -136,18 +136,25 @@ public struct Int3
     }
 
     // Get World Coords, used on Chunk Internal Coords, given Int3 Chunk Coords
-    public void ToWorldCoords(Int3 chunkPos)
+    public void ChunkInternalCoordsToWorldCoords(Int3 chunkPos)
     {
         this.x = this.x + (chunkPos.x * Chunk.ChunkSize);
         this.y = this.y + (chunkPos.y * Chunk.ChunkSize);
         this.z = this.z + (chunkPos.z * Chunk.ChunkSize);
     }
 
+    // Get World Coords at center of Chunk, used on Int3 Chunk Coords
+    public void ChunkCoordsToWorldCoords()
+    {
+        this.x = (this.x * Chunk.ChunkSize) + (Chunk.ChunkSize / 2);
+        this.y = (this.y * Chunk.ChunkSize) + (Chunk.ChunkSize / 2);
+        this.z = (this.z * Chunk.ChunkSize) + (Chunk.ChunkSize / 2);
+    }
+
     // Get Vector3 from Int3
     public Vector3 GetVec3()
     {
-        Vector3 vec3 = new Vector3(this.x, this.y, this.z);
-        return vec3;
+        return new Vector3(this.x, this.y, this.z);
     }
 
     // Get position as string in format "X:#, Y:#, Z:#"

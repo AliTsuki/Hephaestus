@@ -73,6 +73,15 @@ public static class MathHelper
         0,1,2,3,2,1
     };
     // End of list of Face Vertices and Triangle Draw Orders
+    private enum Side
+        {
+            Bottom,
+            Top,
+            Front,
+            Back,
+            Left,
+            Right,
+        };
 
     // Create Mesh for Cube, given Chunk Internal Coords as int(x,y,z), Block 3D Array blocks, Block block, UVMaps as Vector2 Arrays, and Chunk Coords as int(PosX, PosY, PosZ)
     // Draw Grass Block
@@ -80,15 +89,15 @@ public static class MathHelper
     {
         MeshData data = new MeshData();
         Int3 position = new Int3(x, y, z);
-        position.ToWorldCoords(chunkPos);
-        bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
-        bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
-        bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
-        bool blockPosYVis = CheckPosYVis(x, y, z, position, blocks);
-        bool blockNegZVis = CheckNegZVis(x, y, z, position, blocks);
-        bool blockPosZVis = CheckPosZVis(x, y, z, position, blocks);
+        position.ChunkInternalCoordsToWorldCoords(chunkPos);
         // Bottom Face
-        if(blockNegYVis)
+        bool bottomVis = CheckVis(x, y, z, position, blocks, Side.Bottom);
+        bool topVis = CheckVis(x, y, z, position, blocks, Side.Top);
+        bool frontVis = CheckVis(x, y, z, position, blocks, Side.Front);
+        bool backVis = CheckVis(x, y, z, position, blocks, Side.Back);
+        bool leftVis = CheckVis(x, y, z, position, blocks, Side.Left);
+        bool rightVis = CheckVis(x, y, z, position, blocks, Side.Right);
+        if(bottomVis)
         {
             data.Merge(new MeshData(
                 BottomFaceVerts,
@@ -102,7 +111,7 @@ public static class MathHelper
                 }));
         }
         // Top Face
-        if(blockPosYVis)
+        if(topVis)
         {
             data.Merge(new MeshData(
                 TopFaceVerts,
@@ -116,9 +125,9 @@ public static class MathHelper
                 }));
         }
         // Front Face
-        if(blockNegXVis)
+        if(frontVis)
         {
-            if(blockPosYVis)
+            if(topVis)
             {
                 data.Merge(new MeshData(
                 FrontFaceVerts,
@@ -146,9 +155,9 @@ public static class MathHelper
             }
         }
         // Back Face
-        if(blockPosXVis)
+        if(backVis)
         {
-            if(blockPosYVis)
+            if(topVis)
             {
                 data.Merge(new MeshData(
                 BackFaceVerts,
@@ -176,9 +185,9 @@ public static class MathHelper
             }
         }
         // Left Face
-        if(blockNegZVis)
+        if(leftVis)
         {
-            if(blockPosYVis)
+            if(topVis)
             {
                 data.Merge(new MeshData(
                 LeftFaceVerts,
@@ -206,9 +215,9 @@ public static class MathHelper
             }
         }
         // Right Face
-        if(blockPosZVis)
+        if(rightVis)
         {
-            if(blockPosYVis)
+            if(topVis)
             {
                 data.Merge(new MeshData(
                 RightFaceVerts,
@@ -245,15 +254,15 @@ public static class MathHelper
     {
         MeshData data = new MeshData();
         Int3 position = new Int3(x, y, z);
-        position.ToWorldCoords(chunkPos);
-        bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
-        bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
-        bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
-        bool blockPosYVis = CheckPosYVis(x, y, z, position, blocks);
-        bool blockNegZVis = CheckNegZVis(x, y, z, position, blocks);
-        bool blockPosZVis = CheckPosZVis(x, y, z, position, blocks);
+        position.ChunkInternalCoordsToWorldCoords(chunkPos);
+        bool bottomVis = CheckVis(x, y, z, position, blocks, Side.Bottom);
+        bool topVis = CheckVis(x, y, z, position, blocks, Side.Top);
+        bool frontVis = CheckVis(x, y, z, position, blocks, Side.Front);
+        bool backVis = CheckVis(x, y, z, position, blocks, Side.Back);
+        bool leftVis = CheckVis(x, y, z, position, blocks, Side.Left);
+        bool rightVis = CheckVis(x, y, z, position, blocks, Side.Right);
         // Bottom Face
-        if(blockNegYVis)
+        if(bottomVis)
         {
             data.Merge(new MeshData(
                 BottomFaceVerts,
@@ -267,7 +276,7 @@ public static class MathHelper
                 }));
         }
         // Top Face
-        if(blockPosYVis)
+        if(topVis)
         {
             data.Merge(new MeshData(
                 TopFaceVerts,
@@ -281,7 +290,7 @@ public static class MathHelper
                 }));
         }
         // Front Face
-        if(blockNegXVis)
+        if(frontVis)
         {
             data.Merge(new MeshData(
                 FrontFaceVerts,
@@ -295,7 +304,7 @@ public static class MathHelper
                 }));
         }
         // Back Face
-        if(blockPosXVis)
+        if(backVis)
         {
             data.Merge(new MeshData(
                 BackFaceVerts,
@@ -309,7 +318,7 @@ public static class MathHelper
                 }));
         }
         // Left Face
-        if(blockNegZVis)
+        if(leftVis)
         {
             data.Merge(new MeshData(
                 LeftFaceVerts,
@@ -323,7 +332,7 @@ public static class MathHelper
                 }));
         }
         // Right Face
-        if(blockPosZVis)
+        if(rightVis)
         {
             data.Merge(new MeshData(
                 RightFaceVerts,
@@ -346,15 +355,15 @@ public static class MathHelper
     {
         MeshData data = new MeshData();
         Int3 position = new Int3(x, y, z);
-        position.ToWorldCoords(chunkPos);
-        bool blockNegXVis = CheckNegXVis(x, y, z, position, blocks);
-        bool blockPosXVis = CheckPosXVis(x, y, z, position, blocks);
-        bool blockNegYVis = CheckNegYVis(x, y, z, position, blocks);
-        bool blockPosYVis = CheckPosYVis(x, y, z, position, blocks);
-        bool blockNegZVis = CheckNegZVis(x, y, z, position, blocks);
-        bool blockPosZVis = CheckPosZVis(x, y, z, position, blocks);
+        position.ChunkInternalCoordsToWorldCoords(chunkPos);
+        bool bottomVis = CheckVis(x, y, z, position, blocks, Side.Bottom);
+        bool topVis = CheckVis(x, y, z, position, blocks, Side.Top);
+        bool frontVis = CheckVis(x, y, z, position, blocks, Side.Front);
+        bool backVis = CheckVis(x, y, z, position, blocks, Side.Back);
+        bool leftVis = CheckVis(x, y, z, position, blocks, Side.Left);
+        bool rightVis = CheckVis(x, y, z, position, blocks, Side.Right);
         // Bottom Face
-        if(blockNegYVis)
+        if(bottomVis)
         {
             data.Merge(new MeshData(
                 BottomFaceVerts,
@@ -368,7 +377,7 @@ public static class MathHelper
                 }));
         }
         // Top Face
-        if(blockPosYVis)
+        if(topVis)
         {
             data.Merge(new MeshData(
                 TopFaceVerts,
@@ -382,7 +391,7 @@ public static class MathHelper
                 }));
         }
         // Front Face
-        if(blockNegXVis)
+        if(frontVis)
         {
             data.Merge(new MeshData(
                 FrontFaceVerts,
@@ -396,7 +405,7 @@ public static class MathHelper
                 }));
         }
         // Back Face
-        if(blockPosXVis)
+        if(backVis)
         {
             data.Merge(new MeshData(
                 BackFaceVerts,
@@ -410,7 +419,7 @@ public static class MathHelper
                 }));
         }
         // Left Face
-        if(blockNegZVis)
+        if(leftVis)
         {
             data.Merge(new MeshData(
                 LeftFaceVerts,
@@ -424,7 +433,7 @@ public static class MathHelper
                 }));
         }
         // Right Face
-        if(blockPosZVis)
+        if(rightVis)
         {
             data.Merge(new MeshData(
                 RightFaceVerts,
@@ -441,119 +450,112 @@ public static class MathHelper
         return data;
     }
 
-    // Checks if NegX face is visible
-    private static bool CheckNegXVis(int x, int y, int z, Int3 position, Block[,,] blocks)
+    // Checks visibility of given face
+    private static bool CheckVis(int x, int y, int z, Int3 position, Block[,,] blocks, Side side)
     {
-        if(x > 0)
+        if(side == Side.Bottom)
         {
-            Block b = blocks[x - 1, y, z];
-            return b.IsTransparent || b.IsSemiTransparent;
+            if(y > 0)
+            {
+                Block b = blocks[x, y - 1, z];
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            else if(y == 0)
+            {
+                Int3 pos = position;
+                pos.AddPos(0, -1, 0);
+                Block b = World.Instance.GetBlockFromWorldCoords(pos);
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            return false;
         }
-        else if(x == 0)
+        else if(side == Side.Top)
         {
-            Int3 pos = position;
-            pos.AddPos(-1, 0, 0);
-            Block b = World.Instance.GetBlockFromWorldCoords(pos);
-            return b.IsTransparent || b.IsSemiTransparent;
+            if(y < Chunk.ChunkSize - 1)
+            {
+                Block b = blocks[x, y + 1, z];
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            else if(y == Chunk.ChunkSize - 1)
+            {
+                Int3 pos = position;
+                pos.AddPos(0, 1, 0);
+                Block b = World.Instance.GetBlockFromWorldCoords(pos);
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            return false;
         }
-        return false;
-    }
-
-    // Checks if PosX face is visible
-    private static bool CheckPosXVis(int x, int y, int z, Int3 position, Block[,,] blocks)
-    {
-        if(x < Chunk.ChunkSize - 1)
+        else if(side == Side.Front)
         {
-            Block b = blocks[x + 1, y, z];
-            return b.IsTransparent || b.IsSemiTransparent;
+            if(x > 0)
+            {
+                Block b = blocks[x - 1, y, z];
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            else if(x == 0)
+            {
+                Int3 pos = position;
+                pos.AddPos(-1, 0, 0);
+                Block b = World.Instance.GetBlockFromWorldCoords(pos);
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            return false;
         }
-        else if(x == Chunk.ChunkSize - 1)
+        else if(side == Side.Back)
         {
-            Int3 pos = position;
-            pos.AddPos(1, 0, 0);
-            Block b = World.Instance.GetBlockFromWorldCoords(pos);
-            return b.IsTransparent || b.IsSemiTransparent;
+            if(x < Chunk.ChunkSize - 1)
+            {
+                Block b = blocks[x + 1, y, z];
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            else if(x == Chunk.ChunkSize - 1)
+            {
+                Int3 pos = position;
+                pos.AddPos(1, 0, 0);
+                Block b = World.Instance.GetBlockFromWorldCoords(pos);
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            return false;
         }
-        return false;
-    }
-
-    // Checks if NegY face is visible
-    private static bool CheckNegYVis(int x, int y, int z, Int3 position, Block[,,] blocks)
-    {
-        if(y > 0)
+        else if(side == Side.Left)
         {
-            Block b = blocks[x, y - 1, z];
-            return b.IsTransparent || b.IsSemiTransparent;
+            if(z > 0)
+            {
+                Block b = blocks[x, y, z - 1];
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            else if(z == 0)
+            {
+                Int3 pos = position;
+                pos.AddPos(0, 0, -1);
+                Block b = World.Instance.GetBlockFromWorldCoords(pos);
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            return false;
         }
-        else if(y == 0)
+        else // Side.Right
         {
-            Int3 pos = position;
-            pos.AddPos(0, -1, 0);
-            Block b = World.Instance.GetBlockFromWorldCoords(pos);
-            return b.IsTransparent || b.IsSemiTransparent;
+            if(z < Chunk.ChunkSize - 1)
+            {
+                Block b = blocks[x, y, z + 1];
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            else if(z == Chunk.ChunkSize - 1)
+            {
+                Int3 pos = position;
+                pos.AddPos(0, 0, 1);
+                Block b = World.Instance.GetBlockFromWorldCoords(pos);
+                return b.IsTransparent || b.IsSemiTransparent;
+            }
+            return false;
         }
-        return false;
-    }
-
-    // Checks if PosY face is visible
-    private static bool CheckPosYVis(int x, int y, int z, Int3 position, Block[,,] blocks)
-    {
-        if(y < Chunk.ChunkSize - 1)
-        {
-            Block b = blocks[x, y + 1, z];
-            return b.IsTransparent || b.IsSemiTransparent;
-        }
-        else if(y == Chunk.ChunkSize - 1)
-        {
-            Int3 pos = position;
-            pos.AddPos(0, 1, 0);
-            Block b = World.Instance.GetBlockFromWorldCoords(pos);
-            return b.IsTransparent || b.IsSemiTransparent;
-        }
-        return false;
-    }
-
-    // Checks if NegZ face is visible
-    private static bool CheckNegZVis(int x, int y, int z, Int3 position, Block[,,] blocks)
-    {
-        if(z > 0)
-        {
-            Block b = blocks[x, y, z - 1];
-            return b.IsTransparent || b.IsSemiTransparent;
-        }
-        else if(z == 0)
-        {
-            Int3 pos = position;
-            pos.AddPos(0, 0, -1);
-            Block b = World.Instance.GetBlockFromWorldCoords(pos);
-            return b.IsTransparent || b.IsSemiTransparent;
-        }
-        return false;
-    }
-
-    // Checks if PosZ face is visible
-    private static bool CheckPosZVis(int x, int y, int z, Int3 position, Block[,,] blocks)
-    {
-        if(z < Chunk.ChunkSize - 1)
-        {
-            Block b = blocks[x, y, z + 1];
-            return b.IsTransparent || b.IsSemiTransparent;
-        }
-        else if(z == Chunk.ChunkSize - 1)
-        {
-            Int3 pos = position;
-            pos.AddPos(0, 0, 1);
-            Block b = World.Instance.GetBlockFromWorldCoords(pos);
-            return b.IsTransparent || b.IsSemiTransparent;
-        }
-        return false;
     }
 
     // Add Block to Chunk, used by Player, given World Coords as Vector3 and Block
     public static void AddBlock(Vector3 position, Block block)
     {
         Int3 chunkPos = new Int3(position);
-        chunkPos.ToChunkCoords();
+        chunkPos.WorldCoordsToChunkCoords();
         Chunk currentchunk;
         try
         {
@@ -564,7 +566,7 @@ public static class MathHelper
                 return;
             }
             Int3 pos = new Int3(position);
-            pos.ToInternalChunkCoords();
+            pos.WorldCoordsToInternalChunkCoords();
             currentchunk.PlayerSetBlock(pos, block);
         }
         catch(System.Exception e)
@@ -590,7 +592,7 @@ public static class MathHelper
     public static Int3 GetPlayerStartPosition(Int3 worldStartPos)
     {
         Int3 playerStartPos = worldStartPos;
-        for(int i = playerStartPos.y + (Chunk.ChunkSize * World.Instance.RenderDistanceFirstPass); i >= playerStartPos.y - (Chunk.ChunkSize * World.Instance.RenderDistanceFirstPass); i--)
+        for(int i = playerStartPos.y + (Chunk.ChunkSize * World.RenderDistanceFirstPass); i >= playerStartPos.y - (Chunk.ChunkSize * World.RenderDistanceFirstPass); i--)
         {
             Int3 checkPos = new Int3(worldStartPos.x, i, worldStartPos.z);
             Int3 checkPos1 = checkPos;
@@ -598,11 +600,11 @@ public static class MathHelper
             Int3 checkPos2 = checkPos;
             checkPos2.AddPos(0, 2, 0);
             Int3 checkPosChunk = checkPos;
-            checkPosChunk.ToChunkCoords();
+            checkPosChunk.WorldCoordsToChunkCoords();
             Int3 checkPos1Chunk = checkPos1;
-            checkPos1Chunk.ToChunkCoords();
+            checkPos1Chunk.WorldCoordsToChunkCoords();
             Int3 checkPos2Chunk = checkPos2;
-            checkPos2Chunk.ToChunkCoords();
+            checkPos2Chunk.WorldCoordsToChunkCoords();
             if(World.Instance.ChunkExists(checkPosChunk) && World.Instance.ChunkExists(checkPos1Chunk) && World.Instance.ChunkExists(checkPos2Chunk))
             {
                 if(!World.Instance.GetBlockFromWorldCoords(checkPos).IsTransparent && World.Instance.GetBlockFromWorldCoords(checkPos1).IsTransparent && World.Instance.GetBlockFromWorldCoords(checkPos2).IsTransparent)
