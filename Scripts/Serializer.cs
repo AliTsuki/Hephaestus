@@ -5,9 +5,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 public class Serializer
 {
     // Checks if folder exists, creates if not
-    public static bool Check_Gen_Folder(string path)
+    public static bool CheckGenFolder(string _path)
     {
-        if(Directory.Exists(path))
+        if(Directory.Exists(_path))
         {
             return true;
         }
@@ -15,7 +15,7 @@ public class Serializer
         {
             try
             {
-                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(_path);
                 return true;
             }
             catch(System.Exception e)
@@ -27,14 +27,14 @@ public class Serializer
     }
 
     // Serializes to file
-    public static void Serialize_ToFile_FullPath<T>(string path, T _DATA) where T : class
+    public static void SerializeToFile<T>(string _path, T _data) where T : class
     {
         try
         {
-            using(Stream s = File.OpenWrite(path))
+            using(Stream stream = File.OpenWrite(_path))
             {
-                BinaryFormatter f = new BinaryFormatter();
-                f.Serialize(s, _DATA);
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(stream, _data);
             }
         }
         catch(System.Exception e)
@@ -44,26 +44,26 @@ public class Serializer
     }
 
     // Reads from file
-    public static T Deserialize_From_File<T>(string path) where T : class
+    public static T DeserializeFromFile<T>(string _path) where T : class
     {
-        if(File.Exists(path))
+        if(File.Exists(_path))
         {
             try
             {
-                using(Stream s = File.OpenRead(path))
+                using(Stream stream = File.OpenRead(_path))
                 {
-                    BinaryFormatter f = new BinaryFormatter();
-                    return f.Deserialize(s) as T;
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    return formatter.Deserialize(stream) as T;
                 }
             }
             catch(System.Exception e)
             {
-                Logger.Log($@"{GameManager.time}: {e.ToString()}: Error in Deserialization of: {path}");
+                Logger.Log($@"{GameManager.Time}: {e.ToString()}: Error in Deserialization of: {_path}");
             }
         }
         else
         {
-            throw new System.Exception("File can't be found at: " + path);
+            throw new System.Exception("File can't be found at: " + _path);
         }
         return null;
     }

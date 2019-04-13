@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     private readonly List<Delegate> delegates = new List<Delegate>();
     public static string WorldName = "DevWorld";
     public static int WorldSeed = 0;
-    public static string time;
+    public static string Time;
 
     // Start is called before the first frame update
     // GameManager Start: Register Files, Create Texture Atlas
@@ -47,10 +47,10 @@ public class GameManager : MonoBehaviour
         {
             this.main.Update();
         }
-        catch(System.Exception e)
+        catch(Exception e)
         {
-            Debug.Log($@"{time}: Can't update MainLoopable due to Exception: {e.ToString()}");
-            Logger.Log($@"{time}: Can't update MainLoopable due to Exception: ");
+            Debug.Log($@"{Time}: Can't update MainLoopable due to Exception: {e.ToString()}");
+            Logger.Log($@"{Time}: Can't update MainLoopable due to Exception: ");
             Logger.Log(e);
         }
         for(int i = 0; i < this.delegates.Count; i++)
@@ -62,8 +62,8 @@ public class GameManager : MonoBehaviour
             }
             catch(Exception e)
             {
-                Debug.Log($@"{time}: Can't Invoke Delegate due to Exception: {e.ToString()}");
-                Logger.Log($@"{time}: Can't Invoke Delegate due to Exception: ");
+                Debug.Log($@"{Time}: Can't Invoke Delegate due to Exception: {e.ToString()}");
+                Logger.Log($@"{Time}: Can't Invoke Delegate due to Exception: ");
                 Logger.Log(e);
             }
         }
@@ -81,22 +81,10 @@ public class GameManager : MonoBehaviour
         this.main.OnApplicationQuit();
     }
 
-    // Exit Game
-    public static void ExitGame()
-    {
-        Instance.ExitGameInstance();
-    }
-
-    // Exit Game
-    private void ExitGameInstance()
-    {
-        this.OnApplicationQuit();
-    }
-
     // Register Delegates
-    public void RegisterDelegate(Delegate d)
+    public void RegisterDelegate(Delegate _d)
     {
-        this.delegates.Add(d);
+        this.delegates.Add(_d);
     }
 
     // Check if Player is loaded into world
@@ -106,24 +94,24 @@ public class GameManager : MonoBehaviour
     }
 
     // Create player in world and destroy starting UI
-    public void StartPlayer(Vector3 Pos, GameObject go)
+    public void StartPlayer(Vector3 _pos, GameObject _go)
     {
         Instance.RegisterDelegate(new Action(() =>
         {
-            if(go.GetComponent<MeshCollider>() != null)
+            if(_go.GetComponent<MeshCollider>() != null)
             {
-                Debug.Log($@"{time}: Placing player in world...");
-                Logger.Log($@"{time}: Placing player in world...");
+                Debug.Log($@"{Time}: Placing player in world...");
+                Logger.Log($@"{Time}: Placing player in world...");
                 Destroy(this.StartCamera);
                 Destroy(this.UITEXT);
-                this.Player.transform.position = new Vector3(Pos.x, Pos.y, Pos.z);
+                this.Player.transform.position = new Vector3(_pos.x, _pos.y, _pos.z);
                 this.PlayerPos = this.Player.transform.position;
                 this.Player.SetActive(true);
             }
             else
             {
-                Debug.Log($@"{time}: Can't place player...");
-                Logger.Log($@"{time}: Can't place player...");
+                Debug.Log($@"{Time}: Can't place player...");
+                Logger.Log($@"{Time}: Can't place player...");
             }
         }));
     }
@@ -131,6 +119,6 @@ public class GameManager : MonoBehaviour
     // Get time for logging
     private void GetTime()
     {
-        time = DateTime.Now.ToLongTimeString();
+        Time = DateTime.Now.ToLongTimeString();
     }
 }

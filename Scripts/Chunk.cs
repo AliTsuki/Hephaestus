@@ -9,7 +9,7 @@ public class Chunk : ITickable
     protected bool hasGenerated = false;
     protected bool hasDrawn = false;
     protected bool hasRendered = false;
-    protected bool drawnLock = false;
+    protected bool drawLock = false;
     protected bool renderingLock = false;
     public bool NeedToUpdate = false;
     public bool HasBeenModified = false;
@@ -35,9 +35,9 @@ public class Chunk : ITickable
     public Int3 Pos { get; private set; }
 
     // Chunk constructor, given Int3
-    public Chunk(Int3 pos)
+    public Chunk(Int3 _pos)
     {
-        this.Pos = pos;
+        this.Pos = _pos;
         this.NegXNeighbor.SetPos(this.Pos.x - 1, this.Pos.y, this.Pos.z);
         this.PosXNeighbor.SetPos(this.Pos.x + 1, this.Pos.y, this.Pos.z);
         this.NegYNeighbor.SetPos(this.Pos.x, this.Pos.y - 1, this.Pos.z);
@@ -47,9 +47,9 @@ public class Chunk : ITickable
     }
 
     // Chunk constructor for saved data, given Int3 and int 3D Array data
-    public Chunk(Int3 pos, int[,,] data)
+    public Chunk(Int3 _pos, int[,,] _data)
     {
-        this.Pos = pos;
+        this.Pos = _pos;
         this.NegXNeighbor.SetPos(this.Pos.x - 1, this.Pos.y, this.Pos.z);
         this.PosXNeighbor.SetPos(this.Pos.x + 1, this.Pos.y, this.Pos.z);
         this.NegYNeighbor.SetPos(this.Pos.x, this.Pos.y - 1, this.Pos.z);
@@ -57,7 +57,7 @@ public class Chunk : ITickable
         this.NegZNeighbor.SetPos(this.Pos.x, this.Pos.y, this.Pos.z - 1);
         this.PosZNeighbor.SetPos(this.Pos.x, this.Pos.y, this.Pos.z + 1);
         this.hasGenerated = true;
-        this.LoadChunkFromData(data);
+        this.LoadChunkFromData(_data);
     }
 
     // Chunk Start: Generate Blocks in Chunk from noise
@@ -82,14 +82,14 @@ public class Chunk : ITickable
     {
         if(this.NeedToUpdate)
         {
-            if(!this.drawnLock && !this.renderingLock)
+            if(!this.drawLock && !this.renderingLock)
             {
                 this.hasDrawn = false;
                 this.hasRendered = false;
                 this.NeedToUpdate = false;
             }
         }
-        if(this.hasGenerated && !this.hasDrawn && !this.drawnLock)
+        if(this.hasGenerated && !this.hasDrawn && !this.drawLock)
         {
             this.GenerateMesh();
             //Debug.Log($@"{GameManager.time}: Meshed chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}");
@@ -112,7 +112,7 @@ public class Chunk : ITickable
     {
         this.biome = Biome.GetBiome(this.Pos);
         this.blocks = new Block[ChunkSize, ChunkSize, ChunkSize];
-        System.Random r = new System.Random();
+        System.Random random = new System.Random();
         int cutoffMargin;
         for(int x = 0; x < ChunkSize; x++)
         {
@@ -133,7 +133,7 @@ public class Chunk : ITickable
                     // Top layer
                     else if(perlin < this.biome.AirAndLandIntersectionCutoff && perlin > this.biome.LandTopLayerCutoff)
                     {
-                        cutoffMargin = r.Next(-4, 4);
+                        cutoffMargin = random.Next(-4, 4);
                         if(cutoffMargin + pos.y > 110)
                         {
                             this.blocks[x, y, z] = Block.Snow;
@@ -162,7 +162,7 @@ public class Chunk : ITickable
                     // Secondary Layer
                     else if(perlin < this.biome.LandTopLayerCutoff && perlin > this.biome.Land2NDLayerCutoff)
                     {
-                        cutoffMargin = r.Next(-4, 4);
+                        cutoffMargin = random.Next(-4, 4);
                         if(cutoffMargin + pos.y > 100)
                         {
                             this.blocks[x, y, z] = Block.Stone;
@@ -198,7 +198,7 @@ public class Chunk : ITickable
 
     private void GenerateMesh()
     {
-        this.drawnLock = true;
+        this.drawLock = true;
         this.data = new MeshData();
         for(int x = 0; x < ChunkSize; x++)
         {
@@ -212,15 +212,15 @@ public class Chunk : ITickable
                     }
                     catch(Exception e)
                     {
-                        Debug.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
-                        Logger.Log($@"{GameManager.time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
-                        this.drawnLock = false;
+                        Debug.Log($@"{GameManager.Time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
+                        Logger.Log($@"{GameManager.Time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
+                        this.drawLock = false;
                         break;
                     }
                 }
             }
         }
-        this.drawnLock = false;
+        this.drawLock = false;
         this.hasDrawn = true;
     }
 
@@ -257,15 +257,15 @@ public class Chunk : ITickable
     }
 
     // Get noise
-    private float GetNoise(Int3 pos)
+    private float GetNoise(Int3 _pos)
     {
-        return (float)this.biome.perlin.GetValue(pos.x, pos.y, pos.z) + ((pos.y - (128 * 0.3f)) * this.biome.YMultiplier);
+        return (float)this.biome.Perlin.GetValue(_pos.x, _pos.y, _pos.z) + ((_pos.y - (128 * 0.3f)) * this.biome.YMultiplier);
     }
 
     // Get noise for Cave Generation
-    private float GetNoiseCave(Int3 pos)
+    private float GetNoiseCave(Int3 _pos)
     {
-        return (float)this.biome.ridged.GetValue(pos.x, pos.y, pos.z) - (pos.y / (128 * 0.5f) * this.biome.CaveYMultiplier);
+        return (float)this.biome.Ridged.GetValue(_pos.x, _pos.y, _pos.z) - (_pos.y / (128 * 0.5f) * this.biome.CaveYMultiplier);
     }
 
     // TODO: Tree gen needs overhaul
@@ -281,47 +281,47 @@ public class Chunk : ITickable
     //}
 
     // Get Block, given Chunk Internal Coords as Int3
-    public Block GetBlockFromChunkInternalCoords(Int3 pos)
+    public Block GetBlockFromChunkInternalCoords(Int3 _pos)
     {
-        return this.blocks[pos.x, pos.y, pos.z];
+        return this.blocks[_pos.x, _pos.y, _pos.z];
     }
 
     // Set Block at position called by player, given Int3 and Block
-    public void PlayerSetBlock(Int3 pos, Block block)
+    public void SetBlockPlayer(Int3 _pos, Block _block)
     {
-        this.blocks[pos.x, pos.y, pos.z] = block;
+        this.blocks[_pos.x, _pos.y, _pos.z] = _block;
         this.NeedToUpdate = true;
         this.HasBeenModified = true;
-        if(pos.x == 0)
+        if(_pos.x == 0)
         {
             this.NeedToUpdateNegXNeighbor = true;
         }
-        if(pos.x == ChunkSize - 1)
+        if(_pos.x == ChunkSize - 1)
         {
             this.NeedToUpdatePosXNeighbor = true;
         }
-        if(pos.y == 0)
+        if(_pos.y == 0)
         {
             this.NeedToUpdateNegYNeighbor = true;
         }
-        if(pos.y == ChunkSize - 1)
+        if(_pos.y == ChunkSize - 1)
         {
             this.NeedToUpdatePosYNeighbor = true;
         }
-        if(pos.z == 0)
+        if(_pos.z == 0)
         {
             this.NeedToUpdateNegZNeighbor = true;
         }
-        if(pos.z == ChunkSize - 1)
+        if(_pos.z == ChunkSize - 1)
         {
             this.NeedToUpdatePosZNeighbor = true;
         }
     }
 
     // Set Block at position called by Structure Generator, given int x, y, z and Block
-    private void StructureSetBlock(Int3 pos, Block block)
+    private void SetBlockStructure(Int3 _pos, Block _block)
     {
-        this.blocks[pos.x, pos.y, pos.z] = block;
+        this.blocks[_pos.x, _pos.y, _pos.z] = _block;
     }
 
     // Degenerate Chunk
@@ -333,10 +333,10 @@ public class Chunk : ITickable
             // Only save chunks that have been modified by player to save disk space of save files
             if(this.HasBeenModified)
             {
-                World.taskFactory.StartNew(() => Serializer.Serialize_ToFile_FullPath<int[,,]>(FileManager.GetChunkString(this.Pos), this.GetChunkSaveData()));
+                World.TaskFactory.StartNew(() => Serializer.SerializeToFile(FileManager.GetChunkString(this.Pos), this.GetChunkSaveData()));
             }
         }
-        catch(System.Exception e)
+        catch(Exception e)
         {
             Debug.Log(e.ToString());
             Logger.Log(e);
@@ -359,8 +359,72 @@ public class Chunk : ITickable
     }
 
     // Get ChunkData as array of Blocks
-    public void LoadChunkFromData(int[,,] data)
+    public void LoadChunkFromData(int[,,] _data)
     {
-        this.blocks = data.ToBlockArray();
+        this.blocks = _data.ToBlockArray();
     }
+
+    // TODO: Tree Gen needs overhaul
+    // Get highest clear block: for tree generation
+    //public static int GetHighestClearBlockPositionTree(Block[,,] blocks, int x, int z)
+    //{
+    //    int y = Chunk.ChunkSize - 1;
+    //    for(int i = Chunk.ChunkSize - 7; i >= 1; i--)
+    //    {
+    //        if(blocks[x, i, z].IsTransparent && blocks[x, i + 1, z].IsTransparent && blocks[x, i + 2, z].IsTransparent
+    //            && blocks[x, i + 3, z].IsTransparent && blocks[x, i + 4, z].IsTransparent && blocks[x, i + 5, z].IsTransparent
+    //            && blocks[x, i + 6, z].IsTransparent && !blocks[x, i - 1, z].IsTransparent && !blocks[x, i - 1, z].Equals(Block.Leaves) && !blocks[x, i - 1, z].Equals(Block.Logs))
+    //        {
+    //            y = i;
+    //            return y;
+    //        }
+    //        if(!blocks[x, i, z].IsTransparent && !blocks[x, i + 1, z].IsTransparent)
+    //        {
+    //            break;
+    //        }
+    //    }
+    //    return 0;
+    //}
+
+    // TODO: Tree gen needs overhaul
+    // Generate tree at position
+    //public static void GenerateTree(Block[,,] blocks, int x, int y, int z, Int3 ChunkPos)
+    //{
+    //    Chunk currentchunk;
+    //    currentchunk = World.Instance.GetChunk(ChunkPos);
+    //    if(x - 2 > 0 && x + 2 < Chunk.ChunkSize - 1 && z - 2 > 0 && z + 2 < Chunk.ChunkSize - 1)
+    //    {
+    //        currentchunk.StructureSetBlock(x, y, z, Block.Logs);
+    //        currentchunk.StructureSetBlock(x, y + 1, z, Block.Logs);
+    //        currentchunk.StructureSetBlock(x, y + 2, z, Block.Logs);
+    //        currentchunk.StructureSetBlock(x, y + 3, z, Block.Logs);
+    //        currentchunk.StructureSetBlock(x, y + 4, z, Block.Logs);
+    //        currentchunk.StructureSetBlock(x, y + 5, z, Block.Logs);
+    //        currentchunk.StructureSetBlock(x - 1, y + 5, z, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 1, y + 5, z, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x, y + 5, z - 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x, y + 5, z + 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x - 1, y + 5, z - 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x - 1, y + 5, z + 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 1, y + 5, z - 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 1, y + 5, z + 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x - 2, y + 5, z, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 2, y + 5, z, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x, y + 5, z - 2, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x, y + 5, z + 2, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x - 2, y + 5, z - 2, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x - 2, y + 5, z + 2, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 2, y + 5, z - 2, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 2, y + 5, z + 2, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x, y + 6, z, Block.Logs);
+    //        currentchunk.StructureSetBlock(x - 1, y + 6, z, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 1, y + 6, z, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x, y + 6, z - 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x, y + 6, z + 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x - 1, y + 6, z - 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x - 1, y + 6, z + 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 1, y + 6, z - 1, Block.Leaves);
+    //        currentchunk.StructureSetBlock(x + 1, y + 6, z + 1, Block.Leaves);
+    //    }
+    //}
 }

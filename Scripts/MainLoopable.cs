@@ -59,14 +59,14 @@ public class MainLoopable : ILoopable
     }
 
     // Register Loops
-    public void RegisterLoops(ILoopable l)
+    public void RegisterLoops(ILoopable _l)
     {
-        this.registeredLoops.Add(l);
+        this.registeredLoops.Add(_l);
     }
 
     // Deregister Loops
-    public void DeRegisterLoops(ILoopable l)
+    public void DeRegisterLoops(ILoopable _l)
     {
-        this.registeredLoops.Remove(l);
+        this.registeredLoops.Remove(_l);
     }
 }

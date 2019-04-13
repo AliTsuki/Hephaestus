@@ -7,12 +7,12 @@ public class FileManager
     // Register Files
     public static void RegisterFiles()
     {
-        Serializer.Check_Gen_Folder(ChunkSaveDirectory);
+        Serializer.CheckGenFolder(ChunkSaveDirectory);
     }
 
     // Get Chunk Filename string
-    public static string GetChunkString(Int3 pos)
+    public static string GetChunkString(Int3 _pos)
     {
-        return $@"{ChunkSaveDirectory}C_{pos.x}_{pos.y}_{pos.z}.CHUNK";
+        return $@"{ChunkSaveDirectory}C_{_pos.x}_{_pos.y}_{_pos.z}.CHUNK";
     }
 }

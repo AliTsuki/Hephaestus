@@ -9,9 +9,9 @@ public class BlockRegistry
     private static List<Block> registeredBlocks = new List<Block>();
 
     // Register Block
-    public static void RegisterBlock(Block block)
+    public static void RegisterBlock(Block _block)
     {
-        registeredBlocks.Add(block);
+        registeredBlocks.Add(_block);
     }
 
     // Register All Blocks to BlockRegistry.txt FILE
@@ -30,16 +30,16 @@ public class BlockRegistry
     }
 
     // Get Block object from given ID as Registered
-    internal static Block GetBlockFromID(int id)
+    private static Block GetBlockFromID(int _id)
     {
         try
         {
             if(registeredBlocks.Count <= 0)
             {
-                Debug.Log($@"{GameManager.time}: Trying to GetBlockFromID with NULL BlockRegistry!");
-                Logger.Log($@"{GameManager.time}: Trying to GetBlockFromID with NULL BlockRegistry!");
+                Debug.Log($@"{GameManager.Time}: Trying to GetBlockFromID with NULL BlockRegistry!");
+                Logger.Log($@"{GameManager.Time}: Trying to GetBlockFromID with NULL BlockRegistry!");
             }
-            return registeredBlocks[id];
+            return registeredBlocks[_id];
         }
         catch(System.Exception e)
         {

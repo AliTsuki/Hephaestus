@@ -7,69 +7,69 @@ public struct Int3
     public int x, y, z;
 
     // Int3 constructor, given int x, y, z
-    public Int3(int x, int y, int z)
+    public Int3(int _x, int _y, int _z)
     {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.x = _x;
+        this.y = _y;
+        this.z = _z;
     }
 
     // Int3 constructor, given Vector3
-    public Int3(Vector3 pos)
+    public Int3(Vector3 _pos)
     {
-        this.x = (int)pos.x;
-        this.y = (int)pos.y;
-        this.z = (int)pos.z;
+        this.x = (int)_pos.x;
+        this.y = (int)_pos.y;
+        this.z = (int)_pos.z;
     }
 
     // Int3 constructor, given Vector3Int
-    public Int3(Vector3Int pos)
+    public Int3(Vector3Int _pos)
     {
-        this.x = pos.x;
-        this.y = pos.y;
-        this.z = pos.z;
+        this.x = _pos.x;
+        this.y = _pos.y;
+        this.z = _pos.z;
     }
 
     // Int3 constructor, given Int3
-    public Int3(Int3 pos)
+    public Int3(Int3 _pos)
     {
-        this = pos;
+        this = _pos;
     }
 
     // Overload for * operator, multiplies an Int3 by an integer
-    public static Int3 operator *(Int3 multiplicand, int multiplier)
+    public static Int3 operator *(Int3 _multiplicand, int _multiplier)
     {
-        Int3 result = multiplicand;
-        result.x *= multiplier;
-        result.y *= multiplier;
-        result.z *= multiplier;
+        Int3 result = _multiplicand;
+        result.x *= _multiplier;
+        result.y *= _multiplier;
+        result.z *= _multiplier;
         return result;
     }
 
     // Overload for + operator, adds an Int3 to another Int3
-    public static Int3 operator +(Int3 addee, Int3 adder)
+    public static Int3 operator +(Int3 _addee, Int3 _adder)
     {
-        Int3 result = addee;
-        result.x += adder.x;
-        result.y += adder.y;
-        result.z += adder.z;
+        Int3 result = _addee;
+        result.x += _adder.x;
+        result.y += _adder.y;
+        result.z += _adder.z;
         return result;
     }
 
     // Sets x, y, z position, given int x, y, z
-    public void SetPos(int x, int y, int z)
+    public void SetPos(int _x, int _y, int _z)
     {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.x = _x;
+        this.y = _y;
+        this.z = _z;
     }
 
     // Add x, y, z position, given int x, y, z
-    public void AddPos(int x, int y, int z)
+    public void AddPos(int _x, int _y, int _z)
     {
-        this.x += x;
-        this.y += y;
-        this.z += z;
+        this.x += _x;
+        this.y += _y;
+        this.z += _z;
     }
 
     // Get Chunk coords, used on World Coords
@@ -136,11 +136,11 @@ public struct Int3
     }
 
     // Get World Coords, used on Chunk Internal Coords, given Int3 Chunk Coords
-    public void ChunkInternalCoordsToWorldCoords(Int3 chunkPos)
+    public void ChunkInternalCoordsToWorldCoords(Int3 _chunkPos)
     {
-        this.x = this.x + (chunkPos.x * Chunk.ChunkSize);
-        this.y = this.y + (chunkPos.y * Chunk.ChunkSize);
-        this.z = this.z + (chunkPos.z * Chunk.ChunkSize);
+        this.x = this.x + (_chunkPos.x * Chunk.ChunkSize);
+        this.y = this.y + (_chunkPos.y * Chunk.ChunkSize);
+        this.z = this.z + (_chunkPos.z * Chunk.ChunkSize);
     }
 
     // Get World Coords at center of Chunk, used on Int3 Chunk Coords

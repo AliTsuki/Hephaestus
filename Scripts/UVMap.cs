@@ -11,10 +11,10 @@ public class UVMap
     public Vector2[] UVMaps;
 
     // UVMap constructor
-    public UVMap(string name, Vector2[] uvMap)
+    public UVMap(string _name, Vector2[] _uvMap)
     {
-        this.Name = name;
-        this.UVMaps = uvMap;
+        this.Name = _name;
+        this.UVMaps = _uvMap;
     }
 
     // Register UVMaps
@@ -24,16 +24,16 @@ public class UVMap
     }
 
     // Get UVMap
-    public static UVMap GetUVMap(string name)
+    public static UVMap GetUVMap(string _name)
     {
-        foreach(UVMap m in Maps)
+        foreach(UVMap map in Maps)
         {
-            if(m.Name.Equals(name))
+            if(map.Name.Equals(_name))
             {
-                return m;
+                return map;
             }
         }
-        Debug.Log($@"{GameManager.time}: Can't find associated image: {name}");
-        throw new System.Exception($@"Can't find UVMap for {name}");
+        Debug.Log($@"{GameManager.Time}: Can't find associated image: {_name}");
+        throw new System.Exception($@"Can't find UVMap for {_name}");
     }
 }

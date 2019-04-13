@@ -32,20 +32,20 @@ public class Logger : ILoopable
     }
 
     // Logging methods
-    public static void Log(string ll)
+    public static void Log(string _ll)
     {
-        MainLog.log(ll);
+        MainLog.log(_ll);
     }
-    public static void Log(System.Exception e)
+    public static void Log(System.Exception _e)
     {
-        MainLog.log(e);
+        MainLog.log(_e);
     }
-    public void log(string ll)
+    public void log(string _ll)
     {
-        this.mainLogTxt.Add(ll);
+        this.mainLogTxt.Add(_ll);
     }
-    public void log(System.Exception e)
+    public void log(System.Exception _e)
     {
-        this.mainLogTxt.Add(e.ToString());
+        this.mainLogTxt.Add(_e.ToString());
     }
 }

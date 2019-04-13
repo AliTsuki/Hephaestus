@@ -50,20 +50,20 @@ public class Biome
         Persistence = bmHumidPers,
         Seed = GameManager.WorldSeed + bmHumidOffset,
     };
-    public Perlin perlin;
-    public RidgedMulti ridged;
+    public Perlin Perlin;
+    public RidgedMulti Ridged;
 
-    public Biome(float airLandCutoff, float topLayerCutoff, float secLayerCutoff, float yMulti, float pFreq, float pLac, int pOct, float pPers)
+    public Biome(float _airLandCutoff, float _topLayerCutoff, float _secLayerCutoff, float _yMulti, float _pFreq, float _pLac, int _pOct, float _pPers)
     {
-        this.AirAndLandIntersectionCutoff = airLandCutoff;
-        this.LandTopLayerCutoff = topLayerCutoff;
-        this.Land2NDLayerCutoff = secLayerCutoff;
-        this.YMultiplier = yMulti;
-        this.PerlinFrequency = pFreq;
-        this.PerlinLacunarity = pLac;
-        this.PerlinOctaveCount = pOct;
-        this.PerlinPersistence = pPers;
-        this.perlin = new Perlin()
+        this.AirAndLandIntersectionCutoff = _airLandCutoff;
+        this.LandTopLayerCutoff = _topLayerCutoff;
+        this.Land2NDLayerCutoff = _secLayerCutoff;
+        this.YMultiplier = _yMulti;
+        this.PerlinFrequency = _pFreq;
+        this.PerlinLacunarity = _pLac;
+        this.PerlinOctaveCount = _pOct;
+        this.PerlinPersistence = _pPers;
+        this.Perlin = new Perlin()
         {
             Quality = SharpNoise.NoiseQuality.Fast,
             Frequency = this.PerlinFrequency,
@@ -72,7 +72,7 @@ public class Biome
             Persistence = this.PerlinPersistence,
             Seed = GameManager.WorldSeed
         };
-        this.ridged = new RidgedMulti()
+        this.Ridged = new RidgedMulti()
         {
             Quality = SharpNoise.NoiseQuality.Fast,
             Frequency = this.RidgedFrequency,
@@ -82,10 +82,11 @@ public class Biome
         };
     }
 
-    public static Biome GetBiome(Int3 pos)
+    // TODO: add in BiomeMap stuffs
+    public static Biome GetBiome(Int3 _pos)
     {
-        float temp = (float)biomeMapTemp.GetValue(pos.x, pos.y, pos.z);
-        float humid = (float)biomeMapHumid.GetValue(pos.x, pos.y, pos.z);
+        float temp = (float)biomeMapTemp.GetValue(_pos.x, _pos.y, _pos.z);
+        float humid = (float)biomeMapHumid.GetValue(_pos.x, _pos.y, _pos.z);
         if(temp < 1 && temp > 0.5 && humid < 1 && humid > 0.5)
         {
 
