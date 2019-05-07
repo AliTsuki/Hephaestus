@@ -30,7 +30,7 @@ public class BlockRegistry
     }
 
     // Get Block object from given ID as Registered
-    private static Block GetBlockFromID(int _id)
+    public static Block GetBlockFromID(int _id)
     {
         try
         {
