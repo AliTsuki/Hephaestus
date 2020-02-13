@@ -1,3 +1,10 @@
+# nono stuffs
+*.csproj
+/Assets/TextMesh Pro/
+/Library/
+/Logs/
+/obj/
+
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
