@@ -1,8 +1,8 @@
-﻿using System;
+﻿using SharpNoise.Models;
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using SharpNoise.Models;
 
 namespace SharpNoise.Builders
 {
@@ -67,68 +67,74 @@ namespace SharpNoise.Builders
         /// units.</param>
         public void SetBounds(double lowerXBound, double upperXBound, double lowerZBound, double upperZBound)
         {
-            if (lowerXBound >= upperXBound ||
-                lowerZBound >= upperZBound) 
+            if(lowerXBound >= upperXBound ||
+                lowerZBound >= upperZBound)
+            {
                 throw new ArgumentException("Lower bounds must be less than upper bounds.");
+            }
 
-            LowerXBound = lowerXBound;
-            UpperXBound = upperXBound;
-            LowerZBound = lowerZBound;
-            UpperZBound = upperZBound;
+            this.LowerXBound = lowerXBound;
+            this.UpperXBound = upperXBound;
+            this.LowerZBound = lowerZBound;
+            this.UpperZBound = upperZBound;
         }
 
         protected override void PrepareBuild()
         {
-            if (LowerXBound >= UpperXBound ||
-                LowerZBound >= UpperZBound ||
-                destWidth <= 0 ||
-                destHeight <= 0 ||
-                SourceModule == null ||
-                DestNoiseMap == null)
+            if(this.LowerXBound >= this.UpperXBound ||
+                this.LowerZBound >= this.UpperZBound ||
+                this.destWidth <= 0 ||
+                this.destHeight <= 0 ||
+                this.SourceModule == null ||
+                this.DestNoiseMap == null)
+            {
                 throw new InvalidOperationException("Builder isn't properly set up.");
+            }
 
-            DestNoiseMap.SetSize(destHeight, destWidth);
+            this.DestNoiseMap.SetSize(this.destHeight, this.destWidth);
         }
 
         protected override void BuildImpl(CancellationToken cancellationToken)
         {
-            Plane planeModel = new Plane(SourceModule);
+            Plane planeModel = new Plane(this.SourceModule);
 
-            var xExtent = UpperXBound - LowerXBound;
-            var zExtent = UpperZBound - LowerZBound;
-            var xDelta = xExtent / destWidth;
-            var zDelta = zExtent / destHeight;
+            double xExtent = this.UpperXBound - this.LowerXBound;
+            double zExtent = this.UpperZBound - this.LowerZBound;
+            double xDelta = xExtent / this.destWidth;
+            double zDelta = zExtent / this.destHeight;
 
-            var po = new ParallelOptions()
+            ParallelOptions po = new ParallelOptions()
             {
                 CancellationToken = cancellationToken,
             };
 
-            Parallel.For(0, destHeight, po, z =>
+            Parallel.For(0, this.destHeight, po, z =>
             {
-                double zCur = LowerZBound + z * zDelta;
+                double zCur = this.LowerZBound + z * zDelta;
 
                 int x;
                 double xCur;
 
-                for (x = 0, xCur = LowerXBound; x < destWidth; x++, xCur += xDelta)
+                for(x = 0, xCur = this.LowerXBound; x < this.destWidth; x++, xCur += xDelta)
                 {
                     float finalValue;
-                    if (!EnableSeamless)
+                    if(!this.EnableSeamless)
+                    {
                         finalValue = (float)planeModel.GetValue(xCur, zCur);
+                    }
                     else
                     {
-                        var swValue = planeModel.GetValue(xCur, zCur);
-                        var seValue = planeModel.GetValue(xCur + xExtent, zCur);
-                        var nwValue = planeModel.GetValue(xCur, zCur + zExtent);
-                        var neValue = planeModel.GetValue(xCur + xExtent, zCur + zExtent);
-                        var xBlend = 1.0 - ((xCur - LowerXBound) / xExtent);
-                        var zBlend = 1.0 - ((zCur - LowerZBound) / zExtent);
-                        var z0 = NoiseMath.Linear(swValue, seValue, xBlend);
-                        var z1 = NoiseMath.Linear(nwValue, neValue, xBlend);
+                        double swValue = planeModel.GetValue(xCur, zCur);
+                        double seValue = planeModel.GetValue(xCur + xExtent, zCur);
+                        double nwValue = planeModel.GetValue(xCur, zCur + zExtent);
+                        double neValue = planeModel.GetValue(xCur + xExtent, zCur + zExtent);
+                        double xBlend = 1.0 - ((xCur - this.LowerXBound) / xExtent);
+                        double zBlend = 1.0 - ((zCur - this.LowerZBound) / zExtent);
+                        double z0 = NoiseMath.Linear(swValue, seValue, xBlend);
+                        double z1 = NoiseMath.Linear(nwValue, neValue, xBlend);
                         finalValue = (float)NoiseMath.Linear(z0, z1, zBlend);
                     }
-                    DestNoiseMap[x, z] = finalValue;
+                    this.DestNoiseMap[x, z] = finalValue;
                 }
             });
         }

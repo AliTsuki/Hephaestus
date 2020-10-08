@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace SharpNoise.Modules
 {
@@ -36,12 +35,12 @@ namespace SharpNoise.Modules
     [Serializable]
     public class Terrace : Module
     {
-        readonly List<double> controlPoints;
+        private readonly List<double> controlPoints;
 
         /// <summary>
         /// Gets the number of control points on the terrace-forming curve.
         /// </summary>
-        public int ControlPointCount { get { return controlPoints.Count; } }
+        public int ControlPointCount { get { return this.controlPoints.Count; } }
 
         /// <summary>
         /// Enables or disables the inversion of the terrace-forming curve
@@ -56,12 +55,12 @@ namespace SharpNoise.Modules
         {
             get
             {
-                return controlPoints.AsReadOnly();
+                return this.controlPoints.AsReadOnly();
             }
             set
             {
-                controlPoints.Clear();
-                controlPoints.AddRange(value);
+                this.controlPoints.Clear();
+                this.controlPoints.AddRange(value);
             }
         }
 
@@ -70,8 +69,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -80,7 +79,7 @@ namespace SharpNoise.Modules
         public Terrace()
             : base(1)
         {
-            controlPoints = new List<double>();
+            this.controlPoints = new List<double>();
         }
 
         /// <summary>
@@ -98,10 +97,12 @@ namespace SharpNoise.Modules
         /// </remarks>
         public void AddControlPoint(double value)
         {
-            if (controlPoints.Contains(value))
+            if(this.controlPoints.Contains(value))
+            {
                 throw new ArgumentException("Duplicate ControlPoint found. ControlPoints must be unique!");
+            }
 
-            controlPoints.Add(value);
+            this.controlPoints.Add(value);
         }
 
         /// <summary>
@@ -109,7 +110,7 @@ namespace SharpNoise.Modules
         /// </summary>
         public void ClearControlPoints()
         {
-            controlPoints.Clear();
+            this.controlPoints.Clear();
         }
 
         /// <summary>
@@ -130,16 +131,18 @@ namespace SharpNoise.Modules
         /// </remarks>
         public void MakeControlPoints(int count)
         {
-            if (count < 2)
-                throw new ArgumentException("There must be at least 2 ControlPoints");
-
-            ClearControlPoints();
-
-            var terraceStep = 2.0 / ((double)count - 1.0);
-            var curValue = -1.0;
-            for (var i = 0; i < (int)count; i++)
+            if(count < 2)
             {
-                AddControlPoint(curValue);
+                throw new ArgumentException("There must be at least 2 ControlPoints");
+            }
+
+            this.ClearControlPoints();
+
+            double terraceStep = 2.0 / (count - 1.0);
+            double curValue = -1.0;
+            for(int i = 0; i < count; i++)
+            {
+                this.AddControlPoint(curValue);
                 curValue += terraceStep;
             }
         }
@@ -155,34 +158,38 @@ namespace SharpNoise.Modules
         public override double GetValue(double x, double y, double z)
         {
             // Get the output value from the source module.
-            double sourceModuleValue = SourceModules[0].GetValue(x, y, z);
+            double sourceModuleValue = this.SourceModules[0].GetValue(x, y, z);
 
             // Find the first element in the control point array that has a value
             // larger than the output value from the source module.
             int indexPos;
-            for (indexPos = 0; indexPos < ControlPointCount; indexPos++)
+            for(indexPos = 0; indexPos < this.ControlPointCount; indexPos++)
             {
-                if (sourceModuleValue < controlPoints[indexPos])
+                if(sourceModuleValue < this.controlPoints[indexPos])
+                {
                     break;
+                }
             }
 
             // Find the two nearest control points so that we can map their values
             // onto a quadratic curve.
-            var index0 = NoiseMath.Clamp(indexPos - 1, 0, ControlPointCount - 1);
-            var index1 = NoiseMath.Clamp(indexPos, 0, ControlPointCount - 1);
+            int index0 = NoiseMath.Clamp(indexPos - 1, 0, this.ControlPointCount - 1);
+            int index1 = NoiseMath.Clamp(indexPos, 0, this.ControlPointCount - 1);
 
             // If some control points are missing (which occurs if the output value from
             // the source module is greater than the largest value or less than the
             // smallest value of the control point array), get the value of the nearest
             // control point and exit now.
-            if (index0 == index1)
-                return controlPoints[index1];
+            if(index0 == index1)
+            {
+                return this.controlPoints[index1];
+            }
 
             // Compute the alpha value used for linear interpolation.
-            var value0 = controlPoints[index0];
-            var value1 = controlPoints[index1];
-            var alpha = (sourceModuleValue - value0) / (value1 - value0);
-            if (InvertTerraces)
+            double value0 = this.controlPoints[index0];
+            double value1 = this.controlPoints[index1];
+            double alpha = (sourceModuleValue - value0) / (value1 - value0);
+            if(this.InvertTerraces)
             {
                 alpha = 1.0 - alpha;
                 NoiseMath.Swap(ref value0, ref value1);

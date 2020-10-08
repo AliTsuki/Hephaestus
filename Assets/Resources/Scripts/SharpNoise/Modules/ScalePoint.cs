@@ -29,8 +29,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -57,9 +57,9 @@ namespace SharpNoise.Modules
         /// <param name="scale">The scaling factor to apply.</param>
         public void SetScale(double scale)
         {
-            XScale = scale;
-            YScale = scale;
-            ZScale = scale;
+            this.XScale = scale;
+            this.YScale = scale;
+            this.ZScale = scale;
         }
 
         /// <summary>
@@ -70,9 +70,9 @@ namespace SharpNoise.Modules
         /// <param name="zScale">The scaling factor to apply to the z coordinate.</param>
         public void SetScale(double xScale, double yScale, double zScale)
         {
-            XScale = xScale;
-            YScale = yScale;
-            ZScale = zScale;
+            this.XScale = xScale;
+            this.YScale = yScale;
+            this.ZScale = zScale;
         }
 
         /// <summary>
@@ -93,10 +93,10 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            return SourceModules[0].GetValue(
-                x * XScale, 
-                y * YScale,
-                z * ZScale);
+            return this.SourceModules[0].GetValue(
+                x * this.XScale,
+                y * this.YScale,
+                z * this.ZScale);
         }
     }
 }

@@ -2,8 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using SharpNoise.Modules;
-
 namespace SharpNoise.Builders
 {
     /// <summary>
@@ -48,54 +46,58 @@ namespace SharpNoise.Builders
             double lowerYBound, double upperYBound,
             double lowerZBound, double upperZBound)
         {
-            if (lowerXBound >= upperXBound || lowerYBound >= upperYBound || lowerZBound >= upperZBound)
+            if(lowerXBound >= upperXBound || lowerYBound >= upperYBound || lowerZBound >= upperZBound)
+            {
                 throw new ArgumentException("Lower bounds must be less than upper bounds.");
+            }
 
-            LowerXBound = lowerXBound;
-            UpperXBound = upperXBound;
-            LowerYBound = lowerYBound;
-            UpperYBound = upperYBound;
-            LowerZBound = lowerZBound;
-            UpperZBound = upperZBound;
+            this.LowerXBound = lowerXBound;
+            this.UpperXBound = upperXBound;
+            this.LowerYBound = lowerYBound;
+            this.UpperYBound = upperYBound;
+            this.LowerZBound = lowerZBound;
+            this.UpperZBound = upperZBound;
         }
 
         protected override void PrepareBuild()
         {
-            if (LowerXBound >= UpperXBound || LowerYBound >= UpperYBound || LowerZBound >= UpperZBound ||
-                destWidth <= 0 || destHeight <= 0 || destDepth <= 0 ||
-                SourceModule == null || DestNoiseCube == null)
+            if(this.LowerXBound >= this.UpperXBound || this.LowerYBound >= this.UpperYBound || this.LowerZBound >= this.UpperZBound ||
+                this.destWidth <= 0 || this.destHeight <= 0 || this.destDepth <= 0 ||
+                this.SourceModule == null || this.DestNoiseCube == null)
+            {
                 throw new InvalidOperationException("Builder isn't properly set up.");
+            }
 
-            DestNoiseCube.SetSize(destWidth, destHeight, destDepth);
+            this.DestNoiseCube.SetSize(this.destWidth, this.destHeight, this.destDepth);
         }
 
         protected override void BuildImpl(CancellationToken cancellationToken)
         {
-            var xExtent = UpperXBound - LowerXBound;
-            var yExtent = UpperYBound - LowerYBound;
-            var zExtent = UpperZBound - LowerZBound;
-            var xDelta = xExtent / destWidth;
-            var yDelta = yExtent / destHeight;
-            var zDelta = zExtent / destDepth;
+            double xExtent = this.UpperXBound - this.LowerXBound;
+            double yExtent = this.UpperYBound - this.LowerYBound;
+            double zExtent = this.UpperZBound - this.LowerZBound;
+            double xDelta = xExtent / this.destWidth;
+            double yDelta = yExtent / this.destHeight;
+            double zDelta = zExtent / this.destDepth;
 
-            var po = new ParallelOptions()
+            ParallelOptions po = new ParallelOptions()
             {
                 CancellationToken = cancellationToken,
             };
 
-            Parallel.For(0, destDepth, po, z =>
+            Parallel.For(0, this.destDepth, po, z =>
             {
-                double zCur = LowerZBound + z * zDelta;
+                double zCur = this.LowerZBound + z * zDelta;
 
-                double yCur = LowerYBound;
-                for (var y = 0; y < destHeight; y++)
+                double yCur = this.LowerYBound;
+                for(int y = 0; y < this.destHeight; y++)
                 {
-                    double xCur = LowerXBound;
-                    for (var x = 0; x < destWidth; x++)
+                    double xCur = this.LowerXBound;
+                    for(int x = 0; x < this.destWidth; x++)
                     {
-                        float finalValue = (float)SourceModule.GetValue(xCur, yCur, zCur);
+                        float finalValue = (float)this.SourceModule.GetValue(xCur, yCur, zCur);
                         xCur += xDelta;
-                        DestNoiseCube[x, y, z] = finalValue;
+                        this.DestNoiseCube[x, y, z] = finalValue;
                     }
                     yCur += yDelta;
                 }

@@ -39,8 +39,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -51,11 +51,11 @@ namespace SharpNoise.Modules
         {
             get
             {
-                return xAngle;
+                return this.xAngle;
             }
             set
             {
-                SetAngles(value, yAngle, zAngle);
+                this.SetAngles(value, this.yAngle, this.zAngle);
             }
         }
 
@@ -67,11 +67,11 @@ namespace SharpNoise.Modules
         {
             get
             {
-                return yAngle;
+                return this.yAngle;
             }
             set
             {
-                SetAngles(xAngle, value, zAngle);
+                this.SetAngles(this.xAngle, value, this.zAngle);
             }
         }
 
@@ -83,11 +83,11 @@ namespace SharpNoise.Modules
         {
             get
             {
-                return zAngle;
+                return this.zAngle;
             }
             set
             {
-                SetAngles(xAngle, yAngle, value);
+                this.SetAngles(this.xAngle, this.yAngle, value);
             }
         }
 
@@ -97,8 +97,8 @@ namespace SharpNoise.Modules
         public RotatePoint()
             : base(1)
         {
-            matrix = new double[3, 3];
-            SetAngles(DefaultRotation, DefaultRotation, DefaultRotation);
+            this.matrix = new double[3, 3];
+            this.SetAngles(DefaultRotation, DefaultRotation, DefaultRotation);
         }
 
         /// <summary>
@@ -118,15 +118,15 @@ namespace SharpNoise.Modules
             ySin = Math.Sin(yAngle * NoiseMath.DegToRad);
             zSin = Math.Sin(zAngle * NoiseMath.DegToRad);
 
-            matrix[0,0] = ySin * xSin * zSin + yCos * zCos;
-            matrix[1,0] = xCos * zSin;
-            matrix[2,0] = ySin * zCos - yCos * xSin * zSin;
-            matrix[0,1] = ySin * xSin * zCos - yCos * zSin;
-            matrix[1,1] = xCos * zCos;
-            matrix[2,1] = -yCos * xSin * zCos - ySin * zSin;
-            matrix[0,2] = -ySin * xCos;
-            matrix[1,2] = xSin;
-            matrix[2,2] = yCos * xCos;
+            this.matrix[0, 0] = ySin * xSin * zSin + yCos * zCos;
+            this.matrix[1, 0] = xCos * zSin;
+            this.matrix[2, 0] = ySin * zCos - yCos * xSin * zSin;
+            this.matrix[0, 1] = ySin * xSin * zCos - yCos * zSin;
+            this.matrix[1, 1] = xCos * zCos;
+            this.matrix[2, 1] = -yCos * xSin * zCos - ySin * zSin;
+            this.matrix[0, 2] = -ySin * xCos;
+            this.matrix[1, 2] = xSin;
+            this.matrix[2, 2] = yCos * xCos;
 
             this.xAngle = xAngle;
             this.yAngle = yAngle;
@@ -143,10 +143,10 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            var nx = (matrix[0, 0] * x) + (matrix[1, 0] * y) + (matrix[2, 0] * z);
-            var ny = (matrix[0, 1] * x) + (matrix[1, 1] * y) + (matrix[2, 1] * z);
-            var nz = (matrix[0, 2] * x) + (matrix[1, 2] * y) + (matrix[2, 2] * z);
-            return SourceModules[0].GetValue(nx, ny, nz);
+            double nx = (this.matrix[0, 0] * x) + (this.matrix[1, 0] * y) + (this.matrix[2, 0] * z);
+            double ny = (this.matrix[0, 1] * x) + (this.matrix[1, 1] * y) + (this.matrix[2, 1] * z);
+            double nz = (this.matrix[0, 2] * x) + (this.matrix[1, 2] * y) + (this.matrix[2, 2] * z);
+            return this.SourceModules[0].GetValue(nx, ny, nz);
         }
     }
 }

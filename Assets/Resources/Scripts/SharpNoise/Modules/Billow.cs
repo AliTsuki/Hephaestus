@@ -120,23 +120,23 @@ namespace SharpNoise.Modules
             double currentPersistence = 1.0;
             int seed;
 
-            x *= Frequency;
-            y *= Frequency;
-            z *= Frequency;
+            x *= this.Frequency;
+            y *= this.Frequency;
+            z *= this.Frequency;
 
-            for (int currentOctave = 0; currentOctave < OctaveCount; currentOctave++)
+            for(int currentOctave = 0; currentOctave < this.OctaveCount; currentOctave++)
             {
                 // Get the coherent-noise value from the input value and add it to the final result.
-                seed = (Seed + currentOctave) & int.MaxValue;
-                signal = NoiseGenerator.GradientCoherentNoise3D(x, y, z, seed, Quality);
+                seed = (this.Seed + currentOctave) & int.MaxValue;
+                signal = NoiseGenerator.GradientCoherentNoise3D(x, y, z, seed, this.Quality);
                 signal = 2.0 * Math.Abs(signal) - 1.0;
                 value += signal * currentPersistence;
 
                 // Prepare the next octave.
-                x *= Lacunarity;
-                y *= Lacunarity;
-                z *= Lacunarity;
-                currentPersistence *= Persistence;
+                x *= this.Lacunarity;
+                y *= this.Lacunarity;
+                z *= this.Lacunarity;
+                currentPersistence *= this.Persistence;
             }
             value += 0.5;
 

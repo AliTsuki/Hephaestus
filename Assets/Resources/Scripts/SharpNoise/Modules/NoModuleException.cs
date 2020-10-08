@@ -43,6 +43,6 @@ namespace SharpNoise.Modules
         protected NoModuleException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-        } 
+        }
     }
 }

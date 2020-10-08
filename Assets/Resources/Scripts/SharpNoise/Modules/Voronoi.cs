@@ -125,13 +125,13 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            x *= Frequency;
-            y *= Frequency;
-            z *= Frequency;
+            x *= this.Frequency;
+            y *= this.Frequency;
+            z *= this.Frequency;
 
-            var xint = (x > 0D) ? (int)x : (int)x - 1;
-            var yint = (y > 0D) ? (int)y : (int)y - 1;
-            var zint = (z > 0D) ? (int)z : (int)z - 1;
+            int xint = (x > 0D) ? (int)x : (int)x - 1;
+            int yint = (y > 0D) ? (int)y : (int)y - 1;
+            int zint = (z > 0D) ? (int)z : (int)z - 1;
 
             double minDistance = double.MaxValue;
             double xCandidate = 0D, yCandidate = 0D, zCandidate = 0D;
@@ -139,23 +139,23 @@ namespace SharpNoise.Modules
             // Inside each unit cube, there is a seed point at a random position.  Go
             // through each of the nearby cubes until we find a cube with a seed point
             // that is closest to the specified position.
-            for (var zCur = zint - 2; zCur <= zint + 2; zCur++)
+            for(int zCur = zint - 2; zCur <= zint + 2; zCur++)
             {
-                for (var yCur = yint - 2; yCur <= yint + 2; yCur++)
+                for(int yCur = yint - 2; yCur <= yint + 2; yCur++)
                 {
-                    for (var xCur = xint - 2; xCur <= xint + 2; xCur++)
+                    for(int xCur = xint - 2; xCur <= xint + 2; xCur++)
                     {
                         // Calculate the position and distance to the seed point inside of
                         // this unit cube.
-                        var xPos = xCur + NoiseGenerator.ValueNoise3D(xCur, yCur, zCur, Seed);
-                        var yPos = yCur + NoiseGenerator.ValueNoise3D(xCur, yCur, zCur, Seed + 1);
-                        var zPos = zCur + NoiseGenerator.ValueNoise3D(xCur, yCur, zCur, Seed + 2);
-                        var xDist = xPos - x;
-                        var yDist = yPos - y;
-                        var zDist = zPos - z;
-                        var dist = xDist * xDist + yDist * yDist + zDist * zDist;
+                        double xPos = xCur + NoiseGenerator.ValueNoise3D(xCur, yCur, zCur, this.Seed);
+                        double yPos = yCur + NoiseGenerator.ValueNoise3D(xCur, yCur, zCur, this.Seed + 1);
+                        double zPos = zCur + NoiseGenerator.ValueNoise3D(xCur, yCur, zCur, this.Seed + 2);
+                        double xDist = xPos - x;
+                        double yDist = yPos - y;
+                        double zDist = zPos - z;
+                        double dist = xDist * xDist + yDist * yDist + zDist * zDist;
 
-                        if (dist < minDistance)
+                        if(dist < minDistance)
                         {
                             // This seed point is closer to any others found so far, so record
                             // this seed point.
@@ -168,20 +168,20 @@ namespace SharpNoise.Modules
                 }
             }
 
-            var value = 0D;
-            if (EnableDistance)
+            double value = 0D;
+            if(this.EnableDistance)
             {
                 // Determine the distance to the nearest seed point.
-                var xDist = xCandidate - x;
-                var yDist = yCandidate - y;
-                var zDist = zCandidate - z;
+                double xDist = xCandidate - x;
+                double yDist = yCandidate - y;
+                double zDist = zCandidate - z;
                 value = (Math.Sqrt(xDist * xDist + yDist * yDist + zDist * zDist)) * NoiseMath.Sqrt3 - 1.0;
             }
 
             // Return the calculated distance with the displacement value applied.
-            return value + (Displacement * NoiseGenerator.ValueNoise3D(
-                (int)Math.Floor(xCandidate), 
-                (int)Math.Floor(yCandidate), 
+            return value + (this.Displacement * NoiseGenerator.ValueNoise3D(
+                (int)Math.Floor(xCandidate),
+                (int)Math.Floor(yCandidate),
                 (int)Math.Floor(zCandidate)));
         }
 

@@ -15,15 +15,14 @@ namespace SharpNoise
         /// </summary>
         public sealed class LineIterator : IEnumerator<T>, IEnumerable<T>
         {
-            int currentIndex;
-            T currentItem;
-
-            readonly Map<T> map;
-            readonly int lowerIndex, upperIndex;
+            private int currentIndex;
+            private T currentItem;
+            private readonly Map<T> map;
+            private readonly int lowerIndex, upperIndex;
 
             public T Current
             {
-                get { return currentItem; }
+                get { return this.currentItem; }
             }
 
             public void Dispose()
@@ -32,15 +31,20 @@ namespace SharpNoise
 
             object IEnumerator.Current
             {
-                get { return currentItem; }
+                get { return this.currentItem; }
             }
 
             public bool MoveNext()
             {
-                if (++currentIndex >= upperIndex)
+                if(++this.currentIndex >= this.upperIndex)
+                {
                     return false;
+                }
                 else
-                    currentItem = map.values[currentIndex];
+                {
+                    this.currentItem = this.map.values[this.currentIndex];
+                }
+
                 return true;
             }
 
@@ -68,10 +72,10 @@ namespace SharpNoise
             internal LineIterator(Map<T> map, int lower, int upper)
             {
                 this.map = map;
-                lowerIndex = lower;
-                upperIndex = upper;
+                this.lowerIndex = lower;
+                this.upperIndex = upper;
 
-                currentIndex = lowerIndex - 1;
+                this.currentIndex = this.lowerIndex - 1;
             }
         }
 
@@ -104,7 +108,7 @@ namespace SharpNoise
         {
             get
             {
-                return values == null;
+                return this.values == null;
             }
         }
 
@@ -128,7 +132,7 @@ namespace SharpNoise
         /// </remarks>
         protected Map(int width, int height)
         {
-            SetSize(height, width);
+            this.SetSize(height, width);
         }
 
         /// <summary>
@@ -137,12 +141,14 @@ namespace SharpNoise
         /// <param name="other">The Map to copy</param>
         protected Map(Map<T> other)
         {
-            if (other == null)
+            if(other == null)
+            {
                 throw new ArgumentNullException("other");
+            }
 
-            SetSize(other.Height, other.Width);
-            other.values.CopyTo(values, 0);
-            BorderValue = other.BorderValue;
+            this.SetSize(other.Height, other.Width);
+            other.values.CopyTo(this.values, 0);
+            this.BorderValue = other.BorderValue;
         }
 
         /// <summary>
@@ -159,7 +165,7 @@ namespace SharpNoise
         /// </remarks>
         protected int GetIndex(int x, int y)
         {
-            return x + Width * y;
+            return x + this.Width * y;
         }
 
         /// <summary>
@@ -175,7 +181,7 @@ namespace SharpNoise
         /// </remarks>
         protected int GetIndex(int row)
         {
-            return GetIndex(0, row);
+            return this.GetIndex(0, row);
         }
 
         /// <summary>
@@ -183,10 +189,10 @@ namespace SharpNoise
         /// </summary>
         protected void ResetMap()
         {
-            values = null;
-            Width = 0;
-            Height = 0;
-            BorderValue = default(T);
+            this.values = null;
+            this.Width = 0;
+            this.Height = 0;
+            this.BorderValue = default(T);
         }
 
         /// <summary>
@@ -199,7 +205,7 @@ namespace SharpNoise
         {
             get
             {
-                return values;
+                return this.values;
             }
         }
 
@@ -210,11 +216,13 @@ namespace SharpNoise
         /// <returns>Returns a new LineIterator.</returns>
         public LineIterator IterateLine(int line)
         {
-            if (line < 0 || line >= Height)
+            if(line < 0 || line >= this.Height)
+            {
                 throw new ArgumentException("row must be greater than 0 and less than Height.");
+            }
 
-            var lower = GetIndex(line);
-            return new LineIterator(this, lower, lower + Width);
+            int lower = this.GetIndex(line);
+            return new LineIterator(this, lower, lower + this.Width);
         }
 
         /// <summary>
@@ -223,8 +231,10 @@ namespace SharpNoise
         /// <returns>Returns LineReaders for all rows in the Map from 0 to Height.</returns>
         public IEnumerable<LineIterator> IterateAllLines()
         {
-            for (var row = 0; row < Height; row++)
-                yield return IterateLine(row);
+            for(int row = 0; row < this.Height; row++)
+            {
+                yield return this.IterateLine(row);
+            }
         }
 
         /// <summary>
@@ -236,10 +246,12 @@ namespace SharpNoise
         /// </param>
         public void Clear(T value)
         {
-            if (values != null)
+            if(this.values != null)
             {
-                for (var i = 0; i < values.Length; i++)
-                    values[i] = value;
+                for(int i = 0; i < this.values.Length; i++)
+                {
+                    this.values[i] = value;
+                }
             }
         }
 
@@ -254,16 +266,20 @@ namespace SharpNoise
         /// </remarks>
         public void SetSize(int height, int width)
         {
-            if (width < 0 || height < 0)
+            if(width < 0 || height < 0)
+            {
                 throw new ArgumentException("width and height cannot be less than 0.");
+            }
 
-            if (width == 0 || height == 0)
-                ResetMap();
+            if(width == 0 || height == 0)
+            {
+                this.ResetMap();
+            }
             else
             {
-                values = new T[width * height];
-                Width = width;
-                Height = height;
+                this.values = new T[width * height];
+                this.Width = width;
+                this.Height = height;
             }
         }
 
@@ -280,11 +296,11 @@ namespace SharpNoise
         {
             get
             {
-                return GetValue(x, y);
+                return this.GetValue(x, y);
             }
             set
             {
-                SetValue(x, y, value);
+                this.SetValue(x, y, value);
             }
         }
 
@@ -300,15 +316,15 @@ namespace SharpNoise
         /// </remarks>
         public T GetValue(int x, int y)
         {
-            if (values != null)
+            if(this.values != null)
             {
-                if (x >= 0 && x < Width && y >= 0 && y < Height)
+                if(x >= 0 && x < this.Width && y >= 0 && y < this.Height)
                 {
-                    return values[GetIndex(x, y)];
+                    return this.values[this.GetIndex(x, y)];
                 }
             }
 
-            return BorderValue;
+            return this.BorderValue;
         }
 
         /// <summary>
@@ -323,11 +339,11 @@ namespace SharpNoise
         /// </remarks>
         public void SetValue(int x, int y, T value)
         {
-            if (values != null)
+            if(this.values != null)
             {
-                if (x >= 0 && x < Width && y >= 0 && y < Height)
+                if(x >= 0 && x < this.Width && y >= 0 && y < this.Height)
                 {
-                    values[GetIndex(x, y)] = value;
+                    this.values[this.GetIndex(x, y)] = value;
                 }
             }
         }

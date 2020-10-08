@@ -104,7 +104,7 @@ namespace SharpNoise.Modules
         /// Default frequency
         /// </summary>
         public const double DefaultFrequency = Perlin.DefaultFrequency;
-        
+
         /// <summary>
         /// Default power
         /// </summary>
@@ -125,8 +125,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -149,13 +149,13 @@ namespace SharpNoise.Modules
         {
             get
             {
-                return xDistort.Frequency;
+                return this.xDistort.Frequency;
             }
             set
             {
-                xDistort.Frequency = value;
-                yDistort.Frequency = value;
-                zDistort.Frequency = value;
+                this.xDistort.Frequency = value;
+                this.yDistort.Frequency = value;
+                this.zDistort.Frequency = value;
             }
         }
 
@@ -168,17 +168,17 @@ namespace SharpNoise.Modules
         /// the displacement amount.  High values roughly change the
         /// displacement amount, which produces more "kinky" changes.
         /// </remarks>
-        public int Roughness 
+        public int Roughness
         {
-            get 
-            { 
-                return xDistort.OctaveCount;
+            get
+            {
+                return this.xDistort.OctaveCount;
             }
             set
             {
-                xDistort.OctaveCount = value;
-                yDistort.OctaveCount = value;
-                zDistort.OctaveCount = value;
+                this.xDistort.OctaveCount = value;
+                this.yDistort.OctaveCount = value;
+                this.zDistort.OctaveCount = value;
             }
         }
 
@@ -195,17 +195,17 @@ namespace SharpNoise.Modules
         {
             get
             {
-                return xDistort.Seed;
+                return this.xDistort.Seed;
             }
             set
             {
-                xDistort.Seed = value;
-                yDistort.Seed = value + 1;
-                zDistort.Seed = value + 2;
+                this.xDistort.Seed = value;
+                this.yDistort.Seed = value + 1;
+                this.zDistort.Seed = value + 2;
             }
         }
 
-        readonly Perlin xDistort, yDistort, zDistort;
+        private readonly Perlin xDistort, yDistort, zDistort;
 
         /// <summary>
         /// Constructor.
@@ -213,12 +213,12 @@ namespace SharpNoise.Modules
         public Turbulence()
             : base(1)
         {
-            xDistort = new Perlin();
-            yDistort = new Perlin();
-            zDistort = new Perlin();
-            Seed = DefaultSeed;
-            Frequency = DefaultFrequency;
-            Roughness = DefaultRoughness;
+            this.xDistort = new Perlin();
+            this.yDistort = new Perlin();
+            this.zDistort = new Perlin();
+            this.Seed = DefaultSeed;
+            this.Frequency = DefaultFrequency;
+            this.Roughness = DefaultRoughness;
         }
 
         /// <summary>
@@ -250,13 +250,13 @@ namespace SharpNoise.Modules
             x2 = x + (53820D / 65536D);
             y2 = y + (11213D / 65536D);
             z2 = z + (44845D / 65536D);
-            var xDistorted = x + (xDistort.GetValue(x0, y0, z0) * Power);
-            var yDistorted = y + (yDistort.GetValue(x1, y1, z1) * Power);
-            var zDistorted = z + (zDistort.GetValue(x2, y2, z2) * Power);
+            double xDistorted = x + (this.xDistort.GetValue(x0, y0, z0) * this.Power);
+            double yDistorted = y + (this.yDistort.GetValue(x1, y1, z1) * this.Power);
+            double zDistorted = z + (this.zDistort.GetValue(x2, y2, z2) * this.Power);
 
             // Retrieve the output value at the offsetted input value instead of the
             // original input value.
-            return SourceModules[0].GetValue(xDistorted, yDistorted, zDistorted);
+            return this.SourceModules[0].GetValue(xDistorted, yDistorted, zDistorted);
         }
     }
 }

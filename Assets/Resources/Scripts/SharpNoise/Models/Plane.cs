@@ -24,9 +24,9 @@ namespace SharpNoise.Models
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Plane() 
+        public Plane()
         {
- 
+
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace SharpNoise.Models
         /// </param>
         public Plane(Module sourceModule)
         {
-            Source = sourceModule;
+            this.Source = sourceModule;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace SharpNoise.Models
         /// <returns>The output value from the noise module.</returns>
         public double GetValue(double x, double z)
         {
-            return Source.GetValue(x, 0, z);
+            return this.Source.GetValue(x, 0, z);
         }
     }
 }

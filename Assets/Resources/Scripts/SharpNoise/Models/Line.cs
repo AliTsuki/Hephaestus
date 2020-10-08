@@ -28,23 +28,23 @@ namespace SharpNoise.Models
         public bool Attenuate { get; set; }
 
         // start point
-        double x0, y0, z0;
+        private double x0, y0, z0;
 
         // end point
-        double x1, y1, z1;
+        private double x1, y1, z1;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         public Line()
         {
-            Attenuate = false;
-            x0 = 0D;
-            y0 = 0D;
-            z0 = 0D;
-            x1 = 0D;
-            y1 = 0D;
-            z1 = 0D;
+            this.Attenuate = false;
+            this.x0 = 0D;
+            this.y0 = 0D;
+            this.z0 = 0D;
+            this.x1 = 0D;
+            this.y1 = 0D;
+            this.z1 = 0D;
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace SharpNoise.Models
         public Line(Module sourceModule)
             : this()
         {
-            Source = sourceModule;
+            this.Source = sourceModule;
         }
 
         /// <summary>
@@ -67,9 +67,9 @@ namespace SharpNoise.Models
         /// <param name="z">z coordinate of the start position.</param>
         public void SetStartPoint(double x, double y, double z)
         {
-            x0 = x;
-            y0 = y;
-            z0 = z;
+            this.x0 = x;
+            this.y0 = y;
+            this.z0 = z;
         }
 
         /// <summary>
@@ -81,22 +81,26 @@ namespace SharpNoise.Models
         /// <param name="z">z coordinate of the end position.</param>
         public void SetEndPoint(double x, double y, double z)
         {
-            x1 = x;
-            y1 = y;
-            z1 = z;
+            this.x1 = x;
+            this.y1 = y;
+            this.z1 = z;
         }
 
         public double GetValue(double p)
         {
-            var x = (x1 - x0) * p + x0;
-            var y = (y1 - y0) * p + y0;
-            var z = (z1 - z0) * p + z0;
-            var value = Source.GetValue(x, y, z);
+            double x = (this.x1 - this.x0) * p + this.x0;
+            double y = (this.y1 - this.y0) * p + this.y0;
+            double z = (this.z1 - this.z0) * p + this.z0;
+            double value = this.Source.GetValue(x, y, z);
 
-            if (Attenuate)
+            if(this.Attenuate)
+            {
                 return p * (1.0 - p) * 4 * value;
+            }
             else
+            {
                 return value;
+            }
         }
     }
 }

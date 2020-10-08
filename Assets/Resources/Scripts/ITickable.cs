@@ -1,8 +1,12 @@
-﻿// Interface for Tickables
-public interface ITickable
+﻿
+namespace OLD
 {
-    void Tick();
-    void Start();
-    void Update();
-    void OnUnityUpdate();
+    // Interface for Tickables
+    public interface ITickable
+    {
+        void Tick();
+        void Start();
+        void Update();
+        void OnUnityUpdate();
+    }
 }

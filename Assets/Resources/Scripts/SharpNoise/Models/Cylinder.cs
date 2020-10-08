@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SharpNoise.Modules;
 
-using SharpNoise.Modules;
+using System;
 
 namespace SharpNoise.Models
 {
@@ -37,7 +37,7 @@ namespace SharpNoise.Models
         /// values.</param>
         public Cylinder(Module sourceModule)
         {
-            Source = sourceModule;
+            this.Source = sourceModule;
         }
 
         /// <summary>
@@ -55,10 +55,10 @@ namespace SharpNoise.Models
         /// </remarks>
         public double GetValue(double angle, double height)
         {
-            var x = Math.Cos(angle * NoiseMath.DegToRad);
-            var y = height;
-            var z = Math.Sin(angle * NoiseMath.DegToRad);
-            return Source.GetValue(x, y, z);
+            double x = Math.Cos(angle * NoiseMath.DegToRad);
+            double y = height;
+            double z = Math.Sin(angle * NoiseMath.DegToRad);
+            return this.Source.GetValue(x, y, z);
         }
     }
 }

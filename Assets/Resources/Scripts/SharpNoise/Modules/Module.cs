@@ -273,11 +273,11 @@ namespace SharpNoise.Modules
         /// Returns the number of source modules required by this noise
         /// module.
         /// </summary>
-        public int SourceModuleCount { get { return sourceModules.Length; } }
+        public int SourceModuleCount { get { return this.sourceModules.Length; } }
 
-        public Module[] SourceModules { get { return sourceModules; } }
+        public Module[] SourceModules { get { return this.sourceModules; } }
 
-        static readonly Module[] emptyModulesArray = new Module[0];
+        private static readonly Module[] emptyModulesArray = new Module[0];
 
         /// <summary>
         /// Constructor, called from derived classes
@@ -285,13 +285,19 @@ namespace SharpNoise.Modules
         /// <param name="sourceModuleCount">The number of required source modules.</param>
         protected Module(int sourceModuleCount)
         {
-            if (sourceModuleCount < 0)
+            if(sourceModuleCount < 0)
+            {
                 throw new ArgumentException("sourceModuleCount < 0");
+            }
 
-            if (sourceModuleCount > 0)
-                sourceModules = new Module[sourceModuleCount];
+            if(sourceModuleCount > 0)
+            {
+                this.sourceModules = new Module[sourceModuleCount];
+            }
             else
-                sourceModules = emptyModulesArray;
+            {
+                this.sourceModules = emptyModulesArray;
+            }
         }
 
         /// <summary>
@@ -303,7 +309,7 @@ namespace SharpNoise.Modules
         /// </remarks>
         public void Serialize(Stream target)
         {
-            Serialize(target, new BinaryFormatter());
+            this.Serialize(target, new BinaryFormatter());
         }
 
         /// <summary>
@@ -313,14 +319,16 @@ namespace SharpNoise.Modules
         /// <param name="formatter">The formatter to use for serialization</param>
         public void Serialize(Stream target, IFormatter formatter)
         {
-            if (target == null || formatter == null)
+            if(target == null || formatter == null)
+            {
                 throw new ArgumentNullException("None of the arguments can be null.");
+            }
 
             try
             {
                 formatter.Serialize(target, this);
             }
-            catch (SerializationException ex)
+            catch(SerializationException ex)
             {
                 throw new ModuleSerializationException("Module graph could not be serialized.", ex);
             }
@@ -335,18 +343,20 @@ namespace SharpNoise.Modules
         /// <returns>Returns the deserialized object</returns>
         public static T Deserialize<T>(Stream source, IFormatter formatter) where T : Module
         {
-            if (source == null || formatter == null)
+            if(source == null || formatter == null)
+            {
                 throw new ArgumentNullException("None of the arguments can be null.");
+            }
 
             try
             {
                 return (T)formatter.Deserialize(source);
             }
-            catch (SerializationException ex)
+            catch(SerializationException ex)
             {
                 throw new ModuleSerializationException("An error occurred during deserialization.", ex);
             }
-            catch (InvalidCastException ex)
+            catch(InvalidCastException ex)
             {
                 throw new ModuleSerializationException("The deserialized object was not a module.", ex);
             }

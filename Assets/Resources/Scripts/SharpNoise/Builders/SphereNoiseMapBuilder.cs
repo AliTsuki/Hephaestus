@@ -1,8 +1,8 @@
-﻿using System;
+﻿using SharpNoise.Models;
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using SharpNoise.Models;
 
 namespace SharpNoise.Builders
 {
@@ -62,54 +62,58 @@ namespace SharpNoise.Builders
         /// degrees.</param>
         public void SetBounds(double southLatBound, double northLatBound, double westLonBound, double eastLonBound)
         {
-            if (southLatBound >= northLatBound ||
-                westLonBound >= eastLonBound) 
+            if(southLatBound >= northLatBound ||
+                westLonBound >= eastLonBound)
+            {
                 throw new ArgumentException("Lower bounds must be less than upper bounds.");
+            }
 
-          SouthLatBound = southLatBound;
-          NorthLatBound = northLatBound;
-          WestLonBound = westLonBound;
-          EastLonBound = eastLonBound;
+            this.SouthLatBound = southLatBound;
+            this.NorthLatBound = northLatBound;
+            this.WestLonBound = westLonBound;
+            this.EastLonBound = eastLonBound;
         }
 
         protected override void PrepareBuild()
         {
-            if (EastLonBound <= WestLonBound ||
-                NorthLatBound <= SouthLatBound ||
-                destWidth <= 0 ||
-                destHeight <= 0 ||
-                SourceModule == null ||
-                DestNoiseMap == null)
+            if(this.EastLonBound <= this.WestLonBound ||
+                this.NorthLatBound <= this.SouthLatBound ||
+                this.destWidth <= 0 ||
+                this.destHeight <= 0 ||
+                this.SourceModule == null ||
+                this.DestNoiseMap == null)
+            {
                 throw new InvalidOperationException("Builder isn't properly set up.");
+            }
 
-            DestNoiseMap.SetSize(destHeight, destWidth);
+            this.DestNoiseMap.SetSize(this.destHeight, this.destWidth);
         }
 
         protected override void BuildImpl(CancellationToken cancellationToken)
         {
-            Sphere sphereModel = new Sphere(SourceModule);
+            Sphere sphereModel = new Sphere(this.SourceModule);
 
-            var lonExtent = EastLonBound - WestLonBound;
-            var latExtent = NorthLatBound - SouthLatBound;
-            var xDelta = lonExtent / destWidth;
-            var yDelta = latExtent / destHeight;
+            double lonExtent = this.EastLonBound - this.WestLonBound;
+            double latExtent = this.NorthLatBound - this.SouthLatBound;
+            double xDelta = lonExtent / this.destWidth;
+            double yDelta = latExtent / this.destHeight;
 
-            var po = new ParallelOptions()
+            ParallelOptions po = new ParallelOptions()
             {
                 CancellationToken = cancellationToken,
             };
 
-            Parallel.For(0, destHeight, po, y =>
+            Parallel.For(0, this.destHeight, po, y =>
             {
-                double curLat = SouthLatBound + y * yDelta;
+                double curLat = this.SouthLatBound + y * yDelta;
 
                 int x;
-                double curLon = WestLonBound;
+                double curLon = this.WestLonBound;
 
-                for (x = 0, curLon = WestLonBound; x < destWidth; x++, curLon += xDelta)
+                for(x = 0, curLon = this.WestLonBound; x < this.destWidth; x++, curLon += xDelta)
                 {
-                    var curValue = (float)sphereModel.GetValue(curLat, curLon);
-                    DestNoiseMap[x, y] = curValue;
+                    float curValue = (float)sphereModel.GetValue(curLat, curLon);
+                    this.DestNoiseMap[x, y] = curValue;
                 }
             });
         }

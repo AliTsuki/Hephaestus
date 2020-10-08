@@ -1,7 +1,11 @@
-﻿// Interface for Loopables
-public interface ILoopable
+﻿
+namespace OLD
 {
-    void Start();
-    void Update();
-    void OnApplicationQuit();
+    // Interface for Loopables
+    public interface ILoopable
+    {
+        void Start();
+        void Update();
+        void OnApplicationQuit();
+    }
 }

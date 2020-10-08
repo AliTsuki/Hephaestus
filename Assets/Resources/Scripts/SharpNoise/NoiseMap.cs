@@ -24,7 +24,7 @@ namespace SharpNoise
         {
             get
             {
-                return values.Length * sizeof(float);
+                return this.values.Length * sizeof(float);
             }
         }
 
@@ -64,14 +64,14 @@ namespace SharpNoise
         /// <returns>The new NoiseMap</returns>
         public static NoiseMap BilinearFilter(NoiseMap src, int width, int height, bool clamp = false)
         {
-            var dest = new NoiseMap(width, height);
+            NoiseMap dest = new NoiseMap(width, height);
 
             float xratio = (float)src.Width / dest.Width;
             float yratio = (float)src.Height / dest.Height;
 
             Parallel.For(0, dest.Height, y =>
             {
-                for (int x = 0; x < dest.Width; ++x)
+                for(int x = 0; x < dest.Width; ++x)
                 {
                     float u = (x + 0.5f) * xratio - 0.5f;
                     float v = (y + 0.5f) * yratio - 0.5f;
@@ -84,7 +84,7 @@ namespace SharpNoise
                     float xf = u - x0;
                     float yf = v - y0;
 
-                    if (clamp)
+                    if(clamp)
                     {
                         x0 = NoiseMath.Clamp(x0, 0, src.Width - 1);
                         x1 = NoiseMath.Clamp(x1, 0, src.Width - 1);

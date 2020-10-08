@@ -64,9 +64,8 @@ namespace SharpNoise.Modules
         /// Default upper bound of the selection range
         /// </summary>
         public const double DefaultUpperBound = 1D;
-
-        double edgeFalloff;
-        double lowerBound, upperBound;
+        private double edgeFalloff;
+        private double lowerBound, upperBound;
 
         /// <summary>
         /// Gets or sets the falloff value at the edge transition.
@@ -125,13 +124,13 @@ namespace SharpNoise.Modules
         {
             get
             {
-                return edgeFalloff;
+                return this.edgeFalloff;
             }
             set
             {
                 // Make sure that the edge falloff curves do not overlap.
-                var boundSize = UpperBound - LowerBound;
-                edgeFalloff = (value > boundSize / 2) ? boundSize / 2 : value;
+                double boundSize = this.UpperBound - this.LowerBound;
+                this.edgeFalloff = (value > boundSize / 2) ? boundSize / 2 : value;
             }
         }
 
@@ -146,8 +145,8 @@ namespace SharpNoise.Modules
         /// </remarks>
         public double LowerBound
         {
-            get { return lowerBound; }
-            set { SetBounds(value, upperBound); }
+            get { return this.lowerBound; }
+            set { this.SetBounds(value, this.upperBound); }
         }
 
         /// <summary>
@@ -161,8 +160,8 @@ namespace SharpNoise.Modules
         /// </remarks>
         public double UpperBound
         {
-            get { return upperBound; }
-            set { SetBounds(lowerBound, value); }
+            get { return this.upperBound; }
+            set { this.SetBounds(this.lowerBound, value); }
         }
 
         /// <summary>
@@ -170,8 +169,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -179,8 +178,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source1
         {
-            get { return SourceModules[1]; }
-            set { SourceModules[1] = value; }
+            get { return this.SourceModules[1]; }
+            set { this.SourceModules[1] = value; }
         }
 
         /// <summary>
@@ -196,8 +195,8 @@ namespace SharpNoise.Modules
         /// </remarks>
         public Module Control
         {
-            get { return SourceModules[2]; }
-            set { SourceModules[2] = value; }
+            get { return this.SourceModules[2]; }
+            set { this.SourceModules[2] = value; }
         }
 
         /// <summary>
@@ -206,9 +205,9 @@ namespace SharpNoise.Modules
         public Select()
             : base(3)
         {
-            EdgeFalloff = DefaultEdgeFalloff;
-            LowerBound = DefaultLowerBound;
-            UpperBound = DefaultUpperBound;
+            this.EdgeFalloff = DefaultEdgeFalloff;
+            this.LowerBound = DefaultLowerBound;
+            this.UpperBound = DefaultUpperBound;
         }
 
         /// <summary>
@@ -227,11 +226,11 @@ namespace SharpNoise.Modules
         /// </remarks>
         public void SetBounds(double lower, double upper)
         {
-            lowerBound = lower;
-            upperBound = upper;
+            this.lowerBound = lower;
+            this.upperBound = upper;
 
             // Make sure that the edge falloff curves do not overlap.
-            EdgeFalloff = edgeFalloff;
+            this.EdgeFalloff = this.edgeFalloff;
         }
 
         /// <summary>
@@ -244,59 +243,63 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            var controlValue = SourceModules[2].GetValue(x, y, z);
+            double controlValue = this.SourceModules[2].GetValue(x, y, z);
             double alpha;
-            if (EdgeFalloff > 0.0)
+            if(this.EdgeFalloff > 0.0)
             {
-                if (controlValue < (LowerBound - EdgeFalloff))
+                if(controlValue < (this.LowerBound - this.EdgeFalloff))
                 {
                     // The output value from the control module is below the selector
                     // threshold; return the output value from the first source module.
-                    return SourceModules[0].GetValue(x, y, z);
+                    return this.SourceModules[0].GetValue(x, y, z);
                 }
-                else if (controlValue < (LowerBound + EdgeFalloff))
+                else if(controlValue < (this.LowerBound + this.EdgeFalloff))
                 {
                     // The output value from the control module is near the lower end of the
                     // selector threshold and within the smooth curve. Interpolate between
                     // the output values from the first and second source modules.
-                    double lowerCurve = (LowerBound - EdgeFalloff);
-                    double upperCurve = (LowerBound + EdgeFalloff);
+                    double lowerCurve = (this.LowerBound - this.EdgeFalloff);
+                    double upperCurve = (this.LowerBound + this.EdgeFalloff);
                     alpha = NoiseMath.SCurve3((controlValue - lowerCurve) / (upperCurve - lowerCurve));
-                    return NoiseMath.Linear(SourceModules[0].GetValue(x, y, z),
-                      SourceModules[1].GetValue(x, y, z),
+                    return NoiseMath.Linear(this.SourceModules[0].GetValue(x, y, z),
+                      this.SourceModules[1].GetValue(x, y, z),
                       alpha);
                 }
-                else if (controlValue < (UpperBound - EdgeFalloff))
+                else if(controlValue < (this.UpperBound - this.EdgeFalloff))
                 {
                     // The output value from the control module is within the selector
                     // threshold; return the output value from the second source module.
-                    return SourceModules[1].GetValue(x, y, z);
+                    return this.SourceModules[1].GetValue(x, y, z);
                 }
-                else if (controlValue < (UpperBound + EdgeFalloff))
+                else if(controlValue < (this.UpperBound + this.EdgeFalloff))
                 {
                     // The output value from the control module is near the upper end of the
                     // selector threshold and within the smooth curve. Interpolate between
                     // the output values from the first and second source modules.
-                    double lowerCurve = (UpperBound - EdgeFalloff);
-                    double upperCurve = (UpperBound + EdgeFalloff);
+                    double lowerCurve = (this.UpperBound - this.EdgeFalloff);
+                    double upperCurve = (this.UpperBound + this.EdgeFalloff);
                     alpha = NoiseMath.SCurve3((controlValue - lowerCurve) / (upperCurve - lowerCurve));
-                    return NoiseMath.Linear(SourceModules[1].GetValue(x, y, z),
-                      SourceModules[0].GetValue(x, y, z),
+                    return NoiseMath.Linear(this.SourceModules[1].GetValue(x, y, z),
+                      this.SourceModules[0].GetValue(x, y, z),
                       alpha);
                 }
                 else
                 {
                     // Output value from the control module is above the selector threshold;
                     // return the output value from the first source module.
-                    return SourceModules[0].GetValue(x, y, z);
+                    return this.SourceModules[0].GetValue(x, y, z);
                 }
             }
             else
             {
-                if (controlValue < LowerBound || controlValue > UpperBound)
-                    return SourceModules[0].GetValue(x, y, z);
+                if(controlValue < this.LowerBound || controlValue > this.UpperBound)
+                {
+                    return this.SourceModules[0].GetValue(x, y, z);
+                }
                 else
-                    return SourceModules[1].GetValue(x, y, z);
+                {
+                    return this.SourceModules[1].GetValue(x, y, z);
+                }
             }
         }
     }

@@ -36,7 +36,7 @@ namespace SharpNoise.Models
         /// values.</param>
         public Sphere(Module sourceModule)
         {
-            Source = sourceModule;
+            this.Source = sourceModule;
         }
 
         /// <summary>
@@ -56,9 +56,8 @@ namespace SharpNoise.Models
         /// </remarks>
         public double GetValue(double lat, double lon)
         {
-            double x, y, z;
-            NoiseMath.LatLonToXYZ(lat, lon, out x, out y, out z);
-            return Source.GetValue(x, y, z);
+            NoiseMath.LatLonToXYZ(lat, lon, out double x, out double y, out double z);
+            return this.Source.GetValue(x, y, z);
         }
     }
 }

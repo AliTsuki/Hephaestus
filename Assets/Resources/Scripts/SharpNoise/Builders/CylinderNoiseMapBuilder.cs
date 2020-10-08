@@ -1,8 +1,8 @@
-﻿using System;
+﻿using SharpNoise.Models;
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using SharpNoise.Models;
 
 namespace SharpNoise.Builders
 {
@@ -64,51 +64,55 @@ namespace SharpNoise.Builders
         /// </remarks>
         public void SetBounds(double lowerAngleBound, double upperAngleBound, double lowerHeightBound, double upperHeightBound)
         {
-            if (lowerAngleBound >= upperAngleBound ||
+            if(lowerAngleBound >= upperAngleBound ||
                 lowerHeightBound >= upperHeightBound)
+            {
                 throw new ArgumentException("Lower bounds must be less than upper bounds.");
+            }
 
-            LowerAngleBound = lowerAngleBound;
-            UpperAngleBound = upperAngleBound;
-            LowerHeightBound = lowerHeightBound;
-            UpperHeightBound = upperHeightBound;
+            this.LowerAngleBound = lowerAngleBound;
+            this.UpperAngleBound = upperAngleBound;
+            this.LowerHeightBound = lowerHeightBound;
+            this.UpperHeightBound = upperHeightBound;
         }
 
         protected override void PrepareBuild()
         {
-            if (LowerAngleBound >= UpperAngleBound ||
-                LowerHeightBound >= UpperHeightBound ||
-                destWidth <= 0 ||
-                destHeight <= 0 ||
-                SourceModule == null ||
-                DestNoiseMap == null)
+            if(this.LowerAngleBound >= this.UpperAngleBound ||
+                this.LowerHeightBound >= this.UpperHeightBound ||
+                this.destWidth <= 0 ||
+                this.destHeight <= 0 ||
+                this.SourceModule == null ||
+                this.DestNoiseMap == null)
+            {
                 throw new InvalidOperationException("Builder isn't properly set up.");
+            }
 
-            DestNoiseMap.SetSize(destHeight, destWidth);
+            this.DestNoiseMap.SetSize(this.destHeight, this.destWidth);
         }
 
         protected override void BuildImpl(CancellationToken cancellationToken)
         {
-            Cylinder cylinderModel = new Cylinder(SourceModule);
+            Cylinder cylinderModel = new Cylinder(this.SourceModule);
 
-            var angleExtent = UpperAngleBound - LowerAngleBound;
-            var heightExtent = UpperHeightBound - LowerHeightBound;
-            var xDelta = angleExtent / destWidth;
-            var yDelta = heightExtent / destHeight;
-            var curAngle = LowerAngleBound;
-            var curHeight = LowerHeightBound;
+            double angleExtent = this.UpperAngleBound - this.LowerAngleBound;
+            double heightExtent = this.UpperHeightBound - this.LowerHeightBound;
+            double xDelta = angleExtent / this.destWidth;
+            double yDelta = heightExtent / this.destHeight;
+            double curAngle = this.LowerAngleBound;
+            double curHeight = this.LowerHeightBound;
 
-            var po = new ParallelOptions()
+            ParallelOptions po = new ParallelOptions()
             {
                 CancellationToken = cancellationToken,
             };
 
-            Parallel.For(0, destHeight, po, y =>
+            Parallel.For(0, this.destHeight, po, y =>
             {
-                for (var x = 0; x < destWidth; x++)
+                for(int x = 0; x < this.destWidth; x++)
                 {
-                    var curValue = (float)cylinderModel.GetValue(curAngle, curHeight);
-                    DestNoiseMap[x, y] = curValue;
+                    float curValue = (float)cylinderModel.GetValue(curAngle, curHeight);
+                    this.DestNoiseMap[x, y] = curValue;
                     curAngle += xDelta;
                 }
                 curHeight += yDelta;

@@ -30,8 +30,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -71,9 +71,9 @@ namespace SharpNoise.Modules
         /// </remarks>
         public void SetTranslation(double translation)
         {
-            XTranslation = translation;
-            YTranslation = translation;
-            ZTranslation = translation;
+            this.XTranslation = translation;
+            this.YTranslation = translation;
+            this.ZTranslation = translation;
         }
 
         /// <summary>
@@ -89,9 +89,9 @@ namespace SharpNoise.Modules
         /// </remarks>
         public void SetTranslation(double xTranslation, double yTranslation, double zTranslation)
         {
-            XTranslation = xTranslation;
-            YTranslation = yTranslation;
-            ZTranslation = zTranslation;
+            this.XTranslation = xTranslation;
+            this.YTranslation = yTranslation;
+            this.ZTranslation = zTranslation;
         }
 
         /// <summary>
@@ -104,10 +104,10 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            return SourceModules[0].GetValue(
-                x + XTranslation,
-                y + YTranslation,
-                z + ZTranslation);
+            return this.SourceModules[0].GetValue(
+                x + this.XTranslation,
+                y + this.YTranslation,
+                z + this.ZTranslation);
         }
     }
 }

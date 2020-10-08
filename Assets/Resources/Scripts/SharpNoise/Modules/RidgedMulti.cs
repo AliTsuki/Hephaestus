@@ -117,11 +117,11 @@ namespace SharpNoise.Modules
         /// </remarks>
         public double Lacunarity
         {
-            get { return lacunarity; }
+            get { return this.lacunarity; }
             set
             {
-                lacunarity = value;
-                CalcSpectralWeights();
+                this.lacunarity = value;
+                this.CalcSpectralWeights();
             }
         }
 
@@ -140,12 +140,15 @@ namespace SharpNoise.Modules
         /// </remarks>
         public int OctaveCount
         {
-            get { return octaves; }
+            get { return this.octaves; }
             set
             {
-                if (value > MaxOctaves)
+                if(value > MaxOctaves)
+                {
                     throw new ArgumentException("Octave count cannot be greater than MaxOctaves");
-                octaves = value;
+                }
+
+                this.octaves = value;
             }
         }
 
@@ -155,9 +158,9 @@ namespace SharpNoise.Modules
         /// </summary>
         public int Seed { get; set; } = DefaultSeed;
 
-        double[] spectralWeights;
-        double lacunarity;
-        int octaves;
+        private double[] spectralWeights;
+        private double lacunarity;
+        private int octaves;
 
         /// <summary>
         /// Constructor.
@@ -165,8 +168,8 @@ namespace SharpNoise.Modules
         public RidgedMulti()
             : base(0)
         {
-            Lacunarity = DefaultLacunarity;
-            OctaveCount = DefaultOctaveCount;
+            this.Lacunarity = DefaultLacunarity;
+            this.OctaveCount = DefaultOctaveCount;
         }
 
         /// <summary>
@@ -178,14 +181,14 @@ namespace SharpNoise.Modules
             // future version of libnoise.
             double h = 1.0;
 
-            spectralWeights = new double[MaxOctaves];
+            this.spectralWeights = new double[MaxOctaves];
 
             double frequency = 1.0;
-            for (var i = 0; i < MaxOctaves; i++)
+            for(int i = 0; i < MaxOctaves; i++)
             {
                 // Compute weight for each frequency.
-                spectralWeights[i] = Math.Pow(frequency, -h);
-                frequency *= Lacunarity;
+                this.spectralWeights[i] = Math.Pow(frequency, -h);
+                frequency *= this.Lacunarity;
             }
         }
 
@@ -194,9 +197,9 @@ namespace SharpNoise.Modules
         // And ported over to C# by me!
         public override double GetValue(double x, double y, double z)
         {
-            x *= Frequency;
-            y *= Frequency;
-            z *= Frequency;
+            x *= this.Frequency;
+            y *= this.Frequency;
+            z *= this.Frequency;
 
             double signal = 0.0;
             double value = 0.0;
@@ -207,11 +210,11 @@ namespace SharpNoise.Modules
             double offset = 1.0;
             double gain = 2.0;
 
-            for (var curOctave = 0; curOctave < OctaveCount; curOctave++)
+            for(int curOctave = 0; curOctave < this.OctaveCount; curOctave++)
             {
                 // Get the coherent-noise value.
-                int seed = (Seed + curOctave) & 0x7fffffff;
-                signal = NoiseGenerator.GradientCoherentNoise3D(x, y, z, seed, Quality);
+                int seed = (this.Seed + curOctave) & 0x7fffffff;
+                signal = NoiseGenerator.GradientCoherentNoise3D(x, y, z, seed, this.Quality);
 
                 // Make the ridges.
                 signal = offset - Math.Abs(signal);
@@ -226,18 +229,23 @@ namespace SharpNoise.Modules
 
                 // Weight successive contributions by the previous signal.
                 weight = signal * gain;
-                if (weight > 1.0)
+                if(weight > 1.0)
+                {
                     weight = 1.0;
-                if (weight < 0.0)
+                }
+
+                if(weight < 0.0)
+                {
                     weight = 0.0;
+                }
 
                 // Add the signal to the output value.
-                value += (signal * spectralWeights[curOctave]);
+                value += (signal * this.spectralWeights[curOctave]);
 
                 // Go to the next octave.
-                x *= Lacunarity;
-                y *= Lacunarity;
-                z *= Lacunarity;
+                x *= this.Lacunarity;
+                y *= this.Lacunarity;
+                z *= this.Lacunarity;
             }
 
             return (value * 1.25) - 1.0;

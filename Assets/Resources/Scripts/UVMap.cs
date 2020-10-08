@@ -2,38 +2,41 @@
 
 using UnityEngine;
 
-// Class for creating UVMap
-public class UVMap
+namespace OLD
 {
-    // UVMap fields
-    public static List<UVMap> Maps = new List<UVMap>();
-    public string Name;
-    public Vector2[] UVMaps;
-
-    // UVMap constructor
-    public UVMap(string _name, Vector2[] _uvMap)
+    // Class for creating UVMap
+    public class UVMap
     {
-        this.Name = _name;
-        this.UVMaps = _uvMap;
-    }
+        // UVMap fields
+        public static List<UVMap> Maps = new List<UVMap>();
+        public string Name;
+        public Vector2[] UVMaps;
 
-    // Register UVMaps
-    public void Register()
-    {
-        Maps.Add(this);
-    }
-
-    // Get UVMap
-    public static UVMap GetUVMap(string _name)
-    {
-        foreach(UVMap map in Maps)
+        // UVMap constructor
+        public UVMap(string _name, Vector2[] _uvMap)
         {
-            if(map.Name.Equals(_name))
-            {
-                return map;
-            }
+            this.Name = _name;
+            this.UVMaps = _uvMap;
         }
-        Debug.Log($@"{GameManager.Time}: Can't find associated image: {_name}");
-        throw new System.Exception($@"Can't find UVMap for {_name}");
+
+        // Register UVMaps
+        public void Register()
+        {
+            Maps.Add(this);
+        }
+
+        // Get UVMap
+        public static UVMap GetUVMap(string _name)
+        {
+            foreach(UVMap map in Maps)
+            {
+                if(map.Name.Equals(_name))
+                {
+                    return map;
+                }
+            }
+            Debug.Log($@"{GameManager.Time}: Can't find associated image: {_name}");
+            throw new System.Exception($@"Can't find UVMap for {_name}");
+        }
     }
 }

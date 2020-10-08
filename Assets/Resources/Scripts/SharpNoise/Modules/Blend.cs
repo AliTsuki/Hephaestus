@@ -53,8 +53,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -62,8 +62,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source1
         {
-            get { return SourceModules[1]; }
-            set { SourceModules[1] = value; }
+            get { return this.SourceModules[1]; }
+            set { this.SourceModules[1] = value; }
         }
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Control
         {
-            get { return SourceModules[2]; }
-            set { SourceModules[2] = value; }
+            get { return this.SourceModules[2]; }
+            set { this.SourceModules[2] = value; }
         }
 
         /// <summary>
@@ -94,9 +94,9 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            var v0 = SourceModules[0].GetValue(x, y, z);
-            var v1 = SourceModules[1].GetValue(x, y, z);
-            var alpha = (SourceModules[2].GetValue(x, y, z) + 1) / 2;
+            double v0 = this.SourceModules[0].GetValue(x, y, z);
+            double v1 = this.SourceModules[1].GetValue(x, y, z);
+            double alpha = (this.SourceModules[2].GetValue(x, y, z) + 1) / 2;
             return NoiseMath.Linear(v0, v1, alpha);
         }
     }

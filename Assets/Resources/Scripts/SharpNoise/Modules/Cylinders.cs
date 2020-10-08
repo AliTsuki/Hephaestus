@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace SharpNoise.Modules
 {
@@ -67,13 +64,13 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            x *= Frequency;
-            z *= Frequency;
+            x *= this.Frequency;
+            z *= this.Frequency;
 
-            var distFromCenter = Math.Sqrt(x * x + z * z);
-            var distFromSmallerSphere = distFromCenter - Math.Floor(distFromCenter);
-            var distFromLargerSphere = 1.0 - distFromSmallerSphere;
-            var nearestDist = Math.Min(distFromSmallerSphere, distFromLargerSphere);
+            double distFromCenter = Math.Sqrt(x * x + z * z);
+            double distFromSmallerSphere = distFromCenter - Math.Floor(distFromCenter);
+            double distFromLargerSphere = 1.0 - distFromSmallerSphere;
+            double nearestDist = Math.Min(distFromSmallerSphere, distFromLargerSphere);
             return 1.0 - (nearestDist * 4.0); // Puts it in the -1.0 to +1.0 range.
         }
     }

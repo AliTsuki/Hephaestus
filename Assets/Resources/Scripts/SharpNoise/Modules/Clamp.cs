@@ -33,9 +33,8 @@ namespace SharpNoise.Modules
         /// Default upper bound of the clamping range
         /// </summary>
         public const double DefaultUpperBound = 1D;
-
-        double lowerBound = DefaultLowerBound;
-        double upperBound = DefaultUpperBound;
+        private double lowerBound = DefaultLowerBound;
+        private double upperBound = DefaultUpperBound;
 
         /// <summary>
         /// Gets the lower bound of the clamping range.
@@ -47,10 +46,10 @@ namespace SharpNoise.Modules
         /// </remarks>
         public double LowerBound
         {
-            get { return lowerBound; }
+            get { return this.lowerBound; }
             set
             {
-                SetBounds(value, upperBound);
+                this.SetBounds(value, this.upperBound);
             }
         }
 
@@ -64,10 +63,10 @@ namespace SharpNoise.Modules
         /// </remarks>
         public double UpperBound
         {
-            get { return upperBound; }
+            get { return this.upperBound; }
             set
             {
-                SetBounds(lowerBound, value);
+                this.SetBounds(this.lowerBound, value);
             }
         }
 
@@ -76,8 +75,8 @@ namespace SharpNoise.Modules
         /// </summary>
         public Module Source0
         {
-            get { return SourceModules[0]; }
-            set { SourceModules[0] = value; }
+            get { return this.SourceModules[0]; }
+            set { this.SourceModules[0] = value; }
         }
 
         /// <summary>
@@ -105,11 +104,13 @@ namespace SharpNoise.Modules
         /// </remarks>
         public void SetBounds(double lower, double upper)
         {
-            if (lower > upper)
+            if(lower > upper)
+            {
                 throw new InvalidOperationException("lower cannot be greater than upper.");
+            }
 
-            lowerBound = lower;
-            upperBound = upper;
+            this.lowerBound = lower;
+            this.upperBound = upper;
         }
 
         /// <summary>
@@ -122,7 +123,7 @@ namespace SharpNoise.Modules
         /// <returns>Returns the computed value</returns>
         public override double GetValue(double x, double y, double z)
         {
-            return NoiseMath.Clamp(SourceModules[0].GetValue(x, y, z), LowerBound, UpperBound);
+            return NoiseMath.Clamp(this.SourceModules[0].GetValue(x, y, z), this.LowerBound, this.UpperBound);
         }
     }
 }

@@ -44,10 +44,10 @@ namespace SharpNoise
         /// </remarks>
         public static double Cubic(double n0, double n1, double n2, double n3, double a)
         {
-            var p = (n3 - n2) - (n0 - n1);
-            var q = (n0 - n1) - p;
-            var r = n2 - n0;
-            var s = n1;
+            double p = (n3 - n2) - (n0 - n1);
+            double q = (n0 - n1) - p;
+            double r = n2 - n0;
+            double s = n1;
             return (p * a * a * a) + (q * a * a * a) + (r * a) + s;
         }
 
@@ -157,9 +157,9 @@ namespace SharpNoise
         /// </remarks>
         public static double SCurve5(double a)
         {
-            var a3 = a * a * a;
-            var a4 = a3 * a;
-            var a5 = a4 * a;
+            double a3 = a * a * a;
+            double a4 = a3 * a;
+            double a5 = a4 * a;
             return (6.0 * a5) - (15.0 * a4) + (10.0 * a3);
         }
 
@@ -178,7 +178,7 @@ namespace SharpNoise
         /// </remarks>
         public static void LatLonToXYZ(double lat, double lon, out double x, out double y, out double z)
         {
-            var r = Math.Cos(DegToRad * lat);
+            double r = Math.Cos(DegToRad * lat);
             x = r * Math.Cos(DegToRad * lon);
             y = Math.Sin(DegToRad * lat);
             z = r * Math.Sin(DegToRad * lon);
@@ -223,7 +223,7 @@ namespace SharpNoise
         /// <param name="b">A variable containing the second value.</param>
         public static void Swap<T>(ref T a, ref T b)
         {
-            var c = a;
+            T c = a;
             a = b;
             b = c;
         }

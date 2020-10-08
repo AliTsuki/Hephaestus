@@ -44,9 +44,9 @@ namespace SharpNoise
         /// <summary>
         /// Gets a value indicating whether the Cube is empty
         /// </summary>
-        public bool IsEmpty { get { return values == null; } }
+        public bool IsEmpty { get { return this.values == null; } }
 
-        float[] values;
+        private float[] values;
 
         public NoiseCube()
         {
@@ -54,7 +54,7 @@ namespace SharpNoise
 
         public NoiseCube(int width, int height, int depth)
         {
-            SetSize(width, height, depth);
+            this.SetSize(width, height, depth);
         }
 
         /// <summary>
@@ -63,12 +63,14 @@ namespace SharpNoise
         /// <param name="other">The NoiseCube to copy</param>
         public NoiseCube(NoiseCube other)
         {
-            if (other == null)
+            if(other == null)
+            {
                 throw new ArgumentNullException("other");
+            }
 
-            SetSize(other.Width, other.Height, other.Depth);
-            other.values.CopyTo(values, 0);
-            BorderValue = other.BorderValue;
+            this.SetSize(other.Width, other.Height, other.Depth);
+            other.values.CopyTo(this.values, 0);
+            this.BorderValue = other.BorderValue;
         }
 
         /// <summary>
@@ -76,11 +78,11 @@ namespace SharpNoise
         /// </summary>
         public void ResetCube()
         {
-            values = null;
-            Width = 0;
-            Height = 0;
-            Depth = 0;
-            BorderValue = 0;
+            this.values = null;
+            this.Width = 0;
+            this.Height = 0;
+            this.Depth = 0;
+            this.BorderValue = 0;
         }
 
         /// <summary>
@@ -91,11 +93,15 @@ namespace SharpNoise
         /// </param>
         public void Clear(float value)
         {
-            if (values == null)
+            if(this.values == null)
+            {
                 return;
+            }
 
-            for (var i = 0; i < values.Length; i++)
-                values[i] = value;
+            for(int i = 0; i < this.values.Length; i++)
+            {
+                this.values[i] = value;
+            }
         }
 
         /// <summary>
@@ -109,19 +115,21 @@ namespace SharpNoise
         /// </remarks>
         public void SetSize(int width, int height, int depth)
         {
-            if (width < 0 || height < 0 || depth < 0)
-                throw new ArgumentException("width, height and depth cannot be less than 0.");
-
-            if (width == 0 || height == 0 || depth == 0)
+            if(width < 0 || height < 0 || depth < 0)
             {
-                ResetCube();
+                throw new ArgumentException("width, height and depth cannot be less than 0.");
+            }
+
+            if(width == 0 || height == 0 || depth == 0)
+            {
+                this.ResetCube();
             }
             else
             {
-                values = new float[width * height * depth];
-                Width = width;
-                Height = height;
-                Depth = depth;
+                this.values = new float[width * height * depth];
+                this.Width = width;
+                this.Height = height;
+                this.Depth = depth;
             }
         }
 
@@ -137,13 +145,13 @@ namespace SharpNoise
         /// </remarks>
         public float this[int x, int y, int z]
         {
-            get { return GetValue(x, y, z); }
-            set { SetValue(x, y, z, value); }
+            get { return this.GetValue(x, y, z); }
+            set { this.SetValue(x, y, z, value); }
         }
 
-        int GetIndex(int x, int y, int z)
+        private int GetIndex(int x, int y, int z)
         {
-            return x + Width * y + Width * Height * z;
+            return x + this.Width * y + this.Width * this.Height * z;
         }
 
         /// <summary>
@@ -159,15 +167,15 @@ namespace SharpNoise
         /// </remarks>
         public float GetValue(int x, int y, int z)
         {
-            if (values != null)
+            if(this.values != null)
             {
-                if (x >= 0 && x < Width && y >= 0 && y < Height && z >= 0 && z < Depth)
+                if(x >= 0 && x < this.Width && y >= 0 && y < this.Height && z >= 0 && z < this.Depth)
                 {
-                    return values[GetIndex(x, y, z)];
+                    return this.values[this.GetIndex(x, y, z)];
                 }
             }
 
-            return BorderValue;
+            return this.BorderValue;
         }
 
         /// <summary>
@@ -183,11 +191,11 @@ namespace SharpNoise
         /// </remarks>
         public void SetValue(int x, int y, int z, float value)
         {
-            if (values != null)
+            if(this.values != null)
             {
-                if (x >= 0 && x < Width && y >= 0 && y < Height && z >= 0 && z < Depth)
+                if(x >= 0 && x < this.Width && y >= 0 && y < this.Height && z >= 0 && z < this.Depth)
                 {
-                    values[GetIndex(x, y, z)] = value;
+                    this.values[this.GetIndex(x, y, z)] = value;
                 }
             }
         }
@@ -206,7 +214,7 @@ namespace SharpNoise
         /// <returns>The new NoiseCube</returns>
         public static NoiseCube TrilinearFilter(NoiseCube src, int width, int height, int depth, bool clamp = false)
         {
-            var dest = new NoiseCube(width, height, depth);
+            NoiseCube dest = new NoiseCube(width, height, depth);
 
             float xratio = (float)src.Width / dest.Width;
             float yratio = (float)src.Height / dest.Height;
@@ -214,8 +222,9 @@ namespace SharpNoise
 
             Parallel.For(0, dest.Depth, z =>
             {
-                for (int y = 0; y < dest.Height; ++y)
-                    for (int x = 0; x < dest.Width; ++x)
+                for(int y = 0; y < dest.Height; ++y)
+                {
+                    for(int x = 0; x < dest.Width; ++x)
                     {
                         float u = (x + 0.5f) * xratio - 0.5f;
                         float v = (y + 0.5f) * yratio - 0.5f;
@@ -232,7 +241,7 @@ namespace SharpNoise
                         float yf = v - y0;
                         float zf = w - z0;
 
-                        if (clamp)
+                        if(clamp)
                         {
                             x0 = NoiseMath.Clamp(x0, 0, src.Width - 1);
                             x1 = NoiseMath.Clamp(x1, 0, src.Width - 1);
@@ -256,6 +265,7 @@ namespace SharpNoise
 
                         dest.SetValue(x, y, z, val);
                     }
+                }
             });
 
             return dest;

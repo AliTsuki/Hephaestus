@@ -1,8 +1,7 @@
-﻿using System;
+﻿using SharpNoise.Modules;
+
 using System.Threading;
 using System.Threading.Tasks;
-
-using SharpNoise.Modules;
 
 namespace SharpNoise.Builders
 {
@@ -59,9 +58,9 @@ namespace SharpNoise.Builders
         /// </remarks>
         public void SetDestSize(int width, int height, int depth)
         {
-            destWidth = width;
-            destHeight = height;
-            destDepth = depth;
+            this.destWidth = width;
+            this.destHeight = height;
+            this.destDepth = depth;
         }
 
         protected abstract void PrepareBuild();
@@ -78,7 +77,7 @@ namespace SharpNoise.Builders
         /// </remarks>
         public void Build()
         {
-            Build(CancellationToken.None);
+            this.Build(CancellationToken.None);
         }
 
         /// <summary>
@@ -92,9 +91,9 @@ namespace SharpNoise.Builders
         /// </remarks>
         public void Build(CancellationToken cancellationToken)
         {
-            PrepareBuild();
+            this.PrepareBuild();
 
-            BuildImpl(cancellationToken);
+            this.BuildImpl(cancellationToken);
         }
 
         /// <summary>
@@ -108,9 +107,9 @@ namespace SharpNoise.Builders
         /// </remarks>
         public async Task BuildAsync(CancellationToken cancellationToken)
         {
-            PrepareBuild();
+            this.PrepareBuild();
 
-            await Task.Factory.StartNew(() => BuildImpl(cancellationToken), cancellationToken,
+            await Task.Factory.StartNew(() => this.BuildImpl(cancellationToken), cancellationToken,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
     }
