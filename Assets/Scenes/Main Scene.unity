@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.46030375, g: 0.2942271, b: 0.21838012, a: 1}
+  m_IndirectSpecularColor: {r: 0.46101686, g: 0.29461238, b: 0.21837917, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -310,7 +310,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 732771b1fe756b744bf94215a3ed1808, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerPrefab: {fileID: 5986110754849357676, guid: 9aa2f1afb1c699542b99ae7962201f25,
+  PlayerPrefab: {fileID: 4188545217290523495, guid: eaa9b06ab7c23f043916a1bf8e262250,
     type: 3}
   PlayerParent: {fileID: 1054481085}
   Player: {fileID: 0}
@@ -320,7 +320,7 @@ MonoBehaviour:
   ChunkParentTransform: {fileID: 0}
   ChunkMaterial: {fileID: 2100000, guid: cfdd9fa8541fa4949acb178d549eaa53, type: 2}
   ChunkSize: 16
-  StartingChunkRadius: 5
+  StartingChunkRadius: 2
   Seed: 0
   NoiseType: 3
   FractalType: 1

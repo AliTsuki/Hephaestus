@@ -15,9 +15,9 @@ public static class Extensions
     {
         Vector3Int worldPos = new Vector3Int
         {
-            x = (chunkPos.x * GameManager.Instance.ChunkSize) + (GameManager.Instance.ChunkSize / 2),
-            y = (chunkPos.y * GameManager.Instance.ChunkSize) + (GameManager.Instance.ChunkSize / 2),
-            z = (chunkPos.z * GameManager.Instance.ChunkSize) + (GameManager.Instance.ChunkSize / 2)
+            x = chunkPos.x * GameManager.Instance.ChunkSize,
+            y = chunkPos.y * GameManager.Instance.ChunkSize,
+            z = chunkPos.z * GameManager.Instance.ChunkSize
         };
         return worldPos;
     }

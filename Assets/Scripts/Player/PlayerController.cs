@@ -32,9 +32,9 @@ public class PlayerController : MonoBehaviour
     public float JumpLateMarginTime = 0.1f;
     public float AirMoveSpeed = 0.2f;
     public float CollisionCheckDistance = 0.15f;
-    private bool isGrounded = false;
-    private bool isHeadColliding = false;
-    private float timeSinceLastGrounded = 0.0f;
+    public bool isGrounded = false;
+    public bool isHeadColliding = false;
+    public float timeSinceLastGrounded = 0.0f;
     private MovementModes currentMoveMode = MovementModes.Normal;
     private Vector3 horizontalMoveInput;
     private float verticalMoveInput = 0.0f;
