@@ -85,6 +85,7 @@ public class Chunk
     /// <summary>
     /// Creates a mesh by first clearing any existing mesh data then looping through all blocks in the chunk and creating a mesh from the visible faces.
     /// </summary>
+    /// <param name="shouldUpdateNeighbors">Should this chunk update neighbor mesh data after updating its own?</param>
     public void GenerateMeshData()
     {
         this.ClearMeshData();
@@ -100,6 +101,11 @@ public class Chunk
             }
         }
         this.HasGeneratedMeshData = true;
+        //if(shouldUpdateNeighbors == true)
+        //{
+        //    this.AssignMesh();
+        //    World.UpdateAllNeighborChunks(this.ChunkPos);
+        //}
     }
 
     /// <summary>
@@ -136,7 +142,10 @@ public class Chunk
     /// </summary>
     public void GenerateChunkGameObject()
     {
-        this.ChunkGO = new GameObject($@"Chunk: {this.ChunkPos}");
+        this.ChunkGO = new GameObject($@"Chunk: {this.ChunkPos}")
+        {
+            layer = GameManager.Instance.LevelGeometryLayerMask
+        };
         this.ChunkGO.transform.position = this.ChunkPos.ChunkPosToWorldPos();
         this.ChunkGO.transform.parent = GameManager.Instance.ChunkParentTransform;
         this.meshFilter = this.ChunkGO.AddComponent<MeshFilter>();
@@ -156,5 +165,14 @@ public class Chunk
         this.meshFilter.mesh = mesh;
         this.meshCollider.sharedMesh = mesh;
         this.HasAssignedMesh = true;
+    }
+
+    /// <summary>
+    /// Called when the chunk is being destroyed.
+    /// </summary>
+    public void Degenerate()
+    {
+        // TODO: Degenerate Chunk, save info if chunk was modified
+        GameObject.Destroy(this.ChunkGO);
     }
 }

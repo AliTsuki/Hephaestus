@@ -24,16 +24,19 @@ public class GameManagerEditor : Editor
     {
         this.serializedObject.Update();
 		GUIStyle BoldCenteredStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, };
+		// Player Settings
+		EditorGUILayout.LabelField("Player Settings", BoldCenteredStyle);
 		this.gm.PlayerPrefab = (GameObject)EditorGUILayout.ObjectField("Player Prefab:", this.gm.PlayerPrefab, typeof(GameObject), false);
 		this.gm.PlayerParent = (Transform)EditorGUILayout.ObjectField("Player Parent:", this.gm.PlayerParent, typeof(Transform), true);
-		this.gm.LevelGeometryLayerMask = EditorGUILayout.LayerField("Level Geometry Layer Mask:", this.gm.LevelGeometryLayerMask);
 
-		// Chunk Data
+		// Chunk Settings
 		EditorGUILayout.Space();
 		EditorGUILayout.LabelField("Chunk Settings", BoldCenteredStyle);
+		this.gm.LevelGeometryLayerMask = EditorGUILayout.LayerField("Level Geometry Layer Mask:", this.gm.LevelGeometryLayerMask);
 		this.gm.ChunkMaterial = (Material)EditorGUILayout.ObjectField("Chunk Material:", this.gm.ChunkMaterial, typeof(Material), false);
 		this.gm.ChunkSize = EditorGUILayout.IntField("Chunk Size:", this.gm.ChunkSize);
-		this.gm.StartingChunkRadius = EditorGUILayout.IntField("Starting Chunk Area:", this.gm.StartingChunkRadius);
+		this.gm.StartingChunkRadius = EditorGUILayout.IntField("Starting Chunk Radius:", this.gm.StartingChunkRadius);
+		this.gm.ActiveChunkRadius = EditorGUILayout.IntField("Active Chunk Radius:", this.gm.ActiveChunkRadius);
 		this.gm.CutoffValue = EditorGUILayout.FloatField("Terrain Cutoff:", this.gm.CutoffValue);
 
 		// Noise Settings

@@ -128,5 +128,6 @@ public static class Logger
         string time = $@"{DateTime.Now:[MM/dd/yyyy HH:mm:ss]}";
         Debug.Log($@"{error}");
         MainLogText.Add($@"{time} - {error}");
+        WriteLogToFile();
     }
 }

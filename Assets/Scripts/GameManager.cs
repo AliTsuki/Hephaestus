@@ -11,20 +11,22 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public static GameManager Instance { get; private set; }
 
-    public GameObject PlayerPrefab;
-    public Transform PlayerParent;
+    /// <summary>
+    /// The current active player.
+    /// </summary>
     public Player Player;
+    /// <summary>
+    /// The prefab to instantiate for the player character.
+    /// </summary>
+    public GameObject PlayerPrefab;
+    /// <summary>
+    /// The parent transform to put the player under.
+    /// </summary>
+    public Transform PlayerParent;
+    /// <summary>
+    /// The layer that the game world geometry is on.
+    /// </summary>
     public LayerMask LevelGeometryLayerMask;
-
-    // Height
-    public const float DefaultCharacterHeight = 1.8f;
-    public const float CrouchCharacterHeight = 0.9f;
-    public const float CrouchRate = 0.1f;
-
-    // FOV
-    public const float SprintFOV = 70f;
-    public const float DefaultFOV = 60f;
-    public const float ADSFOV = 40f;
 
     /// <summary>
     /// The transform to act as parent for all the chunks.
@@ -42,6 +44,10 @@ public class GameManager : MonoBehaviour
     /// The amount of chunks generated for the starting area is this value doubled minus 1 then cubed.
     /// </summary>
     public int StartingChunkRadius = 3;
+    /// <summary>
+    /// The radius of chunks to generate continously as the player explores the world.
+    /// </summary>
+    public int ActiveChunkRadius = 3;
 
     /// <summary>
     /// The noise generator for the terrain.
@@ -84,6 +90,28 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public float CutoffValue = 0.5f;
 
+    /// <summary>
+    /// The default player character height.
+    /// </summary>
+    public const float DefaultCharacterHeight = 1.8f;
+    /// <summary>
+    /// The player character height while crouching.
+    /// </summary>
+    public const float CrouchCharacterHeight = 0.9f;
+    /// <summary>
+    /// The rate to lerp from default height to crouching height for the player.
+    /// </summary>
+    public const float CrouchRate = 0.1f;
+
+    /// <summary>
+    /// The field of view of the camera while sprinting.
+    /// </summary>
+    public const float SprintFOV = 70f;
+    /// <summary>
+    /// The default field of view for the camera.
+    /// </summary>
+    public const float DefaultFOV = 60f;
+
 
     // Awake is called when the script instance is being loaded.
     private void Awake()
@@ -109,7 +137,7 @@ public class GameManager : MonoBehaviour
     // Fixed update is called a fixed number of times per second.
     private void FixedUpdate()
     {
-        
+        Logger.WriteLogToFile();
     }
 
     // OnApplicationQuit is called before the application is quit.

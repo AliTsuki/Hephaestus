@@ -188,10 +188,10 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void CheckCollisions()
     {
-        this.isGrounded = Physics.CheckSphere(this.GroundCheck.position, this.CollisionCheckDistance, GameManager.Instance.LevelGeometryLayerMask);
+        this.isGrounded = Physics.CheckSphere(this.GroundCheck.position, this.CollisionCheckDistance, 1<<GameManager.Instance.LevelGeometryLayerMask);
         if(this.isGrounded == false)
         {
-            this.isHeadColliding = Physics.CheckSphere(this.HeadCheck.position, this.CollisionCheckDistance, GameManager.Instance.LevelGeometryLayerMask);
+            this.isHeadColliding = Physics.CheckSphere(this.HeadCheck.position, this.CollisionCheckDistance, 1<<GameManager.Instance.LevelGeometryLayerMask);
         }
         else
         {
@@ -352,19 +352,20 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void ModifyCollider()
     {
+        this.cController.center = new Vector3(0, this.cController.height / 2f, 0);
         if(this.currentMoveMode == MovementModes.Crouch)
         {
             this.cController.height = Mathf.Lerp(this.cController.height, GameManager.CrouchCharacterHeight, GameManager.CrouchRate);
-            this.CamTransform.localPosition = new Vector3(0f, (this.cController.height / 2f) - 0.2f, 0f);
-            this.GroundCheck.localPosition = new Vector3(0f, -((this.cController.height / 2f) - 0.05f), 0f);
-            this.HeadCheck.localPosition = new Vector3(0f, (this.cController.height / 2f) - 0.05f, 0f);
+            this.CamTransform.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.3f, 0f);
+            this.GroundCheck.localPosition = new Vector3(0f, -(this.cController.height / 2f) + this.cController.center.y + 0.05f, 0f);
+            this.HeadCheck.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.05f, 0f);
         }
         else
         {
             this.cController.height = Mathf.Lerp(this.cController.height, GameManager.DefaultCharacterHeight, GameManager.CrouchRate);
-            this.CamTransform.localPosition = new Vector3(0f, (this.cController.height / 2f) - 0.2f, 0f);
-            this.GroundCheck.localPosition = new Vector3(0f, -((this.cController.height / 2f) - 0.05f), 0f);
-            this.HeadCheck.localPosition = new Vector3(0f, (this.cController.height / 2f) - 0.05f, 0f);
+            this.CamTransform.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.3f, 0f);
+            this.GroundCheck.localPosition = new Vector3(0f, -(this.cController.height / 2f) + this.cController.center.y + 0.05f, 0f);
+            this.HeadCheck.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.05f, 0f);
         }
     }
 
