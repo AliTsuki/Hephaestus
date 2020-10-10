@@ -51,6 +51,13 @@ public class PlayerController : MonoBehaviour
     private float xRotation = 0f;
     private Vector2 aimInput;
     private Vector2 aimDelta;
+    
+    // Block selection
+    public GameObject BlockSelectorGO;
+    private Vector3Int currentBlockSelectedPos = new Vector3Int();
+    private float blockSelectionMaxDistance = 4f;
+    private bool isBlockSelected;
+    private RaycastHit blockSelectorHit;
 
     // References
     private CharacterController cController;
@@ -94,6 +101,7 @@ public class PlayerController : MonoBehaviour
         this.ApplyMovement();
         this.ModifyCollider();
         this.ModifyFOV();
+        this.UpdateBlockSelection();
     }
 
     // OnTriggerEnter is called when the collider enters a trigger collider.
@@ -115,6 +123,7 @@ public class PlayerController : MonoBehaviour
     {
         this.cController = this.GetComponent<CharacterController>();
         this.player = this.GetComponent<Player>();
+        this.BlockSelectorGO = GameObject.Instantiate(GameManager.Instance.BlockSelectorPrefab);
         this.Controls = new PlayerControls();
         this.Controls.Gameplay.Move.performed += this.Move_performed;
         this.Controls.Gameplay.Move.canceled += this.Move_canceled;
@@ -253,7 +262,14 @@ public class PlayerController : MonoBehaviour
     {
         if(leftClickDown == true)
         {
-            
+            if(this.isBlockSelected == true)
+            {
+                Vector3Int blockSelectedPos = this.currentBlockSelectedPos;
+                if(World.TryGetBlockFromWorldPos(blockSelectedPos, out Block block) == true)
+                {
+                    Logger.Log($@"Attempting to break block. HIT:{this.blockSelectorHit.point}:{this.blockSelectorHit.normal} Rounded to {blockSelectedPos}, type: {block.BlockName}");
+                }
+            }
         }
         else
         {
@@ -381,6 +397,22 @@ public class PlayerController : MonoBehaviour
         else
         {
             this.VCam.m_Lens.FieldOfView = Mathf.Lerp(this.Cam.fieldOfView, GameManager.DefaultFOV, 0.2f);
+        }
+    }
+
+    private void UpdateBlockSelection()
+    {
+        if(Physics.Raycast(new Ray(this.CamTransform.position, this.CamTransform.forward), out this.blockSelectorHit, this.blockSelectionMaxDistance, 1 << GameManager.Instance.LevelGeometryLayerMask))
+        {
+            this.currentBlockSelectedPos = this.blockSelectorHit.point.RoundToInt();
+            this.BlockSelectorGO.SetActive(true);
+            this.BlockSelectorGO.transform.position = this.currentBlockSelectedPos;
+            this.isBlockSelected = true;
+        }
+        else
+        {
+            this.BlockSelectorGO.SetActive(false);
+            this.isBlockSelected = false;
         }
     }
 

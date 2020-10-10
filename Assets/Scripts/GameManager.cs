@@ -20,6 +20,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public GameObject PlayerPrefab;
     /// <summary>
+    /// The prefab for the block selector box.
+    /// </summary>
+    public GameObject BlockSelectorPrefab;
+    /// <summary>
     /// The parent transform to put the player under.
     /// </summary>
     public Transform PlayerParent;

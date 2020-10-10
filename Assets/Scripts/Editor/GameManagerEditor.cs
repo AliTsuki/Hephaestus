@@ -28,6 +28,7 @@ public class GameManagerEditor : Editor
 		EditorGUILayout.LabelField("Player Settings", BoldCenteredStyle);
 		this.gm.PlayerPrefab = (GameObject)EditorGUILayout.ObjectField("Player Prefab:", this.gm.PlayerPrefab, typeof(GameObject), false);
 		this.gm.PlayerParent = (Transform)EditorGUILayout.ObjectField("Player Parent:", this.gm.PlayerParent, typeof(Transform), true);
+		this.gm.BlockSelectorPrefab = (GameObject)EditorGUILayout.ObjectField("Block Selector Prefab:", this.gm.BlockSelectorPrefab, typeof(GameObject), false);
 
 		// Chunk Settings
 		EditorGUILayout.Space();
