@@ -53,9 +53,9 @@ public class PlayerController : MonoBehaviour
     private Vector2 aimDelta;
     
     // Block selection
-    public GameObject BlockSelectorGO;
+    private GameObject BlockSelectorGO;
     private Vector3Int currentBlockSelectedPos = new Vector3Int();
-    private float blockSelectionMaxDistance = 4f;
+    private float blockSelectionMaxDistance = 5f;
     private bool isBlockSelected;
     private RaycastHit blockSelectorHit;
 
@@ -129,10 +129,10 @@ public class PlayerController : MonoBehaviour
         this.Controls.Gameplay.Move.canceled += this.Move_canceled;
         this.Controls.Gameplay.Aim.performed += this.Aim_performed;
         this.Controls.Gameplay.Aim.canceled += this.Aim_canceled;
-        this.Controls.Gameplay.LeftClick.performed += this.LeftClick_performed;
-        this.Controls.Gameplay.LeftClick.canceled += this.LeftClick_canceled;
-        this.Controls.Gameplay.RightClick.performed += this.RightClick_performed;
-        this.Controls.Gameplay.RightClick.canceled += this.RightClick_canceled;
+        this.Controls.Gameplay.Attack.performed += this.Attack_performed;
+        this.Controls.Gameplay.Attack.canceled += this.Attack_canceled;
+        this.Controls.Gameplay.Interact.performed += this.Interact_performed;
+        this.Controls.Gameplay.Interact.canceled += this.Interact_canceled;
         this.Controls.Gameplay.Sprint.performed += this.Sprint_performed;
         this.Controls.Gameplay.Sprint.canceled += this.Sprint_canceled;
         this.Controls.Gameplay.Crouch.performed += this.Crouch_performed;
@@ -140,6 +140,7 @@ public class PlayerController : MonoBehaviour
         this.Controls.Gameplay.Jump.performed += this.Jump_performed;
         this.Controls.Gameplay.ToggleMenu.performed += this.ToggleMenu_performed;
         this.Controls.Gameplay.DEBUGLOCKCURSORTOGGLE.performed += this.DEBUGLOCKCURSORTOGGLE_performed;
+        Cursor.visible = false;
     }
 
     /// <summary>
@@ -257,17 +258,17 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Performs actions on left click.
     /// </summary>
-    /// <param name="leftClickDown">Is left mouse button pressed?</param>
-    private void ApplyLeftClick(bool leftClickDown)
+    /// <param name="AttackDown">Is left mouse button pressed?</param>
+    private void ApplyAttack(bool AttackDown)
     {
-        if(leftClickDown == true)
+        if(AttackDown == true)
         {
             if(this.isBlockSelected == true)
             {
                 Vector3Int blockSelectedPos = this.currentBlockSelectedPos;
                 if(World.TryGetBlockFromWorldPos(blockSelectedPos, out Block block) == true)
                 {
-                    Logger.Log($@"Attempting to break block. HIT:{this.blockSelectorHit.point}:{this.blockSelectorHit.normal} Rounded to {blockSelectedPos}, type: {block.BlockName}");
+                    World.AddBlockUpdateToQueue(new Block.BlockUpdateParameters(blockSelectedPos, Block.Air));
                 }
             }
         }
@@ -280,12 +281,22 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Perfroms actions on right click.
     /// </summary>
-    /// <param name="rightClickDown">Is right mouse button pressed?</param>
-    private void ApplyRightClick(bool rightClickDown)
+    /// <param name="InteractDown">Is right mouse button pressed?</param>
+    private void ApplyInteract(bool InteractDown)
     {
-        if(rightClickDown == true)
+        if(InteractDown == true)
         {
-            
+            if(this.isBlockSelected == true)
+            {
+                Vector3Int blockSelectedPos = this.currentBlockSelectedPos + this.blockSelectorHit.normal.ToInt();
+                if(blockSelectedPos != GameManager.Instance.Player.transform.position.RoundToInt() && blockSelectedPos != GameManager.Instance.Player.transform.position.RoundToInt() + new Vector3Int(0, 1, 0))
+                {
+                    if(World.TryGetBlockFromWorldPos(blockSelectedPos, out _) == true)
+                    {
+                        World.AddBlockUpdateToQueue(new Block.BlockUpdateParameters(blockSelectedPos, Block.Stone));
+                    }
+                }
+            }
         }
         else
         {
@@ -353,6 +364,7 @@ public class PlayerController : MonoBehaviour
         {
             this.captureInput = false;
             Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             this.horizontalMoveInput = Vector3.zero;
             this.aimInput = Vector2.zero;
         }
@@ -360,6 +372,7 @@ public class PlayerController : MonoBehaviour
         {
             this.captureInput = true;
             Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 
@@ -404,7 +417,7 @@ public class PlayerController : MonoBehaviour
     {
         if(Physics.Raycast(new Ray(this.CamTransform.position, this.CamTransform.forward), out this.blockSelectorHit, this.blockSelectionMaxDistance, 1 << GameManager.Instance.LevelGeometryLayerMask))
         {
-            this.currentBlockSelectedPos = this.blockSelectorHit.point.RoundToInt();
+            this.currentBlockSelectedPos = (this.blockSelectorHit.point - (this.blockSelectorHit.normal * 0.5f)).RoundToInt();
             this.BlockSelectorGO.SetActive(true);
             this.BlockSelectorGO.transform.position = this.currentBlockSelectedPos;
             this.isBlockSelected = true;
@@ -449,35 +462,35 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void LeftClick_performed(InputAction.CallbackContext context)
+    private void Attack_performed(InputAction.CallbackContext context)
     {
         if(this.captureInput == true)
         {
-            this.ApplyLeftClick(true);
+            this.ApplyAttack(true);
         }
     }
 
-    private void LeftClick_canceled(InputAction.CallbackContext context)
+    private void Attack_canceled(InputAction.CallbackContext context)
     {
         if(this.captureInput == true)
         {
-            this.ApplyLeftClick(false);
+            this.ApplyAttack(false);
         }
     }
 
-    private void RightClick_performed(InputAction.CallbackContext context)
+    private void Interact_performed(InputAction.CallbackContext context)
     {
         if(this.captureInput == true)
         {
-            this.ApplyRightClick(true);
+            this.ApplyInteract(true);
         }
     }
 
-    private void RightClick_canceled(InputAction.CallbackContext context)
+    private void Interact_canceled(InputAction.CallbackContext context)
     {
         if(this.captureInput == true)
         {
-            this.ApplyRightClick(false);
+            this.ApplyInteract(false);
         }
     }
 

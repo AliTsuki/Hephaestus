@@ -115,11 +115,21 @@ public static class Extensions
     /// <summary>
     /// Converts a Vector3 to a Vector3Int by rounding the x, y, and z using Mathf.RoundToInt on each value.
     /// </summary>
-    /// <param name="input">The Vector3 to convert to a Vector3Int.</param>
+    /// <param name="v3">The Vector3 to convert to a Vector3Int.</param>
     /// <returns>Returns the rounded to integer version of the given Vector3.</returns>
-    public static Vector3Int RoundToInt(this Vector3 input)
+    public static Vector3Int RoundToInt(this Vector3 v3)
     {
-        return new Vector3Int(Mathf.RoundToInt(input.x), Mathf.RoundToInt(input.y), Mathf.RoundToInt(input.z));
+        return new Vector3Int(Mathf.RoundToInt(v3.x), Mathf.RoundToInt(v3.y), Mathf.RoundToInt(v3.z));
+    }
+
+    /// <summary>
+    /// Converts a Vector3 to a Vector3Int by cutting off the decimal value and only keeping the integer portion.
+    /// </summary>
+    /// <param name="v3">The Vector3 to convert to a Vector3Int.</param>
+    /// <returns>Returns the integer portion of the given Vector3.</returns>
+    public static Vector3Int ToInt(this Vector3 v3)
+    {
+        return new Vector3Int((int)v3.x, (int)v3.y, (int)v3.z);
     }
 
     /// <summary>
@@ -131,5 +141,29 @@ public static class Extensions
     public static Vector3 ReorientAlongTransform(this Vector3 v3, Transform transform)
     {
         return (v3.x * transform.right) + (v3.y * transform.up) + (v3.z * transform.forward);
+    }
+
+    public static void Spiral(int X, int Y, int Z)
+    {
+        int x, y, z, dx, dy, dz;
+        x = y = z = dx = 0;
+        dy = -1;
+        int t = Mathf.Max(X, Y, Z);
+        int maxI = t * t * t;
+        for(int i = 0; i < maxI; i++)
+        {
+            if((-X / 2 <= x) && (x <= X / 2) && (-Y / 2 <= y) && (y <= Y / 2) && (-Z / 2 <= y) && (z <= Z / 2))
+            {
+                // DO STUFF...
+            }
+            if((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y)))
+            {
+                t = dx;
+                dx = -dy;
+                dy = t;
+            }
+            x += dx;
+            y += dy;
+        }
     }
 }

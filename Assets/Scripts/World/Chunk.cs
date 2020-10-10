@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 using UnityEngine;
 
@@ -26,6 +28,10 @@ public class Chunk
     /// </summary>
     private readonly MeshData meshData = new MeshData();
     /// <summary>
+    /// Mutex that prevents mesh data from being read while it is being updated by another thread.
+    /// </summary>
+    private readonly Mutex meshDataMutex = new Mutex();
+    /// <summary>
     /// The mesh filter component of this chunk.
     /// </summary>
     private MeshFilter meshFilter;
@@ -47,9 +53,39 @@ public class Chunk
     /// </summary>
     public bool HasGeneratedMeshData { get; private set; } = false;
     /// <summary>
+    /// Has this chunk generated a Game Object?
+    /// </summary>
+    public bool HasGeneratedGameObject { get; private set; } = false;
+    /// <summary>
     /// Has this chunk assigned mesh data to a game object?
     /// </summary>
     public bool HasAssignedMesh { get; private set; } = false;
+
+    /// <summary>
+    /// Array of all neighbor positions for a chunk.
+    /// </summary>
+    private static readonly Dictionary<chunkNeighbors, Vector3Int> chunkNeighborPositions = new Dictionary<chunkNeighbors, Vector3Int>()
+    {
+        { chunkNeighbors.XPos, new Vector3Int( 1,  0,  0)},
+        { chunkNeighbors.XNeg, new Vector3Int(-1,  0,  0)},
+        { chunkNeighbors.YPos, new Vector3Int( 0,  1,  0)},
+        { chunkNeighbors.YNeg, new Vector3Int( 0, -1,  0)},
+        { chunkNeighbors.ZPos, new Vector3Int( 0,  0,  1)},
+        { chunkNeighbors.ZNeg, new Vector3Int( 0,  0, -1)},
+    };
+
+    /// <summary>
+    /// Enum of all chunk neighbor positions.
+    /// </summary>
+    private enum chunkNeighbors
+    {
+        XPos,
+        XNeg,
+        YPos,
+        YNeg,
+        ZPos,
+        ZNeg
+    }
 
 
     /// <summary>
@@ -80,32 +116,35 @@ public class Chunk
             });
         });
         this.HasGeneratedChunkData = true;
+        this.UpdateNeighborChunkMeshData();
     }
 
     /// <summary>
     /// Creates a mesh by first clearing any existing mesh data then looping through all blocks in the chunk and creating a mesh from the visible faces.
     /// </summary>
-    /// <param name="shouldUpdateNeighbors">Should this chunk update neighbor mesh data after updating its own?</param>
     public void GenerateMeshData()
     {
-        this.ClearMeshData();
-        for(int x = 0; x < GameManager.Instance.ChunkSize; x++)
+        if(this.meshDataMutex.WaitOne())
         {
-            for(int y = 0; y < GameManager.Instance.ChunkSize; y++)
+            this.ClearMeshData();
+            for(int x = 0; x < GameManager.Instance.ChunkSize; x++)
             {
-                for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
+                for(int y = 0; y < GameManager.Instance.ChunkSize; y++)
                 {
-                    Vector3Int internalPos = new Vector3Int(x, y, z);
-                    this.meshData.Merge(this.GetBlock(internalPos).CreateMesh(internalPos, this.ChunkPos));
+                    for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
+                    {
+                        Vector3Int internalPos = new Vector3Int(x, y, z);
+                        this.meshData.Merge(this.GetBlock(internalPos).CreateMesh(internalPos, this.ChunkPos));
+                    }
                 }
             }
+            this.HasGeneratedMeshData = true;
         }
-        this.HasGeneratedMeshData = true;
-        //if(shouldUpdateNeighbors == true)
-        //{
-        //    this.AssignMesh();
-        //    World.UpdateAllNeighborChunks(this.ChunkPos);
-        //}
+        this.meshDataMutex.ReleaseMutex();
+        if(this.HasGeneratedGameObject)
+        {
+            World.AddActionToMainThreadQueue(this.AssignMesh);
+        }
     }
 
     /// <summary>
@@ -114,26 +153,6 @@ public class Chunk
     private void ClearMeshData()
     {
         this.meshData.Clear();
-    }
-
-    /// <summary>
-    /// Gets the block at the given position in internal coordinate system.
-    /// </summary>
-    /// <param name="internalPos">The position within the chunk's internal coordinate system to get from.</param>
-    /// <returns>Returns the block at that position.</returns>
-    public Block GetBlock(Vector3Int internalPos)
-    {
-        return this.blocks[internalPos.x, internalPos.y, internalPos.z];
-    }
-
-    /// <summary>
-    /// Sets the block at the given position in internal coordinate system to the given block.
-    /// </summary>
-    /// <param name="internalPos">The position in internal coordinate system to place the block.</param>
-    /// <param name="block">The block to place.</param>
-    public void SetBlock(Vector3Int internalPos, Block block)
-    {
-        this.blocks[internalPos.x, internalPos.y, internalPos.z] = block;
     }
 
     /// <summary>
@@ -153,6 +172,7 @@ public class Chunk
         this.meshRenderer.material = GameManager.Instance.ChunkMaterial;
         this.meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
         this.meshCollider = this.ChunkGO.AddComponent<MeshCollider>();
+        this.HasGeneratedGameObject = true;
         this.AssignMesh();
     }
 
@@ -161,10 +181,14 @@ public class Chunk
     /// </summary>
     private void AssignMesh()
     {
-        Mesh mesh = this.meshData.ToMesh();
-        this.meshFilter.mesh = mesh;
-        this.meshCollider.sharedMesh = mesh;
-        this.HasAssignedMesh = true;
+        if(this.meshDataMutex.WaitOne())
+        {
+            Mesh mesh = this.meshData.ToMesh();
+            this.meshFilter.mesh = mesh;
+            this.meshCollider.sharedMesh = mesh;
+            this.HasAssignedMesh = true;
+        }
+        this.meshDataMutex.ReleaseMutex();
     }
 
     /// <summary>
@@ -174,5 +198,93 @@ public class Chunk
     {
         // TODO: Degenerate Chunk, save info if chunk was modified
         GameObject.Destroy(this.ChunkGO);
+    }
+
+    /// <summary>
+    /// Gets the block at the given position in internal coordinate system.
+    /// </summary>
+    /// <param name="internalPos">The position within the chunk's internal coordinate system to get from.</param>
+    /// <returns>Returns the block at that position.</returns>
+    public Block GetBlock(Vector3Int internalPos)
+    {
+        return this.blocks[internalPos.x, internalPos.y, internalPos.z];
+    }
+
+    /// <summary>
+    /// Sets the given block at the given position.
+    /// </summary>
+    /// <param name="internalPos">The position to set the block.</param>
+    /// <param name="block">The block to place.</param>
+    private void SetBlock(Vector3Int internalPos, Block block)
+    {
+        this.blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+    }
+
+    /// <summary>
+    /// Sets the block at the given position in internal coordinate system to the given block.
+    /// </summary>
+    /// <param name="internalPos">The position in internal coordinate system to place the block.</param>
+    /// <param name="block">The block to place.</param>
+    public void UpdateBlock(Vector3Int internalPos, Block block)
+    {
+        this.blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+        this.GenerateMeshData();
+        if(internalPos.x == 0)
+        {
+            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.XNeg);
+        }
+        else if(internalPos.x == GameManager.Instance.ChunkSize - 1)
+        {
+            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.XPos);
+        }
+        if(internalPos.y == 0)
+        {
+            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.YNeg);
+        }
+        else if(internalPos.y == GameManager.Instance.ChunkSize - 1)
+        {
+            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.YPos);
+        }
+        if(internalPos.z == 0)
+        {
+            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.ZNeg);
+        }
+        else if(internalPos.z == GameManager.Instance.ChunkSize - 1)
+        {
+            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.ZPos);
+        }
+    }
+
+    /// <summary>
+    /// Tells chunks neighboring this one to update their meshes if they have already created meshes. This prevents holes in the terrain from chunks generating
+    /// meshes due to incomplete information caused by neighboring chunks not yet having generated chunk data.
+    /// </summary>
+    private void UpdateNeighborChunkMeshData()
+    {
+        foreach(KeyValuePair<chunkNeighbors, Vector3Int> chunkNeighborPosition in chunkNeighborPositions)
+        {
+            if(World.TryGetChunk(this.ChunkPos + chunkNeighborPosition.Value, out Chunk chunk))
+            {
+                if(chunk.HasGeneratedMeshData)
+                {
+                    chunk.GenerateMeshData();
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tells a specific neighbor chunk to update its mesh data due to changes on the border of this chunk and that neighbor.
+    /// </summary>
+    /// <param name="neighbor">Which neighbor should be updated.</param>
+    private void UpdateSpecificNeighborChunkMeshData(chunkNeighbors neighbor)
+    {
+        if(World.TryGetChunk(this.ChunkPos + chunkNeighborPositions[neighbor], out Chunk chunk))
+        {
+            if(chunk.HasGeneratedMeshData)
+            {
+                chunk.GenerateMeshData();
+            }
+        }
     }
 }

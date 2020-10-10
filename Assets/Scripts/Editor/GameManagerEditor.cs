@@ -38,6 +38,8 @@ public class GameManagerEditor : Editor
 		this.gm.ChunkSize = EditorGUILayout.IntField("Chunk Size:", this.gm.ChunkSize);
 		this.gm.StartingChunkRadius = EditorGUILayout.IntField("Starting Chunk Radius:", this.gm.StartingChunkRadius);
 		this.gm.ActiveChunkRadius = EditorGUILayout.IntField("Active Chunk Radius:", this.gm.ActiveChunkRadius);
+		this.gm.ChunksToGeneratePerThreadLoop = EditorGUILayout.IntField("Chunks To Generate Per Thread Loop:", this.gm.ChunksToGeneratePerThreadLoop);
+		this.gm.MaxChunksToQueueForGeneration = EditorGUILayout.IntField("Max Chunks To Queue For Generation:", this.gm.MaxChunksToQueueForGeneration);
 		this.gm.CutoffValue = EditorGUILayout.FloatField("Terrain Cutoff:", this.gm.CutoffValue);
 
 		// Noise Settings

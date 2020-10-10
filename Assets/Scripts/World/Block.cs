@@ -11,11 +11,30 @@ public class Block
     public static Block Stone = new Block("Stone", TransparencyEnum.Opaque);
     // End of Block List
 
-    public enum TransparencyEnum
+    /// <summary>
+    /// Struct containing information to update a block.
+    /// </summary>
+    public struct BlockUpdateParameters
     {
-        Opaque,
-        SemiTransparent,
-        Transparent
+        /// <summary>
+        /// The world position of this block update.
+        /// </summary>
+        public Vector3Int WorldPos;
+        /// <summary>
+        /// The block to set.
+        /// </summary>
+        public Block Block;
+
+        /// <summary>
+        /// Specific Constructor: Creates a block update parameter struct to use to send block updates.
+        /// </summary>
+        /// <param name="worldPos">The world position of this block update.</param>
+        /// <param name="block">The block are we setting at the given position.</param>
+        public BlockUpdateParameters(Vector3Int worldPos, Block block)
+        {
+            this.WorldPos = worldPos;
+            this.Block = block;
+        }
     }
 
     /// <summary>
@@ -26,6 +45,16 @@ public class Block
     /// The transparency of this block type.
     /// </summary>
     public TransparencyEnum Transparency { get; private set; }
+
+    /// <summary>
+    /// How transparent this block is.
+    /// </summary>
+    public enum TransparencyEnum
+    {
+        Opaque,
+        SemiTransparent,
+        Transparent
+    }
 
 
     /// <summary>

@@ -52,6 +52,14 @@ public class GameManager : MonoBehaviour
     /// The radius of chunks to generate continously as the player explores the world.
     /// </summary>
     public int ActiveChunkRadius = 3;
+    /// <summary>
+    /// The number of chunks to generate per loop of the world thread.
+    /// </summary>
+    public int ChunksToGeneratePerThreadLoop = 10;
+    /// <summary>
+    /// The maximum number of chunks to keep in the chunk generation queue.
+    /// </summary>
+    public int MaxChunksToQueueForGeneration = 100;
 
     /// <summary>
     /// The noise generator for the terrain.

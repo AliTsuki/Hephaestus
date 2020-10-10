@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 
 using UnityEngine;
 
@@ -15,25 +13,26 @@ public static class Logger
     /// <summary>
     /// The directory to store log files.
     /// </summary>
-    private const string LogDir = @"Logs";
+    private const string logDir = @"Logs";
     /// <summary>
     /// The path to write log files to.
     /// </summary>
-    private const string LogPath = LogDir + @"\Log-";
+    private const string logPath = logDir + @"\Log-";
     /// <summary>
     /// The path to write the current log file to.
     /// </summary>
-    private static string CurrentLogPath = "";
+    private static string currentLogPath = "";
+    private const string dateTimeString = "yyyy-MM-dd HH-mm-ss";
 
     /// <summary>
     /// The maximum number of old logs to store.
     /// </summary>
-    private const int MaxLogs = 10;
+    private const int maxLogs = 10;
 
     /// <summary>
     /// List of text in the log.
     /// </summary>
-    private readonly static List<string> MainLogText = new List<string>();
+    private readonly static List<string> mainLogText = new List<string>();
 
 
     /// <summary>
@@ -43,50 +42,20 @@ public static class Logger
     public static void Start()
     {
         // If log directory doesn't exist, create it
-        if(Directory.Exists(LogDir) == false)
+        if(Directory.Exists(logDir) == false)
         {
-            Directory.CreateDirectory(LogDir);
+            Directory.CreateDirectory(logDir);
         }
         // Set current log path to include datetime
-        CurrentLogPath = LogPath + DateTime.Now.ToString("MM-dd-yyyy-HH-mm-ss") + ".txt";
-        // Get a list of all logs
-        string[] oldLogs = Directory.GetFiles(LogDir, "Log-*.txt");
-        // Get number of logs
-        int numOldLogs = oldLogs.Length;
+        currentLogPath = logPath + DateTime.Now.ToString(dateTimeString) + ".txt";
+        // Get a list of all old logs
+        List<string> oldLogs = new List<string>(Directory.GetFiles(logDir, "Log-*.txt"));
+        oldLogs.Sort();
         // If number of logs is greater than max allowed
-        if(numOldLogs > MaxLogs)
+        while(oldLogs.Count >= maxLogs)
         {
-            // Create an array of datetimes length of number of logs
-            DateTime[] logTimes = new DateTime[numOldLogs];
-            // Loop through logs
-            for(int i = 0; i < numOldLogs; i++)
-            {
-                // Set logTimes to parsed datetime of log name
-                logTimes[i] = DateTime.ParseExact(oldLogs[i].Substring(9, 19), "MM-dd-yyyy-HH-mm-ss", CultureInfo.InvariantCulture);
-            }
-            // Get the earliest date in logTimes
-            DateTime earliest = logTimes.Min(date => date);
-            // Loop through logTimes
-            foreach(DateTime time in logTimes)
-            {
-                // If current time is the earliest time
-                if(time == earliest)
-                {
-                    // Convert time back to name of oldest log
-                    string logName = LogDir + $@"\Log-{time:MM-dd-yyyy-HH-mm-ss}.txt";
-                    // Check that that log exists in logs
-                    if(oldLogs.Contains(logName) == true)
-                    {
-                        // If there is a file for that log
-                        if(File.Exists(LogDir + @"\" + logName))
-                        {
-                            // Delete oldest log and break out of loop
-                            File.Delete(LogDir + @"\" + logName);
-                            break;
-                        }
-                    }
-                }
-            }
+            File.Delete(oldLogs[0]);
+            oldLogs.RemoveAt(0);
         }
         WriteLogToFile();
     }
@@ -96,8 +65,8 @@ public static class Logger
     /// </summary>
     public static void WriteLogToFile()
     {
-        File.AppendAllLines(CurrentLogPath, MainLogText.ToArray());
-        MainLogText.Clear();
+        File.AppendAllLines(currentLogPath, mainLogText.ToArray());
+        mainLogText.Clear();
     }
 
     /// <summary>
@@ -114,9 +83,9 @@ public static class Logger
     /// <param name="text">The string of text to add to the log.</param>
     public static void Log(string text)
     {
-        string time = $@"{DateTime.Now:[MM/dd/yyyy HH:mm:ss]}";
+        string time = $@"{DateTime.Now.ToString("[" + dateTimeString + "]")}";
         Debug.Log($@"{text}");
-        MainLogText.Add($@"{time} - {text}");
+        mainLogText.Add($@"{time} - {text}");
     }
 
     /// <summary>
@@ -125,9 +94,8 @@ public static class Logger
     /// <param name="error">The error to add to the log.</param>
     public static void Log(System.Exception error)
     {
-        string time = $@"{DateTime.Now:[MM/dd/yyyy HH:mm:ss]}";
+        string time = $@"{DateTime.Now.ToString("[" + dateTimeString + "]")}";
         Debug.Log($@"{error}");
-        MainLogText.Add($@"{time} - {error}");
-        WriteLogToFile();
+        mainLogText.Add($@"{time} - {error}");
     }
 }

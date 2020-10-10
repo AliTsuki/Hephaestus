@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,14 +19,17 @@ public static class World
     /// </summary>
     private static Thread worldThread;
     /// <summary>
-    /// Mutex used to control access to the list of actions for the main thread to execute.
+    /// Queue of actions for the main thread to execute. Used to send actions from world thread to main thread for actions that can only be executed on main thread.
     /// </summary>
-    private readonly static Mutex mainThreadActionsToDoListMutex = new Mutex();
+    private static readonly ConcurrentQueue<Action> mainThreadActionQueue = new ConcurrentQueue<Action>();
     /// <summary>
-    /// List of actions for the main thread to execute. Used to send actions from world thread to main thread for actions that can only be executed on main thread.
+    /// Queue of block update actions for the world thread to execute. Used to send block updates from main thread to world thread.
     /// </summary>
-    private static readonly List<Action> mainThreadActionsToDo = new List<Action>();
-
+    private static readonly ConcurrentQueue<Block.BlockUpdateParameters> blockUpdateQueue = new ConcurrentQueue<Block.BlockUpdateParameters>();
+    /// <summary>
+    /// Dictionary of new chunks to add to world.
+    /// </summary>
+    private static readonly Dictionary<Vector3Int, Chunk> newChunkGenerationList = new Dictionary<Vector3Int, Chunk>();
     /// <summary>
     /// Dictionary of every chunk that exists in the game world. Indexed by the chunk position in chunk coordinate system.
     /// </summary>
@@ -46,20 +51,7 @@ public static class World
     /// <summary>
     /// Should the world thread run?
     /// </summary>
-    private static bool ShouldWorldThreadRun = false;
-
-    /// <summary>
-    /// Array of all neighbor positions for a chunk.
-    /// </summary>
-    private static readonly Vector3Int[] neighborChunks = new Vector3Int[]
-    {
-        new Vector3Int( 1,  0,  0),
-        new Vector3Int(-1,  0,  0),
-        new Vector3Int( 0,  1,  0),
-        new Vector3Int( 0, -1,  0),
-        new Vector3Int( 0,  0,  1),
-        new Vector3Int( 0,  0, -1)
-    };
+    private static bool shouldWorldThreadRun = false;
 
 
     /// <summary>
@@ -67,12 +59,12 @@ public static class World
     /// </summary>
     public static void WorldThreadStart()
     {
-        ShouldWorldThreadRun = true;
+        shouldWorldThreadRun = true;
         worldThread = new Thread(() =>
         {
             GenerateStartingChunks();
             GetPlayerStartPos();
-            while(ShouldWorldThreadRun == true)
+            while(shouldWorldThreadRun == true)
             {
                 try
                 {
@@ -88,10 +80,15 @@ public static class World
     }
 
     /// <summary>
-    /// 
+    /// Runs continuously on the world thread. Degenerates old chunks, generates new chunks, updates chunks on command from player inputs.
     /// </summary>
     private static void WorldThreadUpdate()
     {
+        while(blockUpdateQueue.Count > 0)
+        {
+            blockUpdateQueue.TryDequeue(out Block.BlockUpdateParameters blockUpdate);
+            UpdateBlock(blockUpdate);
+        }
         DegenerateDistantChunks();
         GenerateNewChunks();
     }
@@ -105,15 +102,29 @@ public static class World
         {
             playerCurrentChunkPos = GameManager.Instance.Player.transform.position.RoundToInt().WorldPosToChunkPos();
         }
-        if(mainThreadActionsToDoListMutex.WaitOne())
+        while(mainThreadActionQueue.Count > 0)
         {
-            foreach(Action action in mainThreadActionsToDo)
-            {
-                action.Invoke();
-            }
-            mainThreadActionsToDo.Clear();
+            mainThreadActionQueue.TryDequeue(out Action action);
+            action.Invoke();
         }
-        mainThreadActionsToDoListMutex.ReleaseMutex();
+    }
+
+    /// <summary>
+    /// Adds an action to the queue for the world thread to run.
+    /// </summary>
+    /// <param name="action">The action to add.</param>
+    public static void AddBlockUpdateToQueue(Block.BlockUpdateParameters blockUpdate)
+    {
+        blockUpdateQueue.Enqueue(blockUpdate);
+    }
+
+    /// <summary>
+    /// Adds an action to the queue for the main thread to run.
+    /// </summary>
+    /// <param name="action">The action to add.</param>
+    public static void AddActionToMainThreadQueue(Action action)
+    {
+        mainThreadActionQueue.Enqueue(action);
     }
 
     /// <summary>
@@ -121,8 +132,7 @@ public static class World
     /// </summary>
     public static void Quit()
     {
-        ShouldWorldThreadRun = false;
-        worldThread.Abort();
+        shouldWorldThreadRun = false;
     }
 
     /// <summary>
@@ -177,6 +187,20 @@ public static class World
     }
 
     /// <summary>
+    /// Updates the block of a chunk described by the given block update parameters.
+    /// </summary>
+    /// <param name="blockUpdate">The parameters of which block to update and what to update it to.</param>
+    private static void UpdateBlock(Block.BlockUpdateParameters blockUpdate)
+    {
+        Vector3Int chunkPos = blockUpdate.WorldPos.WorldPosToChunkPos();
+        Vector3Int internalPos = blockUpdate.WorldPos.WorldPosToInternalPos();
+        if(TryGetChunk(chunkPos, out Chunk chunk) == true)
+        {
+            chunk.UpdateBlock(internalPos, blockUpdate.Block);
+        }
+    }
+
+    /// <summary>
     /// Removes all currently existing chunks by destroying their GameObjects and clearing the chunk dictionary.
     /// </summary>
     private static void RemoveAllChunks()
@@ -205,11 +229,7 @@ public static class World
         }
         foreach(Chunk chunk in chunksToRemove)
         {
-            if(mainThreadActionsToDoListMutex.WaitOne())
-            {
-                mainThreadActionsToDo.Add(chunk.Degenerate);
-            }
-            mainThreadActionsToDoListMutex.ReleaseMutex();
+            AddActionToMainThreadQueue(chunk.Degenerate);
             chunks.Remove(chunk.ChunkPos);
         }
         stopwatch.Stop();
@@ -230,8 +250,11 @@ public static class World
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
         int radius = GameManager.Instance.ActiveChunkRadius;
-        List<Chunk> newChunks = new List<Chunk>();
         // Create list of new chunks to add
+        if(newChunkGenerationList.Count > GameManager.Instance.MaxChunksToQueueForGeneration)
+        {
+            newChunkGenerationList.Clear();
+        }
         for(int x = playerCurrentChunkPos.x - radius + 1; x < playerCurrentChunkPos.x + radius; x++)
         {
             for(int y = playerCurrentChunkPos.y - radius + 1; y < playerCurrentChunkPos.y + radius; y++)
@@ -239,54 +262,35 @@ public static class World
                 for(int z = playerCurrentChunkPos.z - radius + 1; z < playerCurrentChunkPos.z + radius; z++)
                 {
                     Vector3Int newChunkPos = new Vector3Int(x, y, z);
-                    if(TryGetChunk(newChunkPos, out Chunk chunk) == false)
+                    if(TryGetChunk(newChunkPos, out Chunk chunk) == false && newChunkGenerationList.ContainsKey(newChunkPos) == false)
                     {
-                        newChunks.Add(new Chunk(newChunkPos));
+                        newChunkGenerationList.Add(newChunkPos, new Chunk(newChunkPos));
                     }
                 }
             }
         }
-        // Loop through list and generate chunk data
-        foreach(Chunk chunk in newChunks)
+        int newChunksArrayLength = newChunkGenerationList.Count < GameManager.Instance.ChunksToGeneratePerThreadLoop ? newChunkGenerationList.Count : GameManager.Instance.ChunksToGeneratePerThreadLoop;
+        Chunk[] newChunks = new Chunk[newChunksArrayLength];
+        // Generate chunk data
+        for(int i = 0; i < newChunks.Length; i++)
         {
-            chunks.Add(chunk.ChunkPos, chunk);
-            chunk.GenerateChunkData();
+            newChunks[i] = newChunkGenerationList.ElementAt(i).Value;
+            chunks.Add(newChunks[i].ChunkPos, newChunks[i]);
+            newChunks[i].GenerateChunkData();
         }
-        // Loop through list and generate mesh data, create a game object, and assign mesh data to object.
-        foreach(Chunk chunk in newChunks)
+        // Generate mesh data
+        for(int i = 0; i < newChunks.Length; i++)
         {
-            chunk.GenerateMeshData();
-            if(mainThreadActionsToDoListMutex.WaitOne())
-            {
-                mainThreadActionsToDo.Add(chunk.GenerateChunkGameObject);
-            }
-            mainThreadActionsToDoListMutex.ReleaseMutex();
+            newChunks[i].GenerateMeshData();
+            AddActionToMainThreadQueue(newChunks[i].GenerateChunkGameObject);
+            newChunkGenerationList.Remove(newChunks[i].ChunkPos);
         }
         stopwatch.Stop();
         long elapsedMS = stopwatch.ElapsedMilliseconds;
         stopwatch.Reset();
-        if(newChunks.Count > 0)
+        if(newChunks.Length > 0)
         {
-            Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate {newChunks.Count} new chunks at a rate of {elapsedMS / (long)newChunks.Count} ms per chunk!");
-        }
-        newChunks.Clear();
-    }
-
-    /// <summary>
-    /// Tells all chunks neighboring the given chunk position to update their mesh data. Used when new chunks are generated to update face visibility as new chunks spawn.
-    /// </summary>
-    /// <param name="chunkPos">The position of the chunk who's neighbors should update their mesh data.</param>
-    public static void UpdateAllNeighborChunks(Vector3Int chunkPos)
-    {
-        foreach(Vector3Int neighborPos in neighborChunks)
-        {
-            if(TryGetChunk(chunkPos + neighborPos, out Chunk chunk) == true)
-            {
-                if(chunk.HasGeneratedMeshData)
-                {
-                    chunk.GenerateMeshData();
-                }
-            }
+            Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate {newChunks.Length} new chunks at a rate of {elapsedMS / (long)newChunks.Length} ms per chunk! {newChunkGenerationList.Count} chunks left in queue!");
         }
     }
 
@@ -334,11 +338,7 @@ public static class World
         Logger.Log("Generating GameObjects for Starting Chunks and assigning Mesh Data...");
         Parallel.ForEach(chunks, chunk =>
         {
-            if(mainThreadActionsToDoListMutex.WaitOne())
-            {
-                mainThreadActionsToDo.Add(chunk.Value.GenerateChunkGameObject);
-            }
-            mainThreadActionsToDoListMutex.ReleaseMutex();
+            AddActionToMainThreadQueue(chunk.Value.GenerateChunkGameObject);
         });
         Logger.Log("Successfully Generated GameObjects and assigned Mesh Data for Starting Chunks!");
         //------------------------------------------------------------------------------------------
@@ -373,11 +373,7 @@ public static class World
         }
         playerStartPos += new Vector3Int(0, 1, 0);
         Logger.Log($@"Player start position found: {playerStartPos}");
-        if(mainThreadActionsToDoListMutex.WaitOne())
-        {
-            mainThreadActionsToDo.Add(PlacePlayerInWorld);
-        }
-        mainThreadActionsToDoListMutex.ReleaseMutex();
+        AddActionToMainThreadQueue(PlacePlayerInWorld);
     }
 
     /// <summary>
