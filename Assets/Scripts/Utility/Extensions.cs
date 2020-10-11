@@ -142,28 +142,4 @@ public static class Extensions
     {
         return (v3.x * transform.right) + (v3.y * transform.up) + (v3.z * transform.forward);
     }
-
-    public static void Spiral(int X, int Y, int Z)
-    {
-        int x, y, z, dx, dy, dz;
-        x = y = z = dx = 0;
-        dy = -1;
-        int t = Mathf.Max(X, Y, Z);
-        int maxI = t * t * t;
-        for(int i = 0; i < maxI; i++)
-        {
-            if((-X / 2 <= x) && (x <= X / 2) && (-Y / 2 <= y) && (y <= Y / 2) && (-Z / 2 <= y) && (z <= Z / 2))
-            {
-                // DO STUFF...
-            }
-            if((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y)))
-            {
-                t = dx;
-                dx = -dy;
-                dy = t;
-            }
-            x += dx;
-            y += dy;
-        }
-    }
 }

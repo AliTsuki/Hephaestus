@@ -29,6 +29,7 @@ public class GameManagerEditor : Editor
 		this.gm.PlayerPrefab = (GameObject)EditorGUILayout.ObjectField("Player Prefab:", this.gm.PlayerPrefab, typeof(GameObject), false);
 		this.gm.PlayerParent = (Transform)EditorGUILayout.ObjectField("Player Parent:", this.gm.PlayerParent, typeof(Transform), true);
 		this.gm.BlockSelectorPrefab = (GameObject)EditorGUILayout.ObjectField("Block Selector Prefab:", this.gm.BlockSelectorPrefab, typeof(GameObject), false);
+		this.gm.BlockSelectionMaxDistance = EditorGUILayout.FloatField("Block Selection Max Distance:", this.gm.BlockSelectionMaxDistance);
 
 		// Chunk Settings
 		EditorGUILayout.Space();

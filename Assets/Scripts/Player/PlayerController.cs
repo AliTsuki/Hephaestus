@@ -45,7 +45,6 @@ public class PlayerController : MonoBehaviour
     [Header("Aim")]
     public Camera Cam;
     public CinemachineVirtualCamera VCam;
-    public Transform CamTransform;
     public float MouseSensitivity = 10f;
     public bool InvertY = true;
     private float xRotation = 0f;
@@ -54,14 +53,13 @@ public class PlayerController : MonoBehaviour
     
     // Block selection
     private GameObject BlockSelectorGO;
-    private Vector3Int currentBlockSelectedPos = new Vector3Int();
-    private float blockSelectionMaxDistance = 5f;
-    private bool isBlockSelected;
-    private RaycastHit blockSelectorHit;
+    public RaycastHit BlockSelectorHit { get; private set; }
+    public Vector3Int CurrentBlockSelectedPos { get; private set; } = new Vector3Int();
+    public Block CurrentBlockSelected { get; private set; }
+    public bool IsBlockSelected { get; private set; } = false;
 
     // References
     private CharacterController cController;
-    private Player player;
 
 
     // This function is called when the object becomes enabled and active.
@@ -122,7 +120,6 @@ public class PlayerController : MonoBehaviour
     private void InitializeReferencesAndControls()
     {
         this.cController = this.GetComponent<CharacterController>();
-        this.player = this.GetComponent<Player>();
         this.BlockSelectorGO = GameObject.Instantiate(GameManager.Instance.BlockSelectorPrefab);
         this.Controls = new PlayerControls();
         this.Controls.Gameplay.Move.performed += this.Move_performed;
@@ -159,7 +156,7 @@ public class PlayerController : MonoBehaviour
             this.xRotation -= this.aimDelta.y;
         }
         this.xRotation = Mathf.Clamp(this.xRotation, -89f, 89f);
-        this.CamTransform.localRotation = Quaternion.Euler(this.xRotation, 0f, 0f);
+        this.Cam.transform.localRotation = Quaternion.Euler(this.xRotation, 0f, 0f);
         this.transform.Rotate(Vector3.up * this.aimDelta.x);
     }
 
@@ -263,12 +260,11 @@ public class PlayerController : MonoBehaviour
     {
         if(AttackDown == true)
         {
-            if(this.isBlockSelected == true)
+            if(this.IsBlockSelected == true)
             {
-                Vector3Int blockSelectedPos = this.currentBlockSelectedPos;
-                if(World.TryGetBlockFromWorldPos(blockSelectedPos, out Block block) == true)
+                if(World.TryGetBlockFromWorldPos(this.CurrentBlockSelectedPos, out _) == true)
                 {
-                    World.AddBlockUpdateToQueue(new Block.BlockUpdateParameters(blockSelectedPos, Block.Air));
+                    World.AddBlockUpdateToQueue(new Block.BlockUpdateParameters(this.CurrentBlockSelectedPos, Block.Air));
                 }
             }
         }
@@ -286,9 +282,9 @@ public class PlayerController : MonoBehaviour
     {
         if(InteractDown == true)
         {
-            if(this.isBlockSelected == true)
+            if(this.IsBlockSelected == true)
             {
-                Vector3Int blockSelectedPos = this.currentBlockSelectedPos + this.blockSelectorHit.normal.ToInt();
+                Vector3Int blockSelectedPos = this.CurrentBlockSelectedPos + this.BlockSelectorHit.normal.ToInt();
                 if(blockSelectedPos != GameManager.Instance.Player.transform.position.RoundToInt() && blockSelectedPos != GameManager.Instance.Player.transform.position.RoundToInt() + new Vector3Int(0, 1, 0))
                 {
                     if(World.TryGetBlockFromWorldPos(blockSelectedPos, out _) == true)
@@ -385,14 +381,14 @@ public class PlayerController : MonoBehaviour
         if(this.currentMoveMode == MovementModes.Crouch)
         {
             this.cController.height = Mathf.Lerp(this.cController.height, GameManager.CrouchCharacterHeight, GameManager.CrouchRate);
-            this.CamTransform.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.3f, 0f);
+            this.Cam.transform.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.3f, 0f);
             this.GroundCheck.localPosition = new Vector3(0f, -(this.cController.height / 2f) + this.cController.center.y + 0.05f, 0f);
             this.HeadCheck.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.05f, 0f);
         }
         else
         {
             this.cController.height = Mathf.Lerp(this.cController.height, GameManager.DefaultCharacterHeight, GameManager.CrouchRate);
-            this.CamTransform.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.3f, 0f);
+            this.Cam.transform.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.3f, 0f);
             this.GroundCheck.localPosition = new Vector3(0f, -(this.cController.height / 2f) + this.cController.center.y + 0.05f, 0f);
             this.HeadCheck.localPosition = new Vector3(0f, (this.cController.height / 2f) + this.cController.center.y - 0.05f, 0f);
         }
@@ -413,19 +409,27 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Casts a ray forward from the camera, checks if ray hits terrain, gets position of hit in world coordinates and gets the current block that is present there.
+    /// </summary>
     private void UpdateBlockSelection()
     {
-        if(Physics.Raycast(new Ray(this.CamTransform.position, this.CamTransform.forward), out this.blockSelectorHit, this.blockSelectionMaxDistance, 1 << GameManager.Instance.LevelGeometryLayerMask))
+        if(Physics.Raycast(new Ray(this.Cam.transform.position, this.Cam.transform.forward), out RaycastHit hit, GameManager.Instance.BlockSelectionMaxDistance, 1 << GameManager.Instance.LevelGeometryLayerMask))
         {
-            this.currentBlockSelectedPos = (this.blockSelectorHit.point - (this.blockSelectorHit.normal * 0.5f)).RoundToInt();
-            this.BlockSelectorGO.SetActive(true);
-            this.BlockSelectorGO.transform.position = this.currentBlockSelectedPos;
-            this.isBlockSelected = true;
+            this.BlockSelectorHit = hit;
+            this.CurrentBlockSelectedPos = (this.BlockSelectorHit.point - (this.BlockSelectorHit.normal * 0.5f)).RoundToInt();
+            if(World.TryGetBlockFromWorldPos(this.CurrentBlockSelectedPos, out Block block))
+            {
+                this.CurrentBlockSelected = block;
+                this.IsBlockSelected = true;
+                this.BlockSelectorGO.SetActive(true);
+                this.BlockSelectorGO.transform.position = this.CurrentBlockSelectedPos;
+            }
         }
         else
         {
+            this.IsBlockSelected = false;
             this.BlockSelectorGO.SetActive(false);
-            this.isBlockSelected = false;
         }
     }
 

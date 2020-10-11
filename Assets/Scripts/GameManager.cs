@@ -20,13 +20,18 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public GameObject PlayerPrefab;
     /// <summary>
+    /// The parent transform to put the player under.
+    /// </summary>
+    public Transform PlayerParent;
+    /// <summary>
     /// The prefab for the block selector box.
     /// </summary>
     public GameObject BlockSelectorPrefab;
     /// <summary>
-    /// The parent transform to put the player under.
+    /// The maximum distance that a block can be interacted with.
     /// </summary>
-    public Transform PlayerParent;
+    public float BlockSelectionMaxDistance = 5f;
+
     /// <summary>
     /// The layer that the game world geometry is on.
     /// </summary>
