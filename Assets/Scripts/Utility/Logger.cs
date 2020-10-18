@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 
@@ -32,7 +33,7 @@ public static class Logger
     /// <summary>
     /// List of text in the log.
     /// </summary>
-    private readonly static List<string> mainLogText = new List<string>();
+    private readonly static ConcurrentQueue<string> mainLogText = new ConcurrentQueue<string>();
 
 
     /// <summary>
@@ -65,8 +66,11 @@ public static class Logger
     /// </summary>
     public static void WriteLogToFile()
     {
-        File.AppendAllLines(currentLogPath, mainLogText.ToArray());
-        mainLogText.Clear();
+        while(mainLogText.Count > 0)
+        {
+            mainLogText.TryDequeue(out string text);
+            File.AppendAllText(currentLogPath, text);
+        }
     }
 
     /// <summary>
@@ -85,7 +89,7 @@ public static class Logger
     {
         string time = $@"{DateTime.Now.ToString("[" + dateTimeString + "]")}";
         Debug.Log($@"{text}");
-        mainLogText.Add($@"{time} - {text}");
+        mainLogText.Enqueue($@"{time} - {text}{Environment.NewLine}");
     }
 
     /// <summary>
@@ -96,6 +100,6 @@ public static class Logger
     {
         string time = $@"{DateTime.Now.ToString("[" + dateTimeString + "]")}";
         Debug.Log($@"{error}");
-        mainLogText.Add($@"{time} - {error}");
+        mainLogText.Enqueue($@"{time} - {error}{Environment.NewLine}");
     }
 }

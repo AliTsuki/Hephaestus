@@ -84,7 +84,7 @@ namespace OLD
             };
         }
 
-        // TODO: add in BiomeMap stuffs
+
         public static Biome GetBiome(Int3 _pos)
         {
             float temp = (float)biomeMapTemp.GetValue(_pos.x, _pos.y, _pos.z);

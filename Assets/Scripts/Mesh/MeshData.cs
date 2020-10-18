@@ -20,6 +20,10 @@ public class MeshData
     /// List of uv coordinates for the vertices of this mesh.
     /// </summary>
     private readonly List<Vector2> uvs = new List<Vector2>();
+    /// <summary>
+    /// List of uv2 coordinates used for lighting calculations.
+    /// </summary>
+    private readonly List<Vector2> uv2s = new List<Vector2>();
 
 
     /// <summary>
@@ -36,11 +40,12 @@ public class MeshData
     /// <param name="vertices">The vertex list to initialize.</param>
     /// <param name="triangles">The triangle index list to initialize.</param>
     /// <param name="uvs">The uv coordinate array to initialize.</param>
-    public MeshData(List<Vector3> vertices, List<int> triangles, Vector2[] uvs)
+    public MeshData(List<Vector3> vertices, List<int> triangles, Vector2[] uvs, Vector2[] uv2s)
     {
         this.vertices.AddRange(vertices);
         this.triangles.AddRange(triangles);
         this.uvs.AddRange(uvs);
+        this.uv2s.AddRange(uv2s);
     }
 
 
@@ -71,6 +76,7 @@ public class MeshData
             this.vertices.AddRange(meshData.vertices);
             this.triangles.AddRange(meshData.triangles);
             this.uvs.AddRange(meshData.uvs);
+            this.uv2s.AddRange(meshData.uv2s);
             return;
         }
         int count = this.vertices.Count;
@@ -82,6 +88,7 @@ public class MeshData
         }
         this.triangles.AddRange(newtris);
         this.uvs.AddRange(meshData.uvs);
+        this.uv2s.AddRange(meshData.uv2s);
     }
 
     /// <summary>
@@ -94,7 +101,8 @@ public class MeshData
         {
             vertices = this.vertices.ToArray(),
             triangles = this.triangles.ToArray(),
-            uv = this.uvs.ToArray()
+            uv = this.uvs.ToArray(),
+            uv2 = this.uv2s.ToArray()
         };
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
@@ -110,5 +118,6 @@ public class MeshData
         this.vertices.Clear();
         this.triangles.Clear();
         this.uvs.Clear();
+        this.uv2s.Clear();
     }
 }

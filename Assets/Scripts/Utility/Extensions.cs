@@ -6,6 +6,10 @@
 /// </summary>
 public static class Extensions
 {
+    /////////////////////////////////////////////////////////////////////////////////
+    /// Vector3Int
+    /////////////////////////////////////////////////////////////////////////////////
+
     /// <summary>
     /// Converts a chunk position to the world position for the center of that chunk.
     /// </summary>
@@ -97,20 +101,30 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Remaps a float input from one range of values to another range of values.
+    /// Gets the manhattan distance from this Vector3Int to the given Vector3Int.
     /// </summary>
-    /// <param name="input">The input to modify.</param>
-    /// <param name="inMin">The minimum value of the input value's range.</param>
-    /// <param name="inMax">The maximum value of the input value's range.</param>
-    /// <param name="outMin">The minimum value of the output value's range.</param>
-    /// <param name="outMax">The maximum value of the output value's range.</param>
-    /// <returns>Returns the remapped value within the given output range.</returns>
-    public static float Remap(this float input, float inMin, float inMax, float outMin, float outMax)
+    /// <param name="from">The position to measure from.</param>
+    /// <param name="to">The position to measure to.</param>
+    /// <returns>Returns the manhattan distance (the absolute value of each component in "from" subtracted from "to" added together).</returns>
+    public static int ManhattanDistance(this Vector3Int from, Vector3Int to)
     {
-        float slope = (outMax - outMin) / (inMax - inMin);
-        float intercept = outMin - (slope * inMin);
-        return (slope * input) + intercept;
+        return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y) + Mathf.Abs(from.z - to.z);
     }
+
+    /// <summary>
+    /// Converts a Vector3Int to a normalized unit Vector3.
+    /// </summary>
+    /// <param name="v3">The Vector3Int to normalize.</param>
+    /// <returns>Returns the normalized unit Vector2.</returns>
+    public static Vector3 Normalize(this Vector3Int v3)
+    {
+        float sqr = Mathf.Sqrt((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
+        return new Vector3(v3.x / sqr, v3.y / sqr, v3.z / sqr);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /// Vector3
+    /////////////////////////////////////////////////////////////////////////////////
 
     /// <summary>
     /// Converts a Vector3 to a Vector3Int by rounding the x, y, and z using Mathf.RoundToInt on each value.
@@ -141,5 +155,51 @@ public static class Extensions
     public static Vector3 ReorientAlongTransform(this Vector3 v3, Transform transform)
     {
         return (v3.x * transform.right) + (v3.y * transform.up) + (v3.z * transform.forward);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /// Vector2Int
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Gets the manhattan distance from this Vector2Int to the given Vector2Int.
+    /// </summary>
+    /// <param name="from">The position to measure from.</param>
+    /// <param name="to">The position to measure to.</param>
+    /// <returns>Returns the manhattan distance (the absolute value of each component in "from" subtracted from "to" added together).</returns>
+    public static int ManhattanDistance(this Vector2Int from, Vector2Int to)
+    {
+        return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
+    }
+
+    /// <summary>
+    /// Converts a Vector2Int to a normalized unit Vector2.
+    /// </summary>
+    /// <param name="v2">The Vector2Int to normalize.</param>
+    /// <returns>Returns the normalized unit Vector2.</returns>
+    public static Vector2 Normalize(this Vector2Int v2)
+    {
+        float sqr = Mathf.Sqrt((v2.x * v2.x) + (v2.y * v2.y));
+        return new Vector2(v2.x / sqr, v2.y / sqr);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /// float
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Remaps a float input from one range of values to another range of values.
+    /// </summary>
+    /// <param name="input">The input to modify.</param>
+    /// <param name="inMin">The minimum value of the input value's range.</param>
+    /// <param name="inMax">The maximum value of the input value's range.</param>
+    /// <param name="outMin">The minimum value of the output value's range.</param>
+    /// <param name="outMax">The maximum value of the output value's range.</param>
+    /// <returns>Returns the remapped value within the given output range.</returns>
+    public static float Remap(this float input, float inMin, float inMax, float outMin, float outMax)
+    {
+        float slope = (outMax - outMin) / (inMax - inMin);
+        float intercept = outMin - (slope * inMin);
+        return (slope * input) + intercept;
     }
 }

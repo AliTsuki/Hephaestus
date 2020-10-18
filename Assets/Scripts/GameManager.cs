@@ -38,6 +38,10 @@ public class GameManager : MonoBehaviour
     public LayerMask LevelGeometryLayerMask;
 
     /// <summary>
+    /// The prefab for the chunk objects.
+    /// </summary>
+    public GameObject ChunkPrefab;
+    /// <summary>
     /// The transform to act as parent for all the chunks.
     /// </summary>
     public Transform ChunkParentTransform;
@@ -50,21 +54,17 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public int ChunkSize = 16;
     /// <summary>
+    /// The number of chunks to generate per column.
+    /// </summary>
+    public int ChunksPerColumn = 16;
+    /// <summary>
     /// The amount of chunks generated for the starting area is this value doubled minus 1 then cubed.
     /// </summary>
-    public int StartingChunkRadius = 3;
+    public int StartingColumnRadius = 9;
     /// <summary>
     /// The radius of chunks to generate continously as the player explores the world.
     /// </summary>
-    public int ActiveChunkRadius = 3;
-    /// <summary>
-    /// The number of chunks to generate per loop of the world thread.
-    /// </summary>
-    public int ChunksToGeneratePerThreadLoop = 10;
-    /// <summary>
-    /// The maximum number of chunks to keep in the chunk generation queue.
-    /// </summary>
-    public int MaxChunksToQueueForGeneration = 100;
+    public int ActiveColumnRadius = 7;
 
     /// <summary>
     /// The noise generator for the terrain.
@@ -85,7 +85,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// The frequency of the noise generation.
     /// </summary>
-    public float Frequency = 0.009f;
+    public float Frequency = 0.0015f;
     /// <summary>
     /// The number of octaves to use if using fractalized noise generation.
     /// </summary>
@@ -93,19 +93,24 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// The lacunarity of the noise generation.
     /// </summary>
-    public float Lacunarity = 4f;
+    public float Lacunarity = 3f;
     /// <summary>
     /// The persistence of the noise generation.
     /// </summary>
-    public float Persistence = 0.2f;
+    public float Persistence = 0.8f;
     /// <summary>
     /// The multiplier to add to the noise generation values.
     /// </summary>
-    public float YMultiplier = 1f;
+    public float YMultiplier = 0.008f;
     /// <summary>
     /// The cutoff value to differentiate air from land.
     /// </summary>
     public float CutoffValue = 0.5f;
+
+    /// <summary>
+    /// The minimum nuber of objects to keep in the object pooler.
+    /// </summary>
+    public int MinPooledObjects = 100;
 
     /// <summary>
     /// The default player character height.
@@ -162,18 +167,6 @@ public class GameManager : MonoBehaviour
     {
         World.Quit();
         Logger.Quit();
-    }
-
-    /// <summary>
-    /// Tells the World object to regenerate all current chunks.
-    /// </summary>
-    public void RegenerateStartingChunks()
-    {
-        if(World.HasGenerated == true)
-        {
-            this.UpdateNoiseGenerators();
-            World.RestartWorld();
-        }
     }
 
     /// <summary>

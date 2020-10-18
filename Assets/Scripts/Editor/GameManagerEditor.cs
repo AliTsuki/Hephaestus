@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UnityEditor.SceneManagement;
 
 using UnityEngine;
 
@@ -35,13 +34,12 @@ public class GameManagerEditor : Editor
 		EditorGUILayout.Space();
 		EditorGUILayout.LabelField("Chunk Settings", BoldCenteredStyle);
 		this.gm.LevelGeometryLayerMask = EditorGUILayout.LayerField("Level Geometry Layer Mask:", this.gm.LevelGeometryLayerMask);
+		this.gm.ChunkPrefab = (GameObject)EditorGUILayout.ObjectField("Chunk Prefab:", this.gm.ChunkPrefab, typeof(GameObject), false);
 		this.gm.ChunkMaterial = (Material)EditorGUILayout.ObjectField("Chunk Material:", this.gm.ChunkMaterial, typeof(Material), false);
 		this.gm.ChunkSize = EditorGUILayout.IntField("Chunk Size:", this.gm.ChunkSize);
-		this.gm.StartingChunkRadius = EditorGUILayout.IntField("Starting Chunk Radius:", this.gm.StartingChunkRadius);
-		this.gm.ActiveChunkRadius = EditorGUILayout.IntField("Active Chunk Radius:", this.gm.ActiveChunkRadius);
-		this.gm.ChunksToGeneratePerThreadLoop = EditorGUILayout.IntField("Chunks To Generate Per Thread Loop:", this.gm.ChunksToGeneratePerThreadLoop);
-		this.gm.MaxChunksToQueueForGeneration = EditorGUILayout.IntField("Max Chunks To Queue For Generation:", this.gm.MaxChunksToQueueForGeneration);
-		this.gm.CutoffValue = EditorGUILayout.FloatField("Terrain Cutoff:", this.gm.CutoffValue);
+		this.gm.ChunksPerColumn = EditorGUILayout.IntField("Chunks Per Column:", this.gm.ChunksPerColumn);
+		this.gm.StartingColumnRadius = EditorGUILayout.IntField("Starting Column Radius:", this.gm.StartingColumnRadius);
+		this.gm.ActiveColumnRadius = EditorGUILayout.IntField("Active Column Radius:", this.gm.ActiveColumnRadius);
 
 		// Noise Settings
 		EditorGUILayout.Space();
@@ -54,17 +52,6 @@ public class GameManagerEditor : Editor
 		this.gm.Lacunarity = EditorGUILayout.FloatField("Lacunarity:", this.gm.Lacunarity);
 		this.gm.Persistence = EditorGUILayout.FloatField("Persistence:", this.gm.Persistence);
 		this.gm.YMultiplier = EditorGUILayout.FloatField("Y Multiplier:", this.gm.YMultiplier);
-
-		// Regenerate Button
-		EditorGUILayout.Space();
-		if(GUILayout.Button("Regenerate Starting Chunks") == true)
-		{
-			GameManager.Instance.RegenerateStartingChunks();
-		}
-		if(GUI.changed && EditorApplication.isPlaying == false)
-		{
-			EditorUtility.SetDirty(this.gm);
-			EditorSceneManager.MarkSceneDirty(this.gm.gameObject.scene);
-		}
+		this.gm.CutoffValue = EditorGUILayout.FloatField("Terrain Cutoff:", this.gm.CutoffValue);
 	}
 }

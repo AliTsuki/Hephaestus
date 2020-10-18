@@ -18,7 +18,6 @@ namespace OLD
 
         // Update is called once per frame
         // Character Update: Check Mouse clicks and Add or Delete Blocks
-        // TODO: Limit placing blocks to not be inside player getting stuck, Add code for accepting tool and blocktype for adding/deleting
         private void Update()
         {
             // Block Selector Cube

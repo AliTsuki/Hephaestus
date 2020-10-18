@@ -130,8 +130,6 @@ namespace OLD
         }
 
         // Instantiate Blocks
-        // TODO: HACKY, maybe find a better solution, calling this forces blocks to register early so 
-        // loading chunks from file before generating new chunks doesn't error out at null BlockRegistry
         public static void Instantiate()
         {
 

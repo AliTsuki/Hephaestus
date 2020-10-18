@@ -331,19 +331,21 @@ MonoBehaviour:
   Player: {fileID: 0}
   PlayerPrefab: {fileID: 5986110754849357676, guid: 9aa2f1afb1c699542b99ae7962201f25,
     type: 3}
+  PlayerParent: {fileID: 1054481085}
   BlockSelectorPrefab: {fileID: 9011417873337280304, guid: 255478871d9b9a441bca123f73edda27,
     type: 3}
-  PlayerParent: {fileID: 1054481085}
+  BlockSelectionMaxDistance: 5
   LevelGeometryLayerMask:
     serializedVersion: 2
     m_Bits: 10
+  ChunkPrefab: {fileID: 8801798520072418738, guid: 2733d48849655bf40aef47558ba946e5,
+    type: 3}
   ChunkParentTransform: {fileID: 0}
   ChunkMaterial: {fileID: 2100000, guid: cfdd9fa8541fa4949acb178d549eaa53, type: 2}
   ChunkSize: 16
-  StartingChunkRadius: 5
-  ActiveChunkRadius: 5
-  ChunksToGeneratePerThreadLoop: 10
-  MaxChunksToQueueForGeneration: 100
+  ChunksPerColumn: 16
+  StartingColumnRadius: 9
+  ActiveColumnRadius: 5
   Seed: 0
   NoiseType: 3
   FractalType: 1
@@ -351,8 +353,9 @@ MonoBehaviour:
   Octaves: 4
   Lacunarity: 3
   Persistence: 0.8
-  YMultiplier: 1.2
-  CutoffValue: 0.05
+  YMultiplier: 0.008
+  CutoffValue: 0.5
+  MinPooledObjects: 100
 --- !u!1 &237903806
 GameObject:
   m_ObjectHideFlags: 0
@@ -886,13 +889,13 @@ MonoBehaviour:
   m_MaxDepthBias: 0.001
   m_ShadowResolution:
     m_Override: 512
-    m_UseOverride: 1
-    m_Level: 0
+    m_UseOverride: 0
+    m_Level: 3
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
   m_UseContactShadow:
-    m_Override: 1
+    m_Override: 0
     m_UseOverride: 1
     m_Level: 0
   m_RayTracedContactShadow: 0
@@ -1139,18 +1142,28 @@ MonoBehaviour:
     Rounded:  (0, 0,
     0)
 
-    Chunk Pos:(0, 0, 0)
+    Chunk: (0, 0, 0)
+
+    Forward: (0, 0, 0)
+
+    Forward Rounded: (0, 0,
+    0)
+
+    Forward Vec2: (0, 0)
 
     SELECTION-------------
 
     Pos:     (0, 0,
     0)
 
+    Face: (0, 0, 0)
+
     Rounded: (0, 0, 0)
 
     Chunk:   (0, 0, 0)
 
-    Block:   xxxxxxxxx'
+    Block:  
+    xxxxxxxxx'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fc20e958ef24ff842aeb9d035efd2586, type: 2}
   m_sharedMaterial: {fileID: -3862592765740659762, guid: fc20e958ef24ff842aeb9d035efd2586,
@@ -1273,3 +1286,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edbdc386ddb700a4488b04363d10ebe4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DebugText: {fileID: 1847520280}

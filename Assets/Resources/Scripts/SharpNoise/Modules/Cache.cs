@@ -126,7 +126,7 @@ namespace SharpNoise.Modules
             {
                 if(disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
+                    
                 }
 
                 this.localCacheEntry?.Dispose();

@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,13 +26,9 @@ public static class World
     /// </summary>
     private static readonly ConcurrentQueue<Block.BlockUpdateParameters> blockUpdateQueue = new ConcurrentQueue<Block.BlockUpdateParameters>();
     /// <summary>
-    /// Dictionary of new chunks to add to world.
+    /// Dictionary of all columns currently loaded in game world.
     /// </summary>
-    private static readonly Dictionary<Vector3Int, Chunk> newChunkGenerationList = new Dictionary<Vector3Int, Chunk>();
-    /// <summary>
-    /// Dictionary of every chunk that exists in the game world. Indexed by the chunk position in chunk coordinate system.
-    /// </summary>
-    private static readonly Dictionary<Vector3Int, Chunk> chunks = new Dictionary<Vector3Int, Chunk>();
+    private static readonly Dictionary<Vector2Int, Column> columns = new Dictionary<Vector2Int, Column>();
 
     /// <summary>
     /// Position to place the player at the start of the game.
@@ -43,15 +38,23 @@ public static class World
     /// The current chunk position of the chunk that contains the player.
     /// </summary>
     private static Vector3Int playerCurrentChunkPos = new Vector3Int();
+    /// <summary>
+    /// The forward direction of the player.
+    /// </summary>
+    private static Vector3 playerCurrentForward = new Vector3();
 
     /// <summary>
     /// Has the world been generated yet?
     /// </summary>
-    public static bool HasGenerated { get; private set; } = false;
+    public static bool HasStartingAreaGenerated = false;
     /// <summary>
     /// Should the world thread run?
     /// </summary>
     private static bool shouldWorldThreadRun = false;
+    /// <summary>
+    /// Has the player been spawned in the world?
+    /// </summary>
+    private static bool hasPlayerSpawned = false;
 
 
     /// <summary>
@@ -62,7 +65,7 @@ public static class World
         shouldWorldThreadRun = true;
         worldThread = new Thread(() =>
         {
-            GenerateStartingChunks();
+            GenerateStartingColumns();
             GetPlayerStartPos();
             while(shouldWorldThreadRun == true)
             {
@@ -75,6 +78,7 @@ public static class World
                     Logger.Log(e);
                 }
             }
+            columns.Clear();
         });
         worldThread.Start();
     }
@@ -84,13 +88,19 @@ public static class World
     /// </summary>
     private static void WorldThreadUpdate()
     {
-        while(blockUpdateQueue.Count > 0)
+        if(hasPlayerSpawned == true)
         {
-            blockUpdateQueue.TryDequeue(out Block.BlockUpdateParameters blockUpdate);
-            UpdateBlock(blockUpdate);
+            // Do block updates in block update queue
+            while(blockUpdateQueue.Count > 0)
+            {
+                blockUpdateQueue.TryDequeue(out Block.BlockUpdateParameters blockUpdate);
+                UpdateBlock(blockUpdate);
+            }
+            // Degenerate old chunks and generate new chunks
+            DegenerateDistantColumns();
+            GenerateNextColumn();
+            GenerateNewChunks();
         }
-        DegenerateDistantChunks();
-        GenerateNewChunks();
     }
 
     /// <summary>
@@ -98,11 +108,14 @@ public static class World
     /// </summary>
     public static void MainThreadUpdate()
     {
-        if(GameManager.Instance.Player != null)
+        // Update player info
+        if(hasPlayerSpawned == true)
         {
             playerCurrentChunkPos = GameManager.Instance.Player.transform.position.RoundToInt().WorldPosToChunkPos();
+            playerCurrentForward = GameManager.Instance.Player.transform.forward;
         }
-        while(mainThreadActionQueue.Count > 0)
+        // Do actions in main thread queue
+        if(mainThreadActionQueue.Count > 0)
         {
             mainThreadActionQueue.TryDequeue(out Action action);
             action.Invoke();
@@ -136,27 +149,40 @@ public static class World
     }
 
     /// <summary>
-    /// Stops world thread, removes all chunks, and starts the world server up again to create new chunks.
+    /// Tries to get a column from the list of columns using the given position.
     /// </summary>
-    public static void RestartWorld()
+    /// <param name="columnPos">The position to retrieve the column from.</param>
+    /// <param name="column">The column output if column exists at given position.</param>
+    /// <returns>Returns true if a column exists at the given position.</returns>
+    public static bool TryGetColumn(Vector2Int columnPos, out Column column)
     {
-        Quit();
-        RemoveAllChunks();
-        WorldThreadStart();
+        if(columns.ContainsKey(columnPos) == true)
+        {
+            column = columns[columnPos];
+            return true;
+        }
+        else
+        {
+            column = null;
+            return false;
+        }
     }
 
     /// <summary>
-    /// Get a reference to a currently existing chunk by referencing the chunk position in chunk coordinate system.
+    /// Tries to get a chunk from the chunk array of a column using the given position.
     /// </summary>
     /// <param name="chunkPos">The position in chunk coordinate system to retrieve a chunk from.</param>
-    /// <param name="chunk">The reference to the chunk at that position, if one exists.</param>
+    /// <param name="chunk">The chunk output if chunk exists at given position.</param>
     /// <returns>Returns true if a chunk exists at the given position.</returns>
     public static bool TryGetChunk(Vector3Int chunkPos, out Chunk chunk)
     {
-        if(chunks.ContainsKey(chunkPos) == true)
+        if(TryGetColumn(new Vector2Int(chunkPos.x, chunkPos.z), out Column column) == true)
         {
-            chunk = chunks[chunkPos];
-            return true;
+            if(column.TryGetChunk(chunkPos.y, out chunk) == true)
+            {
+                return true;
+            }
+            return false;
         }
         else
         {
@@ -181,7 +207,7 @@ public static class World
         }
         else
         {
-            block = null;
+            block = new Block();
             return false;
         }
     }
@@ -201,45 +227,45 @@ public static class World
     }
 
     /// <summary>
-    /// Removes all currently existing chunks by destroying their GameObjects and clearing the chunk dictionary.
+    /// Checks if columns are too far from player and degenerates them.
     /// </summary>
-    private static void RemoveAllChunks()
+    private static void DegenerateDistantColumns()
     {
-        foreach(KeyValuePair<Vector3Int, Chunk> chunk in chunks)
+        List<Column> columnsToRemove = new List<Column>();
+        foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
-            GameObject.Destroy(chunk.Value.ChunkGO);
+            if(Vector2Int.Distance(column.Value.ColumnPos, new Vector2Int(playerCurrentChunkPos.x, playerCurrentChunkPos.z)) > GameManager.Instance.StartingColumnRadius + 1)
+            {
+                columnsToRemove.Add(column.Value);
+            }
         }
-        chunks.Clear();
+        foreach(Column column in columnsToRemove)
+        {
+            AddActionToMainThreadQueue(column.Degenerate);
+            columns.Remove(column.ColumnPos);
+        }
+        if(columnsToRemove.Count > 0)
+        {
+            Logger.Log($@"% DEGENERATE: Removed {columnsToRemove.Count} distant columns!");
+        }
     }
 
     /// <summary>
-    /// Checks if chunks are too far from player and degenerates them.
+    /// Generates new columns around player.
     /// </summary>
-    private static void DegenerateDistantChunks()
+    private static void GenerateNextColumn()
     {
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
-        List<Chunk> chunksToRemove = new List<Chunk>();
-        foreach(KeyValuePair<Vector3Int, Chunk> chunk in chunks)
+        Column newColumn = GetNextColumnToGenerate();
+        if(newColumn != null)
         {
-            if(Vector3Int.Distance(chunk.Value.ChunkPos, playerCurrentChunkPos) > GameManager.Instance.ActiveChunkRadius + 2)
-            {
-                chunksToRemove.Add(chunk.Value);
-            }
+            columns.Add(newColumn.ColumnPos, newColumn);
+            newColumn.GenerateChunkData();
+            stopwatch.Stop();
+            long elapsedMS = stopwatch.ElapsedMilliseconds;
+            Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate new column!");
         }
-        foreach(Chunk chunk in chunksToRemove)
-        {
-            AddActionToMainThreadQueue(chunk.Degenerate);
-            chunks.Remove(chunk.ChunkPos);
-        }
-        stopwatch.Stop();
-        long elapsedMS = stopwatch.ElapsedMilliseconds;
-        stopwatch.Reset();
-        if(chunksToRemove.Count > 0)
-        {
-            Logger.Log($@"% DEGENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to remove {chunksToRemove.Count} distant chunks at a rate of {elapsedMS / (long)chunksToRemove.Count} ms per chunk!");
-        }
-        chunksToRemove.Clear();
     }
 
     /// <summary>
@@ -249,104 +275,114 @@ public static class World
     {
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
-        int radius = GameManager.Instance.ActiveChunkRadius;
-        // Create list of new chunks to add
-        if(newChunkGenerationList.Count > GameManager.Instance.MaxChunksToQueueForGeneration)
+        List<Chunk> chunksToGenerate = new List<Chunk>();
+        foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
-            newChunkGenerationList.Clear();
-        }
-        for(int x = playerCurrentChunkPos.x - radius + 1; x < playerCurrentChunkPos.x + radius; x++)
-        {
-            for(int y = playerCurrentChunkPos.y - radius + 1; y < playerCurrentChunkPos.y + radius; y++)
+            foreach(Chunk chunk in column.Value.Chunks)
             {
-                for(int z = playerCurrentChunkPos.z - radius + 1; z < playerCurrentChunkPos.z + radius; z++)
+                if(Vector3Int.Distance(chunk.ChunkPos, playerCurrentChunkPos) <= GameManager.Instance.StartingColumnRadius + 1 && chunk.HasGeneratedChunkData == true && chunk.HasGeneratedMeshData == false && chunk.HasGeneratedGameObject == false)
                 {
-                    Vector3Int newChunkPos = new Vector3Int(x, y, z);
-                    if(TryGetChunk(newChunkPos, out Chunk chunk) == false && newChunkGenerationList.ContainsKey(newChunkPos) == false)
-                    {
-                        newChunkGenerationList.Add(newChunkPos, new Chunk(newChunkPos));
-                    }
+                    chunksToGenerate.Add(chunk);
                 }
             }
         }
-        int newChunksArrayLength = newChunkGenerationList.Count < GameManager.Instance.ChunksToGeneratePerThreadLoop ? newChunkGenerationList.Count : GameManager.Instance.ChunksToGeneratePerThreadLoop;
-        Chunk[] newChunks = new Chunk[newChunksArrayLength];
-        // Generate chunk data
-        for(int i = 0; i < newChunks.Length; i++)
+        foreach(Chunk chunk in chunksToGenerate)
         {
-            newChunks[i] = newChunkGenerationList.ElementAt(i).Value;
-            chunks.Add(newChunks[i].ChunkPos, newChunks[i]);
-            newChunks[i].GenerateChunkData();
-        }
-        // Generate mesh data
-        for(int i = 0; i < newChunks.Length; i++)
-        {
-            newChunks[i].GenerateMeshData();
-            AddActionToMainThreadQueue(newChunks[i].GenerateChunkGameObject);
-            newChunkGenerationList.Remove(newChunks[i].ChunkPos);
+            chunk.GenerateMeshData();
+            AddActionToMainThreadQueue(chunk.GenerateChunkGameObject);
         }
         stopwatch.Stop();
         long elapsedMS = stopwatch.ElapsedMilliseconds;
-        stopwatch.Reset();
-        if(newChunks.Length > 0)
+        if(chunksToGenerate.Count > 0)
         {
-            Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate {newChunks.Length} new chunks at a rate of {elapsedMS / (long)newChunks.Length} ms per chunk! {newChunkGenerationList.Count} chunks left in queue!");
+            Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate {chunksToGenerate.Count} new chunks at a rate of {elapsedMS / chunksToGenerate.Count} ms per chunk!");
         }
     }
 
     /// <summary>
-    /// Generates a cube of chunks of StartingChunkRadius doubled minus 1 and cubed in size.
+    /// Gets the next column that is in front of or near to the player and hasn't generated yet.
     /// </summary>
-    private static void GenerateStartingChunks()
+    /// <returns>Returns the next column eligible for generation.</returns>
+    private static Column GetNextColumnToGenerate()
+    {
+        Vector3Int forward = new Vector3(playerCurrentForward.x, 0, playerCurrentForward.z).normalized.RoundToInt();
+        Vector2Int forwardNormal = new Vector2Int(forward.x, forward.z);
+        Vector2Int playerCurrentColumnPos = new Vector2Int(playerCurrentChunkPos.x, playerCurrentChunkPos.z);
+        int x = 0;
+        int y = 0;
+        for(int i = 0; i < GameManager.Instance.ActiveColumnRadius * GameManager.Instance.ActiveColumnRadius; ++i)
+        {
+            Vector2Int newColumnPos = new Vector2Int(x + playerCurrentColumnPos.x, y + playerCurrentColumnPos.y);
+            if(newColumnPos.ManhattanDistance(playerCurrentColumnPos) < 2 || Vector2.Dot(forwardNormal, (newColumnPos - playerCurrentColumnPos).Normalize()) > 0.5f)
+            {
+                if(TryGetColumn(newColumnPos, out _) == false)
+                {
+                    return new Column(newColumnPos);
+                }
+            }
+            if(Mathf.Abs(x) <= Mathf.Abs(y) && (x != y || x >= 0))
+            {
+                x += (y >= 0) ? 1 : -1;
+            }
+            else
+            {
+                y += (x >= 0) ? -1 : 1;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Generates an area of starting columns and their respective chunks around world origin.
+    /// </summary>
+    private static void GenerateStartingColumns()
     {
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        System.Diagnostics.Stopwatch individualStopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
-        Logger.Log("Generating Starting Chunks...");
+        Logger.Log("Generating Starting Columns...");
         //------------------------------------------------------------------------------------------
         // Instantiate Starting Chunks.
-        Logger.Log("Initializing Starting Chunks...");
-        for(int x = -GameManager.Instance.StartingChunkRadius + 1; x < GameManager.Instance.StartingChunkRadius; x ++)
+        Logger.Log("Initializing Starting Columns...");
+        individualStopwatch.Start();
+        for(int x = -GameManager.Instance.StartingColumnRadius + 1; x < GameManager.Instance.StartingColumnRadius; x ++)
         {
-            for(int y = -GameManager.Instance.StartingChunkRadius + 1; y < GameManager.Instance.StartingChunkRadius; y++)
+            for(int z = -GameManager.Instance.StartingColumnRadius + 1; z < GameManager.Instance.StartingColumnRadius; z++)
             {
-                for(int z = -GameManager.Instance.StartingChunkRadius + 1; z < GameManager.Instance.StartingChunkRadius; z++)
+                Vector2Int newColumnPos = new Vector2Int(x, z);
+                if(Vector2Int.zero.ManhattanDistance(newColumnPos) <= GameManager.Instance.StartingColumnRadius)
                 {
-                    Vector3Int newChunkPos = new Vector3Int(x, y, z);
-                    chunks.Add(newChunkPos, new Chunk(newChunkPos));
+                    columns.Add(newColumnPos, new Column(newColumnPos));
                 }
             }
         }
-        Logger.Log("Successfully Initialized Starting Chunks!");
+        individualStopwatch.Stop();
+        Logger.Log($@"Successfully Initialized Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------
         // Loop through all chunks and generate chunk data.
-        Logger.Log("Generating Chunk Data for Starting Chunks...");
-        Parallel.ForEach(chunks, chunk =>
+        Logger.Log("Generating Chunk Data for Starting Columns...");
+        individualStopwatch.Restart();
+        Parallel.ForEach(columns, column =>
         {
-            chunk.Value.GenerateChunkData();
+            column.Value.GenerateChunkData();
         });
-        Logger.Log("Successfully Generated Chunk Data for Starting Chunks!");
+        individualStopwatch.Stop();
+        Logger.Log($@"Successfully Generated Chunk Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------
         // Loop through all chunks and generate mesh data.
-        Logger.Log("Generating Mesh Data for Starting Chunks...");
-        Parallel.ForEach(chunks, chunk =>
+        Logger.Log("Generating Mesh Data and Game Objects for Starting Chunks...");
+        individualStopwatch.Restart();
+        Parallel.ForEach(columns, column =>
         {
-            chunk.Value.GenerateMeshData();
+            column.Value.GenerateMeshData();
+            AddActionToMainThreadQueue(column.Value.GenerateChunkGameObject);
         });
-        Logger.Log("Successfully Generated Mesh Data for Starting Chunks!");
-        //------------------------------------------------------------------------------------------
-        // Loop through all chunks and create game objects and assign mesh data.
-        Logger.Log("Generating GameObjects for Starting Chunks and assigning Mesh Data...");
-        Parallel.ForEach(chunks, chunk =>
-        {
-            AddActionToMainThreadQueue(chunk.Value.GenerateChunkGameObject);
-        });
-        Logger.Log("Successfully Generated GameObjects and assigned Mesh Data for Starting Chunks!");
+        individualStopwatch.Stop();
+        Logger.Log($@"Successfully Generated GameObjects and assigned Mesh Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------
         stopwatch.Stop();
-        long elapsedMS = stopwatch.ElapsedMilliseconds;
-        stopwatch.Reset();
-        Logger.Log($@"Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate {chunks.Count} chunks at a rate of {elapsedMS / (long)chunks.Count} ms per chunk!");
-        HasGenerated = true;
+        Logger.Log($@"Took {stopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms to generate {columns.Count} columns at a rate of {stopwatch.ElapsedMilliseconds / (long)columns.Count} ms per Column or {stopwatch.ElapsedMilliseconds / ((long)columns.Count * GameManager.Instance.ChunksPerColumn)} ms per Chunk!");
+        HasStartingAreaGenerated = true;
     }
 
     /// <summary>
@@ -354,17 +390,19 @@ public static class World
     /// </summary>
     private static void GetPlayerStartPos()
     {
+        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
         Logger.Log($@"Trying to find player start position...");
-        playerStartPos = new Vector3Int(0, (GameManager.Instance.ChunkSize * (GameManager.Instance.StartingChunkRadius - 1)) - 1, 0);
+        playerStartPos = new Vector3Int(0, (GameManager.Instance.ChunksPerColumn * GameManager.Instance.ChunkSize) - 1, 0);
         while(CanPlayerSpawnHere(playerStartPos, out bool reachedOutOfBounds) == false)
         {
             if(reachedOutOfBounds == true)
             {
                 System.Random random = new System.Random();
                 playerStartPos = new Vector3Int(
-                    random.Next((GameManager.Instance.ChunkSize * (GameManager.Instance.StartingChunkRadius - 1)) - 1),
-                                (GameManager.Instance.ChunkSize * (GameManager.Instance.StartingChunkRadius - 1)) - 1,
-                    random.Next((GameManager.Instance.ChunkSize * (GameManager.Instance.StartingChunkRadius - 1)) - 1));
+                    random.Next((GameManager.Instance.ChunkSize * (GameManager.Instance.StartingColumnRadius - 1)) - 1),
+                                (GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn) - 1,
+                    random.Next((GameManager.Instance.ChunkSize * (GameManager.Instance.StartingColumnRadius - 1)) - 1));
             }
             else
             {
@@ -372,6 +410,7 @@ public static class World
             }
         }
         playerStartPos += new Vector3Int(0, 1, 0);
+        Logger.Log($@"Took {stopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms to find a player start position!");
         Logger.Log($@"Player start position found: {playerStartPos}");
         AddActionToMainThreadQueue(PlacePlayerInWorld);
     }
@@ -425,9 +464,10 @@ public static class World
     /// </summary>
     private static void PlacePlayerInWorld()
     {
-        if(GameManager.Instance.Player == null)
+        if(hasPlayerSpawned == false)
         {
             GameManager.Instance.Player = GameObject.Instantiate(GameManager.Instance.PlayerPrefab, playerStartPos, Quaternion.identity, GameManager.Instance.PlayerParent).GetComponent<Player>();
+            hasPlayerSpawned = true;
         }
         else
         {

@@ -76,7 +76,7 @@ namespace OLD
         // Chunk Tick
         public void Tick()
         {
-            // TODO: set up chunk/block tick system
+            
         }
 
         // Chunk Update: Create Mesh for Chunk
@@ -214,8 +214,8 @@ namespace OLD
                         }
                         catch(Exception e)
                         {
-                            Debug.Log($@"{GameManager.Time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
-                            Logger.Log($@"{GameManager.Time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e.ToString()}");
+                            Debug.Log($@"{GameManager.Time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e}");
+                            Logger.Log($@"{GameManager.Time}: Can't Update Chunk: C_{this.Pos.x}_{this.Pos.y}_{this.Pos.z}: {e}");
                             this.drawLock = false;
                             break;
                         }
@@ -270,7 +270,6 @@ namespace OLD
             return (float)this.biome.Ridged.GetValue(_pos.x, _pos.y, _pos.z) - (_pos.y / (128 * 0.5f) * this.biome.CaveYMultiplier);
         }
 
-        // TODO: Tree gen needs overhaul
         // Get noise for tree generation
         //private float GetNoiseForTree(float x, float z)
         //{
@@ -366,7 +365,6 @@ namespace OLD
             this.blocks = _data.ToBlockArray();
         }
 
-        // TODO: Tree Gen needs overhaul
         // Get highest clear block: for tree generation
         //public static int GetHighestClearBlockPositionTree(Block[,,] blocks, int x, int z)
         //{
@@ -388,7 +386,6 @@ namespace OLD
         //    return 0;
         //}
 
-        // TODO: Tree gen needs overhaul
         // Generate tree at position
         //public static void GenerateTree(Block[,,] blocks, int x, int y, int z, Int3 ChunkPos)
         //{

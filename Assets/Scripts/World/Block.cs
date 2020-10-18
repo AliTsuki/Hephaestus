@@ -4,11 +4,11 @@
 /// <summary>
 /// Class describing a block of the game world.
 /// </summary>
-public class Block
+public struct Block
 {
     // Start of Block List
-    public static Block Air = new Block("Air", TransparencyEnum.Transparent);
-    public static Block Stone = new Block("Stone", TransparencyEnum.Opaque);
+    public static Block Air = new Block("Air", TransparencyEnum.Transparent, 0, 0);
+    public static Block Stone = new Block("Stone", TransparencyEnum.Opaque, 0, 0);
     // End of Block List
 
     /// <summary>
@@ -40,11 +40,20 @@ public class Block
     /// <summary>
     /// The name of this block type.
     /// </summary>
-    public string BlockName { get; private set; }
+    public string BlockName;
     /// <summary>
     /// The transparency of this block type.
     /// </summary>
-    public TransparencyEnum Transparency { get; private set; }
+    public TransparencyEnum Transparency;
+    /// <summary>
+    /// The amount of light this block emits.
+    /// </summary>
+    public int LightEmissionValue;
+    /// <summary>
+    /// The amount of light this block receives.
+    /// </summary>
+    public int LightValue;
+
 
     /// <summary>
     /// How transparent this block is.
@@ -62,10 +71,12 @@ public class Block
     /// </summary>
     /// <param name="blockName">The name to give this block.</param>
     /// <param name="transparency">The transparency value to give this block.</param>
-    public Block(string blockName, TransparencyEnum transparency)
+    public Block(string blockName, TransparencyEnum transparency, int lightEmissionValue, int lightValue)
     {
         this.BlockName = blockName;
         this.Transparency = transparency;
+        this.LightEmissionValue = lightEmissionValue;
+        this.LightValue = lightValue;
     }
 
     /// <summary>

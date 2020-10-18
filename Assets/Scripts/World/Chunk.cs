@@ -64,20 +64,20 @@ public class Chunk
     /// <summary>
     /// Array of all neighbor positions for a chunk.
     /// </summary>
-    private static readonly Dictionary<chunkNeighbors, Vector3Int> chunkNeighborPositions = new Dictionary<chunkNeighbors, Vector3Int>()
+    private static readonly Dictionary<ChunkNeighbors, Vector3Int> chunkNeighborPositions = new Dictionary<ChunkNeighbors, Vector3Int>()
     {
-        { chunkNeighbors.XPos, new Vector3Int( 1,  0,  0)},
-        { chunkNeighbors.XNeg, new Vector3Int(-1,  0,  0)},
-        { chunkNeighbors.YPos, new Vector3Int( 0,  1,  0)},
-        { chunkNeighbors.YNeg, new Vector3Int( 0, -1,  0)},
-        { chunkNeighbors.ZPos, new Vector3Int( 0,  0,  1)},
-        { chunkNeighbors.ZNeg, new Vector3Int( 0,  0, -1)},
+        { ChunkNeighbors.XPos, new Vector3Int( 1,  0,  0)},
+        { ChunkNeighbors.XNeg, new Vector3Int(-1,  0,  0)},
+        { ChunkNeighbors.YPos, new Vector3Int( 0,  1,  0)},
+        { ChunkNeighbors.YNeg, new Vector3Int( 0, -1,  0)},
+        { ChunkNeighbors.ZPos, new Vector3Int( 0,  0,  1)},
+        { ChunkNeighbors.ZNeg, new Vector3Int( 0,  0, -1)},
     };
 
     /// <summary>
     /// Enum of all chunk neighbor positions.
     /// </summary>
-    private enum chunkNeighbors
+    private enum ChunkNeighbors
     {
         XPos,
         XNeg,
@@ -110,11 +110,22 @@ public class Chunk
                 {
                     Vector3Int internalPos = new Vector3Int(x, y, z);
                     Vector3Int worldPos = internalPos.InternalPosToWorldPos(this.ChunkPos);
-                    float value = GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z) * (GameManager.Instance.YMultiplier * worldPos.y);
+                    float value;
+                    if(worldPos.y == 0)
+                    {
+                        value = -50;
+                    }
+                    else
+                    {
+                        value = GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                    }
+                    // TODO: Add a system to place different kinds of blocks based on noise value.
                     this.SetBlock(internalPos, Block.GetBlockFromValue(value));
                 });
             });
         });
+        // TODO: Generate Structures
+        // TODO: Update Lighting
         this.HasGeneratedChunkData = true;
         this.UpdateNeighborChunkMeshData();
     }
@@ -152,7 +163,11 @@ public class Chunk
     /// </summary>
     private void ClearMeshData()
     {
-        this.meshData.Clear();
+        if(this.meshDataMutex.WaitOne())
+        {
+            this.meshData.Clear();
+        }
+        this.meshDataMutex.ReleaseMutex();
     }
 
     /// <summary>
@@ -161,17 +176,12 @@ public class Chunk
     /// </summary>
     public void GenerateChunkGameObject()
     {
-        this.ChunkGO = new GameObject($@"Chunk: {this.ChunkPos}")
-        {
-            layer = GameManager.Instance.LevelGeometryLayerMask
-        };
-        this.ChunkGO.transform.position = this.ChunkPos.ChunkPosToWorldPos();
-        this.ChunkGO.transform.parent = GameManager.Instance.ChunkParentTransform;
-        this.meshFilter = this.ChunkGO.AddComponent<MeshFilter>();
-        this.meshRenderer = this.ChunkGO.AddComponent<MeshRenderer>();
+        this.ChunkGO = ObjectPooler.Instantiate(GameManager.Instance.ChunkPrefab, this.ChunkPos.ChunkPosToWorldPos(), Quaternion.identity, GameManager.Instance.ChunkParentTransform);
+        this.ChunkGO.layer = GameManager.Instance.LevelGeometryLayerMask;
+        this.meshFilter = this.ChunkGO.GetComponent<MeshFilter>();
+        this.meshRenderer = this.ChunkGO.GetComponent<MeshRenderer>();
         this.meshRenderer.material = GameManager.Instance.ChunkMaterial;
-        this.meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
-        this.meshCollider = this.ChunkGO.AddComponent<MeshCollider>();
+        this.meshCollider = this.ChunkGO.GetComponent<MeshCollider>();
         this.HasGeneratedGameObject = true;
         this.AssignMesh();
     }
@@ -196,8 +206,14 @@ public class Chunk
     /// </summary>
     public void Degenerate()
     {
-        // TODO: Degenerate Chunk, save info if chunk was modified
-        GameObject.Destroy(this.ChunkGO);
+        // TODO: Degenerate Chunk, save info if chunk was modified, add to list of chunks to be saved to disk and run save on world thread
+        if(this.ChunkGO != null)
+        {
+            ObjectPooler.Destroy(this.ChunkGO);
+            this.ClearMeshData();
+            this.HasGeneratedMeshData = false;
+            this.HasGeneratedGameObject = false;
+        }
     }
 
     /// <summary>
@@ -231,27 +247,27 @@ public class Chunk
         this.GenerateMeshData();
         if(internalPos.x == 0)
         {
-            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.XNeg);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.XNeg);
         }
         else if(internalPos.x == GameManager.Instance.ChunkSize - 1)
         {
-            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.XPos);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.XPos);
         }
         if(internalPos.y == 0)
         {
-            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.YNeg);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.YNeg);
         }
         else if(internalPos.y == GameManager.Instance.ChunkSize - 1)
         {
-            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.YPos);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.YPos);
         }
         if(internalPos.z == 0)
         {
-            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.ZNeg);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.ZNeg);
         }
         else if(internalPos.z == GameManager.Instance.ChunkSize - 1)
         {
-            this.UpdateSpecificNeighborChunkMeshData(chunkNeighbors.ZPos);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.ZPos);
         }
     }
 
@@ -261,7 +277,7 @@ public class Chunk
     /// </summary>
     private void UpdateNeighborChunkMeshData()
     {
-        foreach(KeyValuePair<chunkNeighbors, Vector3Int> chunkNeighborPosition in chunkNeighborPositions)
+        foreach(KeyValuePair<ChunkNeighbors, Vector3Int> chunkNeighborPosition in chunkNeighborPositions)
         {
             if(World.TryGetChunk(this.ChunkPos + chunkNeighborPosition.Value, out Chunk chunk))
             {
@@ -277,7 +293,7 @@ public class Chunk
     /// Tells a specific neighbor chunk to update its mesh data due to changes on the border of this chunk and that neighbor.
     /// </summary>
     /// <param name="neighbor">Which neighbor should be updated.</param>
-    private void UpdateSpecificNeighborChunkMeshData(chunkNeighbors neighbor)
+    private void UpdateSpecificNeighborChunkMeshData(ChunkNeighbors neighbor)
     {
         if(World.TryGetChunk(this.ChunkPos + chunkNeighborPositions[neighbor], out Chunk chunk))
         {

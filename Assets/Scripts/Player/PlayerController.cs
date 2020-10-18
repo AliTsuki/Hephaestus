@@ -348,7 +348,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void ApplyToggleMenu()
     {
-        // TODO: Add menu/score screen mechanic
+        // TODO: Add pause menu
     }
 
     /// <summary>

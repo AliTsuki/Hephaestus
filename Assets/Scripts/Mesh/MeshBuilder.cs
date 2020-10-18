@@ -75,8 +75,16 @@ public static class MeshBuilder
     {
         0,1,2,3,2,1
     };
+
+    private static readonly Vector2[] defaultUVs = new Vector2[]
+    {
+        new Vector2(0, 0),
+        new Vector2(0, 1),
+        new Vector2(1, 0),
+        new Vector2(1, 1)
+    };
     // End of list of Face Vertices and Triangle Draw Orders
-   
+
     private enum Side
     {
         Bottom,
@@ -96,95 +104,41 @@ public static class MeshBuilder
     public static MeshData DrawCube(Vector3Int internalPos, Vector3Int chunkPos)
     {
         MeshData meshData = new MeshData();
-        bool bottomVis = CheckFaceVisibility(internalPos, chunkPos, Side.Bottom);
-        bool topVis = CheckFaceVisibility(internalPos, chunkPos, Side.Top);
-        bool frontVis = CheckFaceVisibility(internalPos, chunkPos, Side.Front);
-        bool backVis = CheckFaceVisibility(internalPos, chunkPos, Side.Back);
-        bool leftVis = CheckFaceVisibility(internalPos, chunkPos, Side.Left);
-        bool rightVis = CheckFaceVisibility(internalPos, chunkPos, Side.Right);
+        bool bottomVis = CheckFaceVisibility(internalPos, chunkPos, Side.Bottom, out _);
+        bool topVis = CheckFaceVisibility(internalPos, chunkPos, Side.Top, out _);
+        bool frontVis = CheckFaceVisibility(internalPos, chunkPos, Side.Front, out _);
+        bool backVis = CheckFaceVisibility(internalPos, chunkPos, Side.Back, out _);
+        bool leftVis = CheckFaceVisibility(internalPos, chunkPos, Side.Left, out _);
+        bool rightVis = CheckFaceVisibility(internalPos, chunkPos, Side.Right, out _);
         // Bottom Face
         if(bottomVis)
         {
-            meshData.Merge(new MeshData(
-            bottomFaceVerts,
-            bottomFaceTriangles,
-            new Vector2[]
-            {
-                new Vector2(0, 0),
-                new Vector2(0, 1),
-                new Vector2(1, 0),
-                new Vector2(1, 1)
-            }));
+            meshData.Merge(new MeshData(bottomFaceVerts, bottomFaceTriangles, defaultUVs, defaultUVs));
         }
         // Top Face
         if(topVis)
         {
-            meshData.Merge(new MeshData(
-            topFaceVerts,
-            topFaceTriangles,
-            new Vector2[]
-            {
-                new Vector2(0, 0),
-                new Vector2(0, 1),
-                new Vector2(1, 0),
-                new Vector2(1, 1)
-            }));
+            meshData.Merge(new MeshData(topFaceVerts, topFaceTriangles, defaultUVs, defaultUVs));
         }
         // Front Face
         if(frontVis)
         {
-            meshData.Merge(new MeshData(
-            frontFaceVerts,
-            frontFaceTriangles,
-            new Vector2[]
-            {
-                new Vector2(0, 0),
-                new Vector2(0, 1),
-                new Vector2(1, 0),
-                new Vector2(1, 1)
-            }));
+            meshData.Merge(new MeshData(frontFaceVerts, frontFaceTriangles, defaultUVs, defaultUVs));
         }
         // Back Face
         if(backVis)
         {
-            meshData.Merge(new MeshData(
-            backFaceVerts,
-            backFaceTriangles,
-            new Vector2[]
-            {
-                new Vector2(0, 0),
-                new Vector2(0, 1),
-                new Vector2(1, 0),
-                new Vector2(1, 1)
-            }));
+            meshData.Merge(new MeshData(backFaceVerts, backFaceTriangles, defaultUVs, defaultUVs));
         }
         // Left Face
         if(leftVis)
         {
-            meshData.Merge(new MeshData(
-            leftFaceVerts,
-            leftFaceTriangles,
-            new Vector2[]
-            {
-                new Vector2(0, 0),
-                new Vector2(0, 1),
-                new Vector2(1, 0),
-                new Vector2(1, 1)
-            }));
+            meshData.Merge(new MeshData(leftFaceVerts, leftFaceTriangles, defaultUVs, defaultUVs));
         }
         // Right Face
         if(rightVis)
         {
-            meshData.Merge(new MeshData(
-            rightFaceVerts,
-            rightFaceTriangles,
-            new Vector2[]
-            {
-                new Vector2(0, 0),
-                new Vector2(0, 1),
-                new Vector2(1, 0),
-                new Vector2(1, 1)
-            }));
+            meshData.Merge(new MeshData(rightFaceVerts, rightFaceTriangles, defaultUVs, defaultUVs));
         }
         meshData.OffsetPosition(new Vector3(internalPos.x - 0.5f, internalPos.y - 0.5f, internalPos.z - 0.5f));
         return meshData;
@@ -197,8 +151,10 @@ public static class MeshBuilder
     /// <param name="chunkPos">The chunk position of the block to check face visibility for.</param>
     /// <param name="side">The side of the block to check face visibility for.</param>
     /// <returns>Returns true if that face is visible.</returns>
-    private static bool CheckFaceVisibility(Vector3Int internalPos, Vector3Int chunkPos, Side side)
+    private static bool CheckFaceVisibility(Vector3Int internalPos, Vector3Int chunkPos, Side side, out int lightingValue)
     {
+        // TODO: When getting face visibility, if face is visible also get lighting values from nearby block
+        lightingValue = 0;
         Vector3Int worldPos = internalPos.InternalPosToWorldPos(chunkPos);
         if(World.TryGetChunk(chunkPos, out Chunk chunk) == false)
         {
@@ -237,7 +193,7 @@ public static class MeshBuilder
                 {
                     return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
                 }
-                return false;
+                return true;
             }
         }
         else if(side == Side.Front)

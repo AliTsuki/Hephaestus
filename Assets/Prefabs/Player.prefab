@@ -420,17 +420,16 @@ MonoBehaviour:
   CrouchSpeed: 2
   NormalSpeed: 4
   SprintSpeed: 6
-  Gravity: -9.81
-  JumpHeight: 1
+  Gravity: -20
+  JumpHeight: 1.1
   JumpLateMarginTime: 0.1
   AirMoveSpeed: 0.2
-  CollisionCheckDistance: 0.15
+  CollisionCheckDistance: 0.3
   isGrounded: 0
   isHeadColliding: 0
   timeSinceLastGrounded: 0
   Cam: {fileID: 5986110754705023009}
   VCam: {fileID: 6845672586379881689}
-  CamTransform: {fileID: 5986110754705023010}
   MouseSensitivity: 10
   InvertY: 1
 --- !u!1 &5986110754988748239
