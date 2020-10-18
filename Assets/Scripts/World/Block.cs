@@ -2,14 +2,18 @@
 
 
 /// <summary>
-/// Class describing a block of the game world.
+/// Struct describing a block of the game world.
 /// </summary>
 public struct Block
 {
     // Start of Block List
     public static Block Air = new Block("Air", TransparencyEnum.Transparent, 0, 0);
+    public static Block Grass = new Block("Grass", TransparencyEnum.Opaque, 0, 0);
+    public static Block Dirt = new Block("Dirt", TransparencyEnum.Opaque, 0, 0);
     public static Block Stone = new Block("Stone", TransparencyEnum.Opaque, 0, 0);
+    public static Block Bedrock = new Block("Bedrock", TransparencyEnum.Opaque, 0, 0);
     // End of Block List
+
 
     /// <summary>
     /// Struct containing information to update a block.
@@ -60,9 +64,9 @@ public struct Block
     /// </summary>
     public enum TransparencyEnum
     {
-        Opaque,
+        Transparent,
         SemiTransparent,
-        Transparent
+        Opaque,
     }
 
 
@@ -80,23 +84,6 @@ public struct Block
     }
 
     /// <summary>
-    /// Gets a block type from the given noise value.
-    /// </summary>
-    /// <param name="value">The noise value.</param>
-    /// <returns>Returns the block type represented by the noise value.</returns>
-    public static Block GetBlockFromValue(float value)
-    {
-        if(value >= GameManager.Instance.CutoffValue)
-        {
-            return Air;
-        }
-        else
-        {
-            return Stone;
-        }
-    }
-
-    /// <summary>
     /// Creates mesh data for the given block based on the block type and which of its faces are visible.
     /// </summary>
     /// <param name="internalPos">The position of the block in internal coordinate system.</param>
@@ -104,15 +91,6 @@ public struct Block
     /// <returns>Returns the created mesh data.</returns>
     public MeshData CreateMesh(Vector3Int internalPos, Vector3Int chunkPos)
     {
-        // If block is air, don't bother drawing
-        if(this.Transparency == TransparencyEnum.Transparent)
-        {
-            return new MeshData();
-        }
-        // If block is anything else draw it
-        else
-        {
-            return MeshBuilder.DrawCube(internalPos, chunkPos);
-        }
+        return MeshBuilder.CreateMesh(this, internalPos, chunkPos);
     }
 }

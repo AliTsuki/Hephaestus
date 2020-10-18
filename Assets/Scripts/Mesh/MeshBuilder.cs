@@ -98,10 +98,11 @@ public static class MeshBuilder
     /// <summary>
     /// Creates the mesh data for the block at the given internal position within the chunk at the given chunk position.
     /// </summary>
+    /// <param name="block">The block to create mesh for.</param>
     /// <param name="internalPos">The internal position of the block to create a mesh for.</param>
     /// <param name="chunkPos">The chunk position of the block to create a mesh for.</param>
     /// <returns>Returns the mesh data created for the block.</returns>
-    public static MeshData DrawCube(Vector3Int internalPos, Vector3Int chunkPos)
+    public static MeshData CreateMesh(Block block, Vector3Int internalPos, Vector3Int chunkPos)
     {
         MeshData meshData = new MeshData();
         bool bottomVis = CheckFaceVisibility(internalPos, chunkPos, Side.Bottom, out _);
@@ -113,32 +114,32 @@ public static class MeshBuilder
         // Bottom Face
         if(bottomVis)
         {
-            meshData.Merge(new MeshData(bottomFaceVerts, bottomFaceTriangles, defaultUVs, defaultUVs));
+            meshData.Merge(new MeshData(bottomFaceVerts, bottomFaceTriangles, UVMap.GetUVs(block.BlockName), defaultUVs));
         }
         // Top Face
         if(topVis)
         {
-            meshData.Merge(new MeshData(topFaceVerts, topFaceTriangles, defaultUVs, defaultUVs));
+            meshData.Merge(new MeshData(topFaceVerts, topFaceTriangles, UVMap.GetUVs(block.BlockName), defaultUVs));
         }
         // Front Face
         if(frontVis)
         {
-            meshData.Merge(new MeshData(frontFaceVerts, frontFaceTriangles, defaultUVs, defaultUVs));
+            meshData.Merge(new MeshData(frontFaceVerts, frontFaceTriangles, UVMap.GetUVs(block.BlockName), defaultUVs));
         }
         // Back Face
         if(backVis)
         {
-            meshData.Merge(new MeshData(backFaceVerts, backFaceTriangles, defaultUVs, defaultUVs));
+            meshData.Merge(new MeshData(backFaceVerts, backFaceTriangles, UVMap.GetUVs(block.BlockName), defaultUVs));
         }
         // Left Face
         if(leftVis)
         {
-            meshData.Merge(new MeshData(leftFaceVerts, leftFaceTriangles, defaultUVs, defaultUVs));
+            meshData.Merge(new MeshData(leftFaceVerts, leftFaceTriangles, UVMap.GetUVs(block.BlockName), defaultUVs));
         }
         // Right Face
         if(rightVis)
         {
-            meshData.Merge(new MeshData(rightFaceVerts, rightFaceTriangles, defaultUVs, defaultUVs));
+            meshData.Merge(new MeshData(rightFaceVerts, rightFaceTriangles, UVMap.GetUVs(block.BlockName), defaultUVs));
         }
         meshData.OffsetPosition(new Vector3(internalPos.x - 0.5f, internalPos.y - 0.5f, internalPos.z - 0.5f));
         return meshData;

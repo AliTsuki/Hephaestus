@@ -23,6 +23,9 @@ public static class Logger
     /// The path to write the current log file to.
     /// </summary>
     private static string currentLogPath = "";
+    /// <summary>
+    /// String representing the date time format to use for log files.
+    /// </summary>
     private const string dateTimeString = "yyyy-MM-dd HH-mm-ss";
 
     /// <summary>
@@ -34,7 +37,10 @@ public static class Logger
     /// List of text in the log.
     /// </summary>
     private readonly static ConcurrentQueue<string> mainLogText = new ConcurrentQueue<string>();
-
+    /// <summary>
+    /// 
+    /// </summary>
+    private static StreamWriter file;
 
     /// <summary>
     /// Starts the logger. Creates log directory if one doesn't exist. Deletes old logs if number of stored logs is greater than max allowed.
@@ -58,6 +64,7 @@ public static class Logger
             File.Delete(oldLogs[0]);
             oldLogs.RemoveAt(0);
         }
+        file = new StreamWriter(currentLogPath, true);
         WriteLogToFile();
     }
 
@@ -69,7 +76,7 @@ public static class Logger
         while(mainLogText.Count > 0)
         {
             mainLogText.TryDequeue(out string text);
-            File.AppendAllText(currentLogPath, text);
+            file.WriteLine(text);
         }
     }
 
@@ -79,6 +86,7 @@ public static class Logger
     public static void Quit()
     {
         WriteLogToFile();
+        file.Dispose();
     }
 
     /// <summary>
@@ -90,6 +98,7 @@ public static class Logger
         string time = $@"{DateTime.Now.ToString("[" + dateTimeString + "]")}";
         Debug.Log($@"{text}");
         mainLogText.Enqueue($@"{time} - {text}{Environment.NewLine}");
+        WriteLogToFile();
     }
 
     /// <summary>
@@ -101,5 +110,6 @@ public static class Logger
         string time = $@"{DateTime.Now.ToString("[" + dateTimeString + "]")}";
         Debug.Log($@"{error}");
         mainLogText.Enqueue($@"{time} - {error}{Environment.NewLine}");
+        WriteLogToFile();
     }
 }

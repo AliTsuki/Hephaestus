@@ -115,7 +115,7 @@ public static class World
             playerCurrentForward = GameManager.Instance.Player.transform.forward;
         }
         // Do actions in main thread queue
-        if(mainThreadActionQueue.Count > 0)
+        while(mainThreadActionQueue.Count > 0)
         {
             mainThreadActionQueue.TryDequeue(out Action action);
             action.Invoke();
@@ -261,7 +261,8 @@ public static class World
         if(newColumn != null)
         {
             columns.Add(newColumn.ColumnPos, newColumn);
-            newColumn.GenerateChunkData();
+            newColumn.GenerateChunkSurfaceData();
+            newColumn.GenerateChunkBlockData();
             stopwatch.Stop();
             long elapsedMS = stopwatch.ElapsedMilliseconds;
             Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate new column!");
@@ -364,7 +365,8 @@ public static class World
         individualStopwatch.Restart();
         Parallel.ForEach(columns, column =>
         {
-            column.Value.GenerateChunkData();
+            column.Value.GenerateChunkSurfaceData();
+            column.Value.GenerateChunkBlockData();
         });
         individualStopwatch.Stop();
         Logger.Log($@"Successfully Generated Chunk Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");

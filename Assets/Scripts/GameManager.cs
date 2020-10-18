@@ -67,13 +67,14 @@ public class GameManager : MonoBehaviour
     public int ActiveColumnRadius = 7;
 
     /// <summary>
-    /// The noise generator for the terrain.
-    /// </summary>
-    public FastNoiseLite NoiseGenerator = new FastNoiseLite();
-    /// <summary>
     /// The seed to use for all noise generation.
     /// </summary>
     public int Seed = 0;
+
+    /// <summary>
+    /// The noise generator for the terrain.
+    /// </summary>
+    public FastNoiseLite NoiseGenerator = new FastNoiseLite();
     /// <summary>
     /// The noise type to use for the noise generation.
     /// </summary>
@@ -98,6 +99,48 @@ public class GameManager : MonoBehaviour
     /// The persistence of the noise generation.
     /// </summary>
     public float Persistence = 0.8f;
+
+    /// <summary>
+    /// The noise generator for the terrain.
+    /// </summary>
+    public FastNoiseLite NoiseGenerator2 = new FastNoiseLite();
+    /// <summary>
+    /// The noise type to use for the noise generation.
+    /// </summary>
+    public FastNoiseLite.NoiseType NoiseType2 = FastNoiseLite.NoiseType.Perlin;
+    /// <summary>
+    /// the fractal type to use for the noise generation.
+    /// </summary>
+    public FastNoiseLite.FractalType FractalType2 = FastNoiseLite.FractalType.FBm;
+    /// <summary>
+    /// The frequency of the noise generation.
+    /// </summary>
+    public float Frequency2 = 0.0015f;
+    /// <summary>
+    /// The number of octaves to use if using fractalized noise generation.
+    /// </summary>
+    public int Octaves2 = 4;
+    /// <summary>
+    /// The lacunarity of the noise generation.
+    /// </summary>
+    public float Lacunarity2 = 3f;
+    /// <summary>
+    /// The persistence of the noise generation.
+    /// </summary>
+    public float Persistence2 = 0.8f;
+
+    public enum NoiseCombinationEnum
+    {
+        Min,
+        Max,
+        Average,
+        Just1,
+        Just2
+    }
+    /// <summary>
+    /// How to combine noise and noise2.
+    /// </summary>
+    public NoiseCombinationEnum NoiseCombination = GameManager.NoiseCombinationEnum.Average;
     /// <summary>
     /// The multiplier to add to the noise generation values.
     /// </summary>
@@ -134,6 +177,15 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public const float DefaultFOV = 60f;
 
+    /// <summary>
+    /// The file path where all opaque block textures are kept.
+    /// </summary>
+    public const string OpaqueBlockTexturePath = "Assets/Textures/Blocks/Opaque/";
+    /// <summary>
+    /// The path to save the texture atlas to.
+    /// </summary>
+    public const string TextureAtlasPath = "Assets/Textures/Blocks/Atlas/atlas.png";
+
 
     // Awake is called when the script instance is being loaded.
     private void Awake()
@@ -142,6 +194,7 @@ public class GameManager : MonoBehaviour
         Logger.Start();
         this.ChunkParentTransform = new GameObject("Chunks").transform;
         this.UpdateNoiseGenerators();
+        TextureAtlas.CreateAtlas();
     }
 
     // Start is called before the first frame update.
@@ -159,7 +212,7 @@ public class GameManager : MonoBehaviour
     // Fixed update is called a fixed number of times per second.
     private void FixedUpdate()
     {
-        Logger.WriteLogToFile();
+        
     }
 
     // OnApplicationQuit is called before the application is quit.
@@ -181,5 +234,13 @@ public class GameManager : MonoBehaviour
         this.NoiseGenerator.SetFractalOctaves(this.Octaves);
         this.NoiseGenerator.SetFractalLacunarity(this.Lacunarity);
         this.NoiseGenerator.SetFractalGain(this.Persistence);
+
+        this.NoiseGenerator2.SetSeed(this.Seed);
+        this.NoiseGenerator2.SetNoiseType(this.NoiseType2);
+        this.NoiseGenerator2.SetFractalType(this.FractalType2);
+        this.NoiseGenerator2.SetFrequency(this.Frequency2);
+        this.NoiseGenerator2.SetFractalOctaves(this.Octaves2);
+        this.NoiseGenerator2.SetFractalLacunarity(this.Lacunarity2);
+        this.NoiseGenerator2.SetFractalGain(this.Persistence2);
     }
 }

@@ -15,6 +15,10 @@ public class Chunk
     /// </summary>
     public Vector3Int ChunkPos { get; private set; }
     /// <summary>
+    /// Array of integers corresponding to blocks, 0 is air, 1 is solid ground.
+    /// </summary>
+    private readonly int[,,] surfaceData = new int[GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize];
+    /// <summary>
     /// Array of blocks within this chunk.
     /// </summary>
     private readonly Block[,,] blocks = new Block[GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize];
@@ -98,9 +102,9 @@ public class Chunk
     }
 
     /// <summary>
-    /// Generates the block data for this chunk.
+    /// Generates surface data for this chunk.
     /// </summary>
-    public void GenerateChunkData()
+    public void GenerateChunkSurfaceData()
     {
         Parallel.For(0, GameManager.Instance.ChunkSize, x =>
         {
@@ -117,14 +121,86 @@ public class Chunk
                     }
                     else
                     {
-                        value = GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                        if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Min)
+                        {
+                            value = Mathf.Min(GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1), GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1)) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                        }
+                        else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Max)
+                        {
+                            value = Mathf.Max(GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1), GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1)) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                        }
+                        else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Average)
+                        {
+                            value = ((GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z)) / 2f).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                        }
+                        else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Just1)
+                        {
+                            value = GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                        }
+                        else
+                        {
+                            value = GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                        }
                     }
-                    // TODO: Add a system to place different kinds of blocks based on noise value.
-                    this.SetBlock(internalPos, Block.GetBlockFromValue(value));
+                    if(value >= GameManager.Instance.CutoffValue)
+                    {
+                        this.surfaceData[x, y, z] = 0;
+                    }
+                    else
+                    {
+                        this.surfaceData[x, y, z] = 1;
+                    }
                 });
             });
         });
-        // TODO: Generate Structures
+    }
+
+    /// <summary>
+    /// Generates the block data for this chunk.
+    /// </summary>
+    public void GenerateChunkBlockData()
+    {
+        Parallel.For(0, GameManager.Instance.ChunkSize, x =>
+        {
+            Parallel.For(0, GameManager.Instance.ChunkSize, z =>
+            {
+                int closestAir = 128;
+                for(int y = GameManager.Instance.ChunkSize - 1; y >= 0; y--)
+                {
+                    // TODO: Add a system to place different kinds of blocks based on noise value.
+                    Vector3Int internalPos = new Vector3Int(x, y, z);
+                    Vector3Int worldPos = internalPos.InternalPosToWorldPos(this.ChunkPos);
+                    if(this.surfaceData[x, y, z] == 1)
+                    {
+                        if(worldPos.y == 0)
+                        {
+                            this.SetBlock(internalPos, Block.Bedrock);
+                        }
+                        else
+                        {
+                            if(closestAir - y <= 1)
+                            {
+                                this.SetBlock(internalPos, Block.Grass);
+                            }
+                            else if(closestAir - y <= 5)
+                            {
+                                this.SetBlock(internalPos, Block.Dirt);
+                            }
+                            else
+                            {
+                                this.SetBlock(internalPos, Block.Stone);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        closestAir = y;
+                        this.SetBlock(internalPos, Block.Air);
+                    }
+                }
+            });
+        });
+        // TODO: Generate Structures & Caves
         // TODO: Update Lighting
         this.HasGeneratedChunkData = true;
         this.UpdateNeighborChunkMeshData();
@@ -145,7 +221,11 @@ public class Chunk
                     for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
                     {
                         Vector3Int internalPos = new Vector3Int(x, y, z);
-                        this.meshData.Merge(this.GetBlock(internalPos).CreateMesh(internalPos, this.ChunkPos));
+                        Block block = this.GetBlock(internalPos);
+                        if(block.Transparency == Block.TransparencyEnum.Opaque)
+                        {
+                            this.meshData.Merge(block.CreateMesh(internalPos, this.ChunkPos));
+                        }
                     }
                 }
             }
@@ -180,7 +260,8 @@ public class Chunk
         this.ChunkGO.layer = GameManager.Instance.LevelGeometryLayerMask;
         this.meshFilter = this.ChunkGO.GetComponent<MeshFilter>();
         this.meshRenderer = this.ChunkGO.GetComponent<MeshRenderer>();
-        this.meshRenderer.material = GameManager.Instance.ChunkMaterial;
+        this.meshRenderer.sharedMaterial = GameManager.Instance.ChunkMaterial;
+        this.meshRenderer.sharedMaterial.SetTexture("_BaseColorMap", TextureAtlas.AtlasTexture);
         this.meshCollider = this.ChunkGO.GetComponent<MeshCollider>();
         this.HasGeneratedGameObject = true;
         this.AssignMesh();

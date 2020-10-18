@@ -52,13 +52,24 @@ public class Column
     }
 
     /// <summary>
-    /// Generates chunk data for all chunks in this column.
+    /// Generates chunk surface data for all chunks in this column.
     /// </summary>
-    public void GenerateChunkData()
+    public void GenerateChunkSurfaceData()
     {
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            this.Chunks[y].GenerateChunkData();
+            this.Chunks[y].GenerateChunkSurfaceData();
+        });
+    }
+
+    /// <summary>
+    /// Generates chunk block data for all chunks in this column.
+    /// </summary>
+    public void GenerateChunkBlockData()
+    {
+        Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
+        {
+            this.Chunks[y].GenerateChunkBlockData();
         });
     }
 

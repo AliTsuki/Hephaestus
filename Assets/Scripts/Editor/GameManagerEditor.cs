@@ -45,12 +45,22 @@ public class GameManagerEditor : Editor
 		EditorGUILayout.Space();
 		EditorGUILayout.LabelField("Noise Settings", BoldCenteredStyle);
 		this.gm.Seed = EditorGUILayout.IntField("Seed:", this.gm.Seed);
+
 		this.gm.NoiseType = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Noise Type:", this.gm.NoiseType);
 		this.gm.FractalType = (FastNoiseLite.FractalType)EditorGUILayout.EnumPopup("Fractal Type:", this.gm.FractalType);
 		this.gm.Frequency = EditorGUILayout.FloatField("Frequency:", this.gm.Frequency);
 		this.gm.Octaves = EditorGUILayout.IntField("Octaves:", this.gm.Octaves);
 		this.gm.Lacunarity = EditorGUILayout.FloatField("Lacunarity:", this.gm.Lacunarity);
 		this.gm.Persistence = EditorGUILayout.FloatField("Persistence:", this.gm.Persistence);
+
+		this.gm.NoiseType2 = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Noise Type2:", this.gm.NoiseType2);
+		this.gm.FractalType2 = (FastNoiseLite.FractalType)EditorGUILayout.EnumPopup("Fractal Type2:", this.gm.FractalType2);
+		this.gm.Frequency2 = EditorGUILayout.FloatField("Frequency2:", this.gm.Frequency2);
+		this.gm.Octaves2 = EditorGUILayout.IntField("Octaves2:", this.gm.Octaves2);
+		this.gm.Lacunarity2 = EditorGUILayout.FloatField("Lacunarity2:", this.gm.Lacunarity2);
+		this.gm.Persistence2 = EditorGUILayout.FloatField("Persistence2:", this.gm.Persistence2);
+
+		this.gm.NoiseCombination = (GameManager.NoiseCombinationEnum)EditorGUILayout.EnumPopup("Noise Combination:", this.gm.NoiseCombination);
 		this.gm.YMultiplier = EditorGUILayout.FloatField("Y Multiplier:", this.gm.YMultiplier);
 		this.gm.CutoffValue = EditorGUILayout.FloatField("Terrain Cutoff:", this.gm.CutoffValue);
 	}
