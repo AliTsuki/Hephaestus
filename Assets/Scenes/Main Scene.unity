@@ -353,6 +353,13 @@ MonoBehaviour:
   Octaves: 4
   Lacunarity: 3
   Persistence: 0.8
+  NoiseType2: 3
+  FractalType2: 1
+  Frequency2: 0.0015
+  Octaves2: 4
+  Lacunarity2: 3
+  Persistence2: 0.8
+  NoiseCombination: 2
   YMultiplier: 0.008
   CutoffValue: 0.5
   MinPooledObjects: 100
@@ -982,7 +989,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1520cffbc0e2b09499dae846f24933c7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ee709bcdc9cb7344995977713bb4c4cb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

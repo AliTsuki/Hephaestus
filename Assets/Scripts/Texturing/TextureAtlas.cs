@@ -56,6 +56,8 @@ public static class TextureAtlas
                 y++;
             }
         }
+        AtlasTexture.Apply();
         File.WriteAllBytes(GameManager.TextureAtlasPath, AtlasTexture.EncodeToPNG());
+        GameManager.Instance.ChunkMaterial.SetTexture("_BaseColorMap", AtlasTexture);
     }
 }

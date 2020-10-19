@@ -67,9 +67,52 @@ public class Column
     /// </summary>
     public void GenerateChunkBlockData()
     {
+        Vector3Int columnMinPos = new Vector3Int(this.ColumnPos.x, 0, this.ColumnPos.y).ChunkPosToWorldPos();
+        Parallel.For(columnMinPos.x, columnMinPos.x + GameManager.Instance.ChunkSize, x =>
+        {
+            Parallel.For(columnMinPos.z, columnMinPos.z + GameManager.Instance.ChunkSize, z =>
+            {
+                int closestAir = GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn;
+                for(int y = closestAir - 1; y >= 0; y--)
+                {
+                    Vector3Int worldPos = new Vector3Int(x, y, z);
+                    Vector3Int internalPos = worldPos.WorldPosToInternalPos();
+                    if(this.TryGetChunk(worldPos.WorldPosToChunkPos().y, out Chunk chunk) == true)
+                    {
+                        if(chunk.GetSurfaceData(internalPos) == 1)
+                        {
+                            if(y == 0)
+                            {
+                                chunk.SetBlock(internalPos, Block.Bedrock);
+                            }
+                            else
+                            {
+                                if(closestAir - y <= 1)
+                                {
+                                    chunk.SetBlock(internalPos, Block.Grass);
+                                }
+                                else if(closestAir - y <= 5)
+                                {
+                                    chunk.SetBlock(internalPos, Block.Dirt);
+                                }
+                                else
+                                {
+                                    chunk.SetBlock(internalPos, Block.Stone);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            closestAir = y;
+                            chunk.SetBlock(internalPos, Block.Air);
+                        }
+                    }
+                }
+            });
+        });
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            this.Chunks[y].GenerateChunkBlockData();
+            this.Chunks[y].GenerateStructuresAndLightingData();
         });
     }
 

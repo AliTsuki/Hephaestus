@@ -156,50 +156,10 @@ public class Chunk
     }
 
     /// <summary>
-    /// Generates the block data for this chunk.
+    /// Generates structures and lighting data for chunk.
     /// </summary>
-    public void GenerateChunkBlockData()
+    public void GenerateStructuresAndLightingData()
     {
-        Parallel.For(0, GameManager.Instance.ChunkSize, x =>
-        {
-            Parallel.For(0, GameManager.Instance.ChunkSize, z =>
-            {
-                int closestAir = 128;
-                for(int y = GameManager.Instance.ChunkSize - 1; y >= 0; y--)
-                {
-                    // TODO: Add a system to place different kinds of blocks based on noise value.
-                    Vector3Int internalPos = new Vector3Int(x, y, z);
-                    Vector3Int worldPos = internalPos.InternalPosToWorldPos(this.ChunkPos);
-                    if(this.surfaceData[x, y, z] == 1)
-                    {
-                        if(worldPos.y == 0)
-                        {
-                            this.SetBlock(internalPos, Block.Bedrock);
-                        }
-                        else
-                        {
-                            if(closestAir - y <= 1)
-                            {
-                                this.SetBlock(internalPos, Block.Grass);
-                            }
-                            else if(closestAir - y <= 5)
-                            {
-                                this.SetBlock(internalPos, Block.Dirt);
-                            }
-                            else
-                            {
-                                this.SetBlock(internalPos, Block.Stone);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        closestAir = y;
-                        this.SetBlock(internalPos, Block.Air);
-                    }
-                }
-            });
-        });
         // TODO: Generate Structures & Caves
         // TODO: Update Lighting
         this.HasGeneratedChunkData = true;
@@ -260,8 +220,7 @@ public class Chunk
         this.ChunkGO.layer = GameManager.Instance.LevelGeometryLayerMask;
         this.meshFilter = this.ChunkGO.GetComponent<MeshFilter>();
         this.meshRenderer = this.ChunkGO.GetComponent<MeshRenderer>();
-        this.meshRenderer.sharedMaterial = GameManager.Instance.ChunkMaterial;
-        this.meshRenderer.sharedMaterial.SetTexture("_BaseColorMap", TextureAtlas.AtlasTexture);
+        this.meshRenderer.material = GameManager.Instance.ChunkMaterial;
         this.meshCollider = this.ChunkGO.GetComponent<MeshCollider>();
         this.HasGeneratedGameObject = true;
         this.AssignMesh();
@@ -298,6 +257,16 @@ public class Chunk
     }
 
     /// <summary>
+    /// Gets the surface data at the given position in internal coordinate system.
+    /// </summary>
+    /// <param name="internalPos">The position within the chunk's internal coordinate system to get from.</param>
+    /// <returns>Returns the surface data at that position.</returns>
+    public int GetSurfaceData(Vector3Int internalPos)
+    {
+        return this.surfaceData[internalPos.x, internalPos.y, internalPos.z];
+    }
+
+    /// <summary>
     /// Gets the block at the given position in internal coordinate system.
     /// </summary>
     /// <param name="internalPos">The position within the chunk's internal coordinate system to get from.</param>
@@ -312,7 +281,7 @@ public class Chunk
     /// </summary>
     /// <param name="internalPos">The position to set the block.</param>
     /// <param name="block">The block to place.</param>
-    private void SetBlock(Vector3Int internalPos, Block block)
+    public void SetBlock(Vector3Int internalPos, Block block)
     {
         this.blocks[internalPos.x, internalPos.y, internalPos.z] = block;
     }
