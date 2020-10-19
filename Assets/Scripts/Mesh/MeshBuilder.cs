@@ -75,7 +75,6 @@ public static class MeshBuilder
     {
         0,1,2,3,2,1
     };
-
     private static readonly Vector2[] defaultUVs = new Vector2[]
     {
         new Vector2(0, 0),

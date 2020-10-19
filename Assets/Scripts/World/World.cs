@@ -17,6 +17,8 @@ public static class World
     /// The thread the world is running on.
     /// </summary>
     private static Thread worldThread;
+
+    #region World Data
     /// <summary>
     /// Queue of actions for the main thread to execute. Used to send actions from world thread to main thread for actions that can only be executed on main thread.
     /// </summary>
@@ -29,7 +31,9 @@ public static class World
     /// Dictionary of all columns currently loaded in game world.
     /// </summary>
     private static readonly Dictionary<Vector2Int, Column> columns = new Dictionary<Vector2Int, Column>();
+    #endregion World Data
 
+    #region Player
     /// <summary>
     /// Position to place the player at the start of the game.
     /// </summary>
@@ -42,7 +46,9 @@ public static class World
     /// The forward direction of the player.
     /// </summary>
     private static Vector3 playerCurrentForward = new Vector3();
+    #endregion Player
 
+    #region Flags
     /// <summary>
     /// Has the world been generated yet?
     /// </summary>
@@ -55,6 +61,7 @@ public static class World
     /// Has the player been spawned in the world?
     /// </summary>
     private static bool hasPlayerSpawned = false;
+    #endregion Flags
 
 
     /// <summary>
@@ -222,7 +229,7 @@ public static class World
         Vector3Int internalPos = blockUpdate.WorldPos.WorldPosToInternalPos();
         if(TryGetChunk(chunkPos, out Chunk chunk) == true)
         {
-            chunk.UpdateBlock(internalPos, blockUpdate.Block);
+            chunk.PlaceBlock(internalPos, blockUpdate.Block);
         }
     }
 

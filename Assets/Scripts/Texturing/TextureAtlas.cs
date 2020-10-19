@@ -11,7 +11,7 @@ public static class TextureAtlas
     /// <summary>
     /// The atlas texture of all block textures.
     /// </summary>
-    public static Texture2D AtlasTexture;
+    public static Texture2D AtlasTexture { get; private set; }
 
     /// <summary>
     /// Creates an atlas of all block textures and sets up the UVMaps to point to the UVs of each texture.

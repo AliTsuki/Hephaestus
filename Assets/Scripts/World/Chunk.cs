@@ -10,6 +10,7 @@ using UnityEngine;
 /// </summary>
 public class Chunk
 {
+    #region Chunk Data
     /// <summary>
     /// The position of this chunk in chunk coordinate system.
     /// </summary>
@@ -22,7 +23,13 @@ public class Chunk
     /// Array of blocks within this chunk.
     /// </summary>
     private readonly Block[,,] blocks = new Block[GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize];
+    /// <summary>
+	/// List of all the cave worms that started in this chunk.
+	/// </summary>
+	public List<CaveWorm> CaveWorms { get; private set; } = new List<CaveWorm>();
+    #endregion Chunk Data
 
+    #region Game Object Data
     /// <summary>
     /// The GameObject associated with this chunk.
     /// </summary>
@@ -47,7 +54,9 @@ public class Chunk
     /// The mesh collider component of this chunk.
     /// </summary>
     private MeshCollider meshCollider;
+    #endregion Game Object Data
 
+    #region Flags
     /// <summary>
     /// Has this chunk generated chunk data?
     /// </summary>
@@ -64,6 +73,7 @@ public class Chunk
     /// Has this chunk assigned mesh data to a game object?
     /// </summary>
     public bool HasAssignedMesh { get; private set; } = false;
+    #endregion Flags
 
     /// <summary>
     /// Array of all neighbor positions for a chunk.
@@ -121,26 +131,39 @@ public class Chunk
                     }
                     else
                     {
+                        float noise1 = GameManager.Instance.NoiseGeneratorBase.GetNoise(worldPos.x, worldPos.y, worldPos.z);
+                        float noise2 = GameManager.Instance.NoiseGeneratorRidged.GetNoise(worldPos.x, worldPos.y, worldPos.z);
+                        if(GameManager.Instance.InvertBase == true)
+                        {
+                            noise1 *= -1;
+                        }
+                        if(GameManager.Instance.InvertRidged == true)
+                        {
+                            noise2 *= -1;
+                        }
+                        noise1.Remap(-1, 1, 0, 1);
+                        noise2.Remap(-1, 1, 0, 1);
                         if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Min)
                         {
-                            value = Mathf.Min(GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1), GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1)) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                            value = Mathf.Min(noise1, noise2);
                         }
                         else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Max)
                         {
-                            value = Mathf.Max(GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1), GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1)) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                            value = Mathf.Max(noise1, noise2);
                         }
                         else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Average)
                         {
-                            value = ((GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z)) / 2f).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                            value = (noise1 + noise2) / 2f;
                         }
                         else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Just1)
                         {
-                            value = GameManager.Instance.NoiseGenerator.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                            value = noise1;
                         }
                         else
                         {
-                            value = GameManager.Instance.NoiseGenerator2.GetNoise(worldPos.x, worldPos.y, worldPos.z).Remap(-1, 1, 0, 1) + (GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize)));
+                            value = noise2;
                         }
+                        value += GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize));
                     }
                     if(value >= GameManager.Instance.CutoffValue)
                     {
@@ -158,12 +181,78 @@ public class Chunk
     /// <summary>
     /// Generates structures and lighting data for chunk.
     /// </summary>
-    public void GenerateStructuresAndLightingData()
+    public void GenerateChunkBlockData()
     {
-        // TODO: Generate Structures & Caves
-        // TODO: Update Lighting
+        this.GenerateCaves();
+        this.GenerateOres();
+        this.GenerateStructures();
+        this.CalculateLightingData();
         this.HasGeneratedChunkData = true;
         this.UpdateNeighborChunkMeshData();
+    }
+
+    /// <summary>
+    /// Generates caves for this chunk.
+    /// </summary>
+    public void GenerateCaves()
+    {
+        // TODO: Generate caves
+        int posOffset = 1000;
+        int numWorms = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x, this.ChunkPos.y, this.ChunkPos.z).Remap(-1, 1, GameManager.Instance.MinimumCaveWorms, GameManager.Instance.MaximumCaveWorms));
+        for(int i = 0; i < numWorms; i++)
+        {
+            int posX = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise((this.ChunkPos.x * this.ChunkPos.x) + (posOffset * 1 * i), this.ChunkPos.y + (posOffset * 1 * i), this.ChunkPos.z + (posOffset * 1 * i)).Remap(-1, 1, 0, GameManager.Instance.ChunkSize));
+            int posY = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x + (posOffset * 2 * i), (this.ChunkPos.y * this.ChunkPos.y) + (posOffset * 2 * i), this.ChunkPos.z + (posOffset * 2 * i)).Remap(-1, 1, 0, GameManager.Instance.ChunkSize));
+            int posZ = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x + (posOffset * 3 * i), this.ChunkPos.y + (posOffset * 3 * i), (this.ChunkPos.z * this.ChunkPos.z) + (posOffset * 3 * i)).Remap(-1, 1, 0, GameManager.Instance.ChunkSize));
+            Vector3Int newWormPos = new Vector3Int(posX, posY, posZ).InternalPosToWorldPos(this.ChunkPos);
+            CaveWorm newWorm = new CaveWorm(newWormPos, GameManager.Instance.CaveWormRadius);
+            this.CaveWorms.Add(newWorm);
+        }
+        foreach(CaveWorm worm in this.CaveWorms)
+        {
+            foreach(CaveWorm.Segment segment in worm.Segments)
+            {
+                foreach(CaveWorm.Segment.Point point in segment.Points)
+                {
+                    if(World.TryGetChunk(point.WorldPosition.WorldPosToChunkPos(), out Chunk chunk) == true && chunk.HasGeneratedChunkData == true)
+                    {
+                        chunk.SetBlock(point.WorldPosition.WorldPosToInternalPos(), Block.Air);
+                    }
+                    else
+                    {
+                        /// TODO: Set up abandoned block updates
+                        /// When cave/ore/structure gen can't update a block in a nearby chunk because it hasn't been generated,
+                        /// create the column/chunk to contain them and keep it in a list to be iterated over when chunk finishes normal generation,
+                        /// if that chunk ever gets generated, if it doesn't get generated then save teh abandoned block update list to file to read
+                        /// when the chunk does get generated if player heads back in that direction later.
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generates ores for this chunk.
+    /// </summary>
+    private void GenerateOres()
+    {
+        // TODO: Generate ores
+    }
+
+    /// <summary>
+    /// Generates structures for this chunk.
+    /// </summary>
+    private void GenerateStructures()
+    {
+        // TODO: Generate structures
+    }
+
+    /// <summary>
+    /// Calculates lighting data for this chunk.
+    /// </summary>
+    private void CalculateLightingData()
+    {
+        // TODO: Calculate lighting data
     }
 
     /// <summary>
@@ -277,9 +366,9 @@ public class Chunk
     }
 
     /// <summary>
-    /// Sets the given block at the given position.
+    /// Sets the block at the given position in internal coordinate system to the given block. Used by world generator.
     /// </summary>
-    /// <param name="internalPos">The position to set the block.</param>
+    /// <param name="internalPos">The position in internal coordinate system to set the block.</param>
     /// <param name="block">The block to place.</param>
     public void SetBlock(Vector3Int internalPos, Block block)
     {
@@ -287,11 +376,11 @@ public class Chunk
     }
 
     /// <summary>
-    /// Sets the block at the given position in internal coordinate system to the given block.
+    /// Updates the block at the given position in internal coordinate system to the given block. Used by player.
     /// </summary>
     /// <param name="internalPos">The position in internal coordinate system to place the block.</param>
     /// <param name="block">The block to place.</param>
-    public void UpdateBlock(Vector3Int internalPos, Block block)
+    public void PlaceBlock(Vector3Int internalPos, Block block)
     {
         this.blocks[internalPos.x, internalPos.y, internalPos.z] = block;
         this.GenerateMeshData();

@@ -23,11 +23,11 @@ public struct Block
         /// <summary>
         /// The world position of this block update.
         /// </summary>
-        public Vector3Int WorldPos;
+        public Vector3Int WorldPos { get; private set; }
         /// <summary>
         /// The block to set.
         /// </summary>
-        public Block Block;
+        public Block Block { get; private set; }
 
         /// <summary>
         /// Specific Constructor: Creates a block update parameter struct to use to send block updates.
@@ -41,23 +41,24 @@ public struct Block
         }
     }
 
+    #region Block Data
     /// <summary>
     /// The name of this block type.
     /// </summary>
-    public string BlockName;
+    public string BlockName { get; private set; }
     /// <summary>
     /// The transparency of this block type.
     /// </summary>
-    public TransparencyEnum Transparency;
+    public TransparencyEnum Transparency { get; private set; }
     /// <summary>
     /// The amount of light this block emits.
     /// </summary>
-    public int LightEmissionValue;
+    public int LightEmissionValue { get; private set; }
     /// <summary>
     /// The amount of light this block receives.
     /// </summary>
-    public int LightValue;
-
+    public int LightValue { get; private set; }
+    #endregion Block Data
 
     /// <summary>
     /// How transparent this block is.

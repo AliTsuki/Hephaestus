@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEditor.SceneManagement;
 
 using UnityEngine;
 
@@ -45,23 +46,49 @@ public class GameManagerEditor : Editor
 		EditorGUILayout.Space();
 		EditorGUILayout.LabelField("Noise Settings", BoldCenteredStyle);
 		this.gm.Seed = EditorGUILayout.IntField("Seed:", this.gm.Seed);
-
-		this.gm.NoiseType = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Noise Type:", this.gm.NoiseType);
-		this.gm.FractalType = (FastNoiseLite.FractalType)EditorGUILayout.EnumPopup("Fractal Type:", this.gm.FractalType);
-		this.gm.Frequency = EditorGUILayout.FloatField("Frequency:", this.gm.Frequency);
-		this.gm.Octaves = EditorGUILayout.IntField("Octaves:", this.gm.Octaves);
-		this.gm.Lacunarity = EditorGUILayout.FloatField("Lacunarity:", this.gm.Lacunarity);
-		this.gm.Persistence = EditorGUILayout.FloatField("Persistence:", this.gm.Persistence);
-
-		this.gm.NoiseType2 = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Noise Type2:", this.gm.NoiseType2);
-		this.gm.FractalType2 = (FastNoiseLite.FractalType)EditorGUILayout.EnumPopup("Fractal Type2:", this.gm.FractalType2);
-		this.gm.Frequency2 = EditorGUILayout.FloatField("Frequency2:", this.gm.Frequency2);
-		this.gm.Octaves2 = EditorGUILayout.IntField("Octaves2:", this.gm.Octaves2);
-		this.gm.Lacunarity2 = EditorGUILayout.FloatField("Lacunarity2:", this.gm.Lacunarity2);
-		this.gm.Persistence2 = EditorGUILayout.FloatField("Persistence2:", this.gm.Persistence2);
-
 		this.gm.NoiseCombination = (GameManager.NoiseCombinationEnum)EditorGUILayout.EnumPopup("Noise Combination:", this.gm.NoiseCombination);
 		this.gm.YMultiplier = EditorGUILayout.FloatField("Y Multiplier:", this.gm.YMultiplier);
 		this.gm.CutoffValue = EditorGUILayout.FloatField("Terrain Cutoff:", this.gm.CutoffValue);
+
+		// Noise Generator Base Settings
+		EditorGUILayout.Space();
+		EditorGUILayout.LabelField("Noise Generator Base", BoldCenteredStyle);
+		this.gm.NoiseTypeBase = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Noise Type Base:", this.gm.NoiseTypeBase);
+		this.gm.FractalTypeBase = (FastNoiseLite.FractalType)EditorGUILayout.EnumPopup("Fractal Type Base:", this.gm.FractalTypeBase);
+		this.gm.FrequencyBase = EditorGUILayout.FloatField("Frequency Base:", this.gm.FrequencyBase);
+		this.gm.OctavesBase = EditorGUILayout.IntField("Octaves Base:", this.gm.OctavesBase);
+		this.gm.LacunarityBase = EditorGUILayout.FloatField("Lacunarity Base:", this.gm.LacunarityBase);
+		this.gm.PersistenceBase = EditorGUILayout.FloatField("Persistence Base:", this.gm.PersistenceBase);
+		this.gm.InvertBase = EditorGUILayout.Toggle("Invert Base?:", this.gm.InvertBase);
+
+		// Noise Generator Ridged Settings
+		EditorGUILayout.Space();
+		EditorGUILayout.LabelField("Noise Generator Ridged", BoldCenteredStyle);
+		this.gm.NoiseTypeRidged = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Noise Type Ridged:", this.gm.NoiseTypeRidged);
+		this.gm.FractalTypeRidged = (FastNoiseLite.FractalType)EditorGUILayout.EnumPopup("Fractal Type Ridged:", this.gm.FractalTypeRidged);
+		this.gm.FrequencyRidged = EditorGUILayout.FloatField("Frequency Ridged:", this.gm.FrequencyRidged);
+		this.gm.OctavesRidged = EditorGUILayout.IntField("Octaves Ridged:", this.gm.OctavesRidged);
+		this.gm.LacunarityRidged = EditorGUILayout.FloatField("Lacunarity Ridged:", this.gm.LacunarityRidged);
+		this.gm.PersistenceRidged = EditorGUILayout.FloatField("Persistence Ridged:", this.gm.PersistenceRidged);
+		this.gm.InvertRidged = EditorGUILayout.Toggle("Invert Ridged?:", this.gm.InvertRidged);
+
+		// Noise Generator Cave Settings
+		EditorGUILayout.Space();
+		EditorGUILayout.LabelField("Noise Generator Caves", BoldCenteredStyle);
+		this.gm.CaveWormPositionNoiseType = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Cave Position Noise Type:", this.gm.CaveWormPositionNoiseType);
+		this.gm.CaveWormPositionFrequency = EditorGUILayout.FloatField("Cave Position Frequency:", this.gm.CaveWormPositionFrequency);
+		this.gm.CaveWormDirectionNoiseType = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Cave Direction Noise Type:", this.gm.CaveWormDirectionNoiseType);
+		this.gm.CaveWormDirectionFrequency = EditorGUILayout.FloatField("Cave Direction Frequency:", this.gm.CaveWormDirectionFrequency);
+		this.gm.MinimumCaveWorms = EditorGUILayout.IntField("Minimum Cave Worms:", this.gm.MinimumCaveWorms);
+		this.gm.MaximumCaveWorms = EditorGUILayout.IntField("Maximum Cave Worms:", this.gm.MaximumCaveWorms);
+		this.gm.MaxWormChunkDistance = EditorGUILayout.IntField("Maximum Cave Worms Chunk Distance:", this.gm.MaxWormChunkDistance);
+		this.gm.MaxWormSegments = EditorGUILayout.IntField("Maximum Cave Worm Segments:", this.gm.MaxWormSegments);
+		this.gm.CaveWormRadius = EditorGUILayout.IntField("Cave Worm Radius:", this.gm.CaveWormRadius);
+
+		if(GUI.changed && EditorApplication.isPlaying == false)
+		{
+			EditorUtility.SetDirty(this.gm);
+			EditorSceneManager.MarkSceneDirty(this.gm.gameObject.scene);
+		}
 	}
 }

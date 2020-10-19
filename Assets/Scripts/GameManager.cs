@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public static GameManager Instance { get; private set; }
 
+    #region Player Settings
     /// <summary>
     /// The current active player.
     /// </summary>
@@ -31,12 +32,33 @@ public class GameManager : MonoBehaviour
     /// The maximum distance that a block can be interacted with.
     /// </summary>
     public float BlockSelectionMaxDistance = 5f;
+    /// <summary>
+    /// The default player character height.
+    /// </summary>
+    public const float DefaultCharacterHeight = 1.8f;
+    /// <summary>
+    /// The player character height while crouching.
+    /// </summary>
+    public const float CrouchCharacterHeight = 0.9f;
+    /// <summary>
+    /// The rate to lerp from default height to crouching height for the player.
+    /// </summary>
+    public const float CrouchRate = 0.1f;
+    /// <summary>
+    /// The field of view of the camera while sprinting.
+    /// </summary>
+    public const float SprintFOV = 70f;
+    /// <summary>
+    /// The default field of view for the camera.
+    /// </summary>
+    public const float DefaultFOV = 60f;
+    #endregion Player Settings
 
+    #region Chunk Settings
     /// <summary>
     /// The layer that the game world geometry is on.
     /// </summary>
     public LayerMask LevelGeometryLayerMask;
-
     /// <summary>
     /// The prefab for the chunk objects.
     /// </summary>
@@ -60,75 +82,18 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// The amount of chunks generated for the starting area is this value doubled minus 1 then cubed.
     /// </summary>
-    public int StartingColumnRadius = 9;
+    public int StartingColumnRadius = 11;
     /// <summary>
     /// The radius of chunks to generate continously as the player explores the world.
     /// </summary>
-    public int ActiveColumnRadius = 7;
+    public int ActiveColumnRadius = 9;
+    #endregion Chunk Settings
 
+    #region Terrain Noise Settings
     /// <summary>
     /// The seed to use for all noise generation.
     /// </summary>
     public int Seed = 0;
-
-    /// <summary>
-    /// The noise generator for the terrain.
-    /// </summary>
-    public FastNoiseLite NoiseGenerator = new FastNoiseLite();
-    /// <summary>
-    /// The noise type to use for the noise generation.
-    /// </summary>
-    public FastNoiseLite.NoiseType NoiseType = FastNoiseLite.NoiseType.Perlin;
-    /// <summary>
-    /// the fractal type to use for the noise generation.
-    /// </summary>
-    public FastNoiseLite.FractalType FractalType = FastNoiseLite.FractalType.FBm;
-    /// <summary>
-    /// The frequency of the noise generation.
-    /// </summary>
-    public float Frequency = 0.0015f;
-    /// <summary>
-    /// The number of octaves to use if using fractalized noise generation.
-    /// </summary>
-    public int Octaves = 4;
-    /// <summary>
-    /// The lacunarity of the noise generation.
-    /// </summary>
-    public float Lacunarity = 3f;
-    /// <summary>
-    /// The persistence of the noise generation.
-    /// </summary>
-    public float Persistence = 0.8f;
-
-    /// <summary>
-    /// The noise generator for the terrain.
-    /// </summary>
-    public FastNoiseLite NoiseGenerator2 = new FastNoiseLite();
-    /// <summary>
-    /// The noise type to use for the noise generation.
-    /// </summary>
-    public FastNoiseLite.NoiseType NoiseType2 = FastNoiseLite.NoiseType.Perlin;
-    /// <summary>
-    /// the fractal type to use for the noise generation.
-    /// </summary>
-    public FastNoiseLite.FractalType FractalType2 = FastNoiseLite.FractalType.FBm;
-    /// <summary>
-    /// The frequency of the noise generation.
-    /// </summary>
-    public float Frequency2 = 0.0015f;
-    /// <summary>
-    /// The number of octaves to use if using fractalized noise generation.
-    /// </summary>
-    public int Octaves2 = 4;
-    /// <summary>
-    /// The lacunarity of the noise generation.
-    /// </summary>
-    public float Lacunarity2 = 3f;
-    /// <summary>
-    /// The persistence of the noise generation.
-    /// </summary>
-    public float Persistence2 = 0.8f;
-
     public enum NoiseCombinationEnum
     {
         Min,
@@ -151,31 +116,123 @@ public class GameManager : MonoBehaviour
     public float CutoffValue = 0.5f;
 
     /// <summary>
+    /// The noise generator for the terrain.
+    /// </summary>
+    public FastNoiseLite NoiseGeneratorBase = new FastNoiseLite();
+    /// <summary>
+    /// The noise type to use for the noise generation.
+    /// </summary>
+    public FastNoiseLite.NoiseType NoiseTypeBase = FastNoiseLite.NoiseType.OpenSimplex2S;
+    /// <summary>
+    /// the fractal type to use for the noise generation.
+    /// </summary>
+    public FastNoiseLite.FractalType FractalTypeBase = FastNoiseLite.FractalType.FBm;
+    /// <summary>
+    /// The frequency of the noise generation.
+    /// </summary>
+    public float FrequencyBase = 0.0015f;
+    /// <summary>
+    /// The number of octaves to use if using fractalized noise generation.
+    /// </summary>
+    public int OctavesBase = 4;
+    /// <summary>
+    /// The lacunarity of the noise generation.
+    /// </summary>
+    public float LacunarityBase = 3f;
+    /// <summary>
+    /// The persistence of the noise generation.
+    /// </summary>
+    public float PersistenceBase = 0.8f;
+    /// <summary>
+    /// Should noise be inverted?
+    /// </summary>
+    public bool InvertBase = true;
+
+    /// <summary>
+    /// The noise generator for the terrain.
+    /// </summary>
+    public FastNoiseLite NoiseGeneratorRidged = new FastNoiseLite();
+    /// <summary>
+    /// The noise type to use for the noise generation.
+    /// </summary>
+    public FastNoiseLite.NoiseType NoiseTypeRidged = FastNoiseLite.NoiseType.OpenSimplex2S;
+    /// <summary>
+    /// the fractal type to use for the noise generation.
+    /// </summary>
+    public FastNoiseLite.FractalType FractalTypeRidged = FastNoiseLite.FractalType.Ridged;
+    /// <summary>
+    /// The frequency of the noise generation.
+    /// </summary>
+    public float FrequencyRidged = 0.002f;
+    /// <summary>
+    /// The number of octaves to use if using fractalized noise generation.
+    /// </summary>
+    public int OctavesRidged = 4;
+    /// <summary>
+    /// The lacunarity of the noise generation.
+    /// </summary>
+    public float LacunarityRidged = 2f;
+    /// <summary>
+    /// The persistence of the noise generation.
+    /// </summary>
+    public float PersistenceRidged = 0.5f;
+    /// <summary>
+    /// Should ridged noise be inverted?
+    /// </summary>
+    public bool InvertRidged = true;
+    #endregion Terrain Noise Settings
+
+    #region Cave Noise Settings
+    /// <summary>
+    /// Noise generator for cave worm position noise.
+    /// </summary>
+    public FastNoiseLite CaveWormPositionNoiseGenerator = new FastNoiseLite();
+    /// <summary>
+    /// Noise type for cave worm position noise generator.
+    /// </summary>
+    public FastNoiseLite.NoiseType CaveWormPositionNoiseType = FastNoiseLite.NoiseType.Value;
+    /// <summary>
+    /// The frequency of cave worm position noise generator.
+    /// </summary>
+    public float CaveWormPositionFrequency = 1f;
+    /// <summary>
+    /// Noise generator for cave worm direction noise.
+    /// </summary>
+    public FastNoiseLite CaveWormDirectionNoiseGenerator = new FastNoiseLite();
+    /// <summary>
+    /// Noise type for cave worm direction noise generator.
+    /// </summary>
+    public FastNoiseLite.NoiseType CaveWormDirectionNoiseType = FastNoiseLite.NoiseType.Perlin;
+    /// <summary>
+    /// The frequency of the cave worm direction noise generator.
+    /// </summary>
+    public float CaveWormDirectionFrequency = 0.1f;
+    /// <summary>
+    /// The minimum amount of cave worms to generate in each chunk.
+    /// </summary>
+    public int MinimumCaveWorms = 0;
+    /// <summary>
+    /// The maximum amount of cave worms to generate in each chunk.
+    /// </summary>
+    public int MaximumCaveWorms = 2;
+    /// <summary>
+    /// The maximum distance in chunks for each cave worm to span.
+    /// </summary>
+    public int MaxWormChunkDistance = 3;
+    /// <summary>
+    /// The maximum number of segments to create for each worm.
+    /// </summary>
+    public int MaxWormSegments = 50;
+    /// <summary>
+    /// The radius size of the cave generated by cave worms.
+    /// </summary>
+    public int CaveWormRadius = 3;
+    #endregion Cave Noise Settings
+
+    /// <summary>
     /// The minimum nuber of objects to keep in the object pooler.
     /// </summary>
-    public int MinPooledObjects = 100;
-
-    /// <summary>
-    /// The default player character height.
-    /// </summary>
-    public const float DefaultCharacterHeight = 1.8f;
-    /// <summary>
-    /// The player character height while crouching.
-    /// </summary>
-    public const float CrouchCharacterHeight = 0.9f;
-    /// <summary>
-    /// The rate to lerp from default height to crouching height for the player.
-    /// </summary>
-    public const float CrouchRate = 0.1f;
-
-    /// <summary>
-    /// The field of view of the camera while sprinting.
-    /// </summary>
-    public const float SprintFOV = 70f;
-    /// <summary>
-    /// The default field of view for the camera.
-    /// </summary>
-    public const float DefaultFOV = 60f;
+    public int MinPooledObjects = 50;
 
     /// <summary>
     /// The file path where all opaque block textures are kept.
@@ -227,20 +284,30 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void UpdateNoiseGenerators()
     {
-        this.NoiseGenerator.SetSeed(this.Seed);
-        this.NoiseGenerator.SetNoiseType(this.NoiseType);
-        this.NoiseGenerator.SetFractalType(this.FractalType);
-        this.NoiseGenerator.SetFrequency(this.Frequency);
-        this.NoiseGenerator.SetFractalOctaves(this.Octaves);
-        this.NoiseGenerator.SetFractalLacunarity(this.Lacunarity);
-        this.NoiseGenerator.SetFractalGain(this.Persistence);
+        this.NoiseGeneratorBase.SetSeed(this.Seed);
+        this.NoiseGeneratorBase.SetNoiseType(this.NoiseTypeBase);
+        this.NoiseGeneratorBase.SetFractalType(this.FractalTypeBase);
+        this.NoiseGeneratorBase.SetFrequency(this.FrequencyBase);
+        this.NoiseGeneratorBase.SetFractalOctaves(this.OctavesBase);
+        this.NoiseGeneratorBase.SetFractalLacunarity(this.LacunarityBase);
+        this.NoiseGeneratorBase.SetFractalGain(this.PersistenceBase);
 
-        this.NoiseGenerator2.SetSeed(this.Seed);
-        this.NoiseGenerator2.SetNoiseType(this.NoiseType2);
-        this.NoiseGenerator2.SetFractalType(this.FractalType2);
-        this.NoiseGenerator2.SetFrequency(this.Frequency2);
-        this.NoiseGenerator2.SetFractalOctaves(this.Octaves2);
-        this.NoiseGenerator2.SetFractalLacunarity(this.Lacunarity2);
-        this.NoiseGenerator2.SetFractalGain(this.Persistence2);
+        this.NoiseGeneratorRidged.SetSeed(this.Seed);
+        this.NoiseGeneratorRidged.SetNoiseType(this.NoiseTypeRidged);
+        this.NoiseGeneratorRidged.SetFractalType(this.FractalTypeRidged);
+        this.NoiseGeneratorRidged.SetFrequency(this.FrequencyRidged);
+        this.NoiseGeneratorRidged.SetFractalOctaves(this.OctavesRidged);
+        this.NoiseGeneratorRidged.SetFractalLacunarity(this.LacunarityRidged);
+        this.NoiseGeneratorRidged.SetFractalGain(this.PersistenceRidged);
+
+        this.CaveWormPositionNoiseGenerator.SetSeed(this.Seed);
+        this.CaveWormPositionNoiseGenerator.SetNoiseType(this.CaveWormPositionNoiseType);
+        this.CaveWormPositionNoiseGenerator.SetFractalType(FastNoiseLite.FractalType.None);
+        this.CaveWormPositionNoiseGenerator.SetFrequency(this.CaveWormPositionFrequency);
+
+        this.CaveWormDirectionNoiseGenerator.SetSeed(this.Seed);
+        this.CaveWormDirectionNoiseGenerator.SetNoiseType(this.CaveWormDirectionNoiseType);
+        this.CaveWormDirectionNoiseGenerator.SetFractalType(FastNoiseLite.FractalType.None);
+        this.CaveWormDirectionNoiseGenerator.SetFrequency(this.CaveWormDirectionFrequency);
     }
 }

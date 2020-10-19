@@ -344,24 +344,35 @@ MonoBehaviour:
   ChunkMaterial: {fileID: 2100000, guid: cfdd9fa8541fa4949acb178d549eaa53, type: 2}
   ChunkSize: 16
   ChunksPerColumn: 16
-  StartingColumnRadius: 9
-  ActiveColumnRadius: 5
+  StartingColumnRadius: 11
+  ActiveColumnRadius: 9
   Seed: 0
-  NoiseType: 3
-  FractalType: 1
-  Frequency: 0.0015
-  Octaves: 4
-  Lacunarity: 3
-  Persistence: 0.8
-  NoiseType2: 3
-  FractalType2: 1
-  Frequency2: 0.0015
-  Octaves2: 4
-  Lacunarity2: 3
-  Persistence2: 0.8
   NoiseCombination: 2
   YMultiplier: 0.008
   CutoffValue: 0.5
+  NoiseTypeBase: 1
+  FractalTypeBase: 1
+  FrequencyBase: 0.0015
+  OctavesBase: 4
+  LacunarityBase: 3
+  PersistenceBase: 0.8
+  InvertBase: 1
+  NoiseTypeRidged: 1
+  FractalTypeRidged: 2
+  FrequencyRidged: 0.002
+  OctavesRidged: 4
+  LacunarityRidged: 2
+  PersistenceRidged: 0.5
+  InvertRidged: 1
+  CaveWormPositionNoiseType: 5
+  CaveWormPositionFrequency: 1
+  CaveWormDirectionNoiseType: 3
+  CaveWormDirectionFrequency: 0.1
+  MinimumCaveWorms: 0
+  MaximumCaveWorms: 2
+  MaxWormChunkDistance: 3
+  MaxWormSegments: 50
+  CaveWormRadius: 3
   MinPooledObjects: 100
 --- !u!1 &237903806
 GameObject:

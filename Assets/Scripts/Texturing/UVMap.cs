@@ -11,15 +11,15 @@ public struct UVMap
     /// <summary>
     /// Dictionary of all UVs for all block textures on the texture atlas.
     /// </summary>
-    public static Dictionary<string, UVMap> UVMaps = new Dictionary<string, UVMap>();
+    private readonly static Dictionary<string, UVMap> UVMaps = new Dictionary<string, UVMap>();
     /// <summary>
     /// The name of the block these UVs represent.
     /// </summary>
-    public string Name;
+    public string Name { get; private set; }
     /// <summary>
     /// The UVs for this block texture on the texture atlas.
     /// </summary>
-    public Vector2[] UVs;
+    public Vector2[] UVs { get; private set; }
 
 
     /// <summary>

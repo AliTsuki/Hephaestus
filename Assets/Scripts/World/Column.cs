@@ -11,12 +11,11 @@ public class Column
     /// <summary>
     /// The position of this column.
     /// </summary>
-    public Vector2Int ColumnPos;
-
+    public Vector2Int ColumnPos { get; private set; }
     /// <summary>
     /// Array of all the chunks in this column.
     /// </summary>
-    public readonly Chunk[] Chunks = new Chunk[GameManager.Instance.ChunksPerColumn];
+    public Chunk[] Chunks { get; private set; } = new Chunk[GameManager.Instance.ChunksPerColumn];
 
     /// <summary>
     /// Specific Constructor: Creates a new column at the given position.
@@ -73,6 +72,7 @@ public class Column
             Parallel.For(columnMinPos.z, columnMinPos.z + GameManager.Instance.ChunkSize, z =>
             {
                 int closestAir = GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn;
+                int dirtDepth = Mathf.RoundToInt(GameManager.Instance.NoiseGeneratorBase.GetNoise(x, z).Remap(-1, 1, 2, 6));
                 for(int y = closestAir - 1; y >= 0; y--)
                 {
                     Vector3Int worldPos = new Vector3Int(x, y, z);
@@ -87,13 +87,20 @@ public class Column
                             }
                             else
                             {
-                                if(closestAir - y <= 1)
+                                if(y >= GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn / 2)
                                 {
-                                    chunk.SetBlock(internalPos, Block.Grass);
-                                }
-                                else if(closestAir - y <= 5)
-                                {
-                                    chunk.SetBlock(internalPos, Block.Dirt);
+                                    if(closestAir - y <= 1)
+                                    {
+                                        chunk.SetBlock(internalPos, Block.Grass);
+                                    }
+                                    else if(closestAir - y <= dirtDepth)
+                                    {
+                                        chunk.SetBlock(internalPos, Block.Dirt);
+                                    }
+                                    else
+                                    {
+                                        chunk.SetBlock(internalPos, Block.Stone);
+                                    }
                                 }
                                 else
                                 {
@@ -112,7 +119,7 @@ public class Column
         });
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            this.Chunks[y].GenerateStructuresAndLightingData();
+            this.Chunks[y].GenerateChunkBlockData();
         });
     }
 
