@@ -63,6 +63,31 @@ public static class World
     private static bool hasPlayerSpawned = false;
     #endregion Flags
 
+    /// <summary>
+    /// Struct containing world save data.
+    /// </summary>
+    public struct WorldSaveData
+    {
+        /// <summary>
+        /// The name of this world save.
+        /// </summary>
+        public string WorldSaveName;
+        /// <summary>
+        /// The seed used to generate this world save.
+        /// </summary>
+        public int Seed;
+
+        /// <summary>
+        /// Specific Constructor: Creates a new World Save Data object with the given parameters.
+        /// </summary>
+        /// <param name="worldSaveName">The name of the world save.</param>
+        /// <param name="seed">The seed for this world save.</param>
+        public WorldSaveData(string worldSaveName, int seed)
+        {
+            this.WorldSaveName = worldSaveName;
+            this.Seed = seed;
+        }
+    }
 
     /// <summary>
     /// Creates a new thread to run the world on and generates starting area then continuously updates.
@@ -139,6 +164,23 @@ public static class World
     }
 
     /// <summary>
+    /// Adds an block update to a chunk that hasn't loaded yet to run when the chunk does load later.
+    /// </summary>
+    /// <param name="blockUpdate"></param>
+    public static void AddUnloadedChunkBlockUpdate(Block.BlockUpdateParameters blockUpdate)
+    {
+        Vector2Int columnPos = blockUpdate.WorldPos.WorldPosToChunkPos().RemoveY();
+        if(TryGetColumn(columnPos, out _) == false)
+        {
+            columns.Add(columnPos, new Column(columnPos));
+        }
+        if(TryGetChunk(blockUpdate.WorldPos.WorldPosToChunkPos(), out Chunk chunk) == true)
+        {
+            chunk.AddUnloadedChunkBlockUpdate(blockUpdate);
+        }
+    }
+
+    /// <summary>
     /// Adds an action to the queue for the main thread to run.
     /// </summary>
     /// <param name="action">The action to add.</param>
@@ -153,6 +195,13 @@ public static class World
     public static void Quit()
     {
         shouldWorldThreadRun = false;
+        foreach(KeyValuePair<Vector2Int, Column> column in columns)
+        {
+            foreach(Chunk chunk in column.Value.Chunks)
+            {
+                chunk.Degenerate();
+            }
+        }
     }
 
     /// <summary>

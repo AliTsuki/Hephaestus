@@ -57,7 +57,14 @@ public class Column
     {
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            this.Chunks[y].GenerateChunkSurfaceData();
+            if(SaveSystem.TryLoadChunkFromDrive(new Vector3Int(this.ColumnPos.x, y, this.ColumnPos.y), out Chunk chunk) == true)
+            {
+                this.Chunks[y] = chunk;
+            }
+            if(this.Chunks[y].HasGeneratedChunkData == false)
+            {
+                this.Chunks[y].GenerateChunkSurfaceData();
+            }
         });
     }
 
@@ -79,39 +86,42 @@ public class Column
                     Vector3Int internalPos = worldPos.WorldPosToInternalPos();
                     if(this.TryGetChunk(worldPos.WorldPosToChunkPos().y, out Chunk chunk) == true)
                     {
-                        if(chunk.GetSurfaceData(internalPos) == 1)
+                        if(chunk.HasGeneratedChunkData == false)
                         {
-                            if(y == 0)
+                            if(chunk.GetSurfaceData(internalPos) == 1)
                             {
-                                chunk.SetBlock(internalPos, Block.Bedrock);
-                            }
-                            else
-                            {
-                                if(y >= GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn / 2)
+                                if(y == 0)
                                 {
-                                    if(closestAir - y <= 1)
+                                    chunk.SetBlock(internalPos, Block.Bedrock);
+                                }
+                                else
+                                {
+                                    if(y >= GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn / 2)
                                     {
-                                        chunk.SetBlock(internalPos, Block.Grass);
-                                    }
-                                    else if(closestAir - y <= dirtDepth)
-                                    {
-                                        chunk.SetBlock(internalPos, Block.Dirt);
+                                        if(closestAir - y <= 1)
+                                        {
+                                            chunk.SetBlock(internalPos, Block.Grass);
+                                        }
+                                        else if(closestAir - y <= dirtDepth)
+                                        {
+                                            chunk.SetBlock(internalPos, Block.Dirt);
+                                        }
+                                        else
+                                        {
+                                            chunk.SetBlock(internalPos, Block.Stone);
+                                        }
                                     }
                                     else
                                     {
                                         chunk.SetBlock(internalPos, Block.Stone);
                                     }
                                 }
-                                else
-                                {
-                                    chunk.SetBlock(internalPos, Block.Stone);
-                                }
                             }
-                        }
-                        else
-                        {
-                            closestAir = y;
-                            chunk.SetBlock(internalPos, Block.Air);
+                            else
+                            {
+                                closestAir = y;
+                                chunk.SetBlock(internalPos, Block.Air);
+                            }
                         }
                     }
                 }
@@ -119,7 +129,10 @@ public class Column
         });
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            this.Chunks[y].GenerateChunkBlockData();
+            if(this.Chunks[y].HasGeneratedChunkData == false)
+            {
+                this.Chunks[y].GenerateChunkBlockData();
+            }
         });
     }
 
@@ -130,7 +143,10 @@ public class Column
     {
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            this.Chunks[y].GenerateMeshData();
+            if(this.Chunks[y].HasGeneratedMeshData == false)
+            {
+                this.Chunks[y].GenerateMeshData();
+            }
         });
     }
 
@@ -141,7 +157,10 @@ public class Column
     {
         for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
         {
-            this.Chunks[y].GenerateChunkGameObject();
+            if(this.Chunks[y].HasGeneratedGameObject == false)
+            {
+                this.Chunks[y].GenerateChunkGameObject();
+            }
         }
     }
 

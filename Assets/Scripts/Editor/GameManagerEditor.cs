@@ -24,6 +24,7 @@ public class GameManagerEditor : Editor
     {
         this.serializedObject.Update();
 		GUIStyle BoldCenteredStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, };
+		this.gm.WorldSaveName = EditorGUILayout.TextField("World Save Name:", this.gm.WorldSaveName);
 		// Player Settings
 		EditorGUILayout.LabelField("Player Settings", BoldCenteredStyle);
 		this.gm.PlayerPrefab = (GameObject)EditorGUILayout.ObjectField("Player Prefab:", this.gm.PlayerPrefab, typeof(GameObject), false);
@@ -79,11 +80,12 @@ public class GameManagerEditor : Editor
 		this.gm.CaveWormPositionFrequency = EditorGUILayout.FloatField("Cave Position Frequency:", this.gm.CaveWormPositionFrequency);
 		this.gm.CaveWormDirectionNoiseType = (FastNoiseLite.NoiseType)EditorGUILayout.EnumPopup("Cave Direction Noise Type:", this.gm.CaveWormDirectionNoiseType);
 		this.gm.CaveWormDirectionFrequency = EditorGUILayout.FloatField("Cave Direction Frequency:", this.gm.CaveWormDirectionFrequency);
-		this.gm.MinimumCaveWorms = EditorGUILayout.IntField("Minimum Cave Worms:", this.gm.MinimumCaveWorms);
-		this.gm.MaximumCaveWorms = EditorGUILayout.IntField("Maximum Cave Worms:", this.gm.MaximumCaveWorms);
-		this.gm.MaxWormChunkDistance = EditorGUILayout.IntField("Maximum Cave Worms Chunk Distance:", this.gm.MaxWormChunkDistance);
-		this.gm.MaxWormSegments = EditorGUILayout.IntField("Maximum Cave Worm Segments:", this.gm.MaxWormSegments);
-		this.gm.CaveWormRadius = EditorGUILayout.IntField("Cave Worm Radius:", this.gm.CaveWormRadius);
+		this.gm.MinimumCaveWorms = EditorGUILayout.IntField("Min Caves:", this.gm.MinimumCaveWorms);
+		this.gm.MaximumCaveWorms = EditorGUILayout.IntField("Max Caves:", this.gm.MaximumCaveWorms);
+		this.gm.MaxWormChunkDistance = EditorGUILayout.IntField("Max Cave Chunk Distance:", this.gm.MaxWormChunkDistance);
+		this.gm.MaxWormSegments = EditorGUILayout.IntField("Max Cave Segments:", this.gm.MaxWormSegments);
+		this.gm.MinimumCaveWormRadius = EditorGUILayout.IntField("Min Cave Radius:", this.gm.MinimumCaveWormRadius);
+		this.gm.MaximumCaveWormRadius = EditorGUILayout.IntField("Max Cave Radius:", this.gm.MaximumCaveWormRadius);
 
 		if(GUI.changed && EditorApplication.isPlaying == false)
 		{

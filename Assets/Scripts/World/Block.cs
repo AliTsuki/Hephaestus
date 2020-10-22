@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+
+using UnityEngine;
 
 
 /// <summary>
@@ -7,11 +9,12 @@
 public struct Block
 {
     // Start of Block List
-    public static Block Air = new Block("Air", TransparencyEnum.Transparent, 0, 0);
-    public static Block Grass = new Block("Grass", TransparencyEnum.Opaque, 0, 0);
-    public static Block Dirt = new Block("Dirt", TransparencyEnum.Opaque, 0, 0);
-    public static Block Stone = new Block("Stone", TransparencyEnum.Opaque, 0, 0);
-    public static Block Bedrock = new Block("Bedrock", TransparencyEnum.Opaque, 0, 0);
+    public static Dictionary<int, Block> BlockTypes { get; private set; } = new Dictionary<int, Block>();
+    public static Block Air = new Block("Air", 0, TransparencyEnum.Transparent, 0, 0);
+    public static Block Grass = new Block("Grass", 1, TransparencyEnum.Opaque, 0, 0);
+    public static Block Dirt = new Block("Dirt", 2, TransparencyEnum.Opaque, 0, 0);
+    public static Block Stone = new Block("Stone", 3, TransparencyEnum.Opaque, 0, 0);
+    public static Block Bedrock = new Block("Bedrock", 4, TransparencyEnum.Opaque, 0, 0);
     // End of Block List
 
 
@@ -47,6 +50,10 @@ public struct Block
     /// </summary>
     public string BlockName { get; private set; }
     /// <summary>
+    /// The ID value for this block type.
+    /// </summary>
+    public int ID { get; private set; }
+    /// <summary>
     /// The transparency of this block type.
     /// </summary>
     public TransparencyEnum Transparency { get; private set; }
@@ -76,12 +83,14 @@ public struct Block
     /// </summary>
     /// <param name="blockName">The name to give this block.</param>
     /// <param name="transparency">The transparency value to give this block.</param>
-    public Block(string blockName, TransparencyEnum transparency, int lightEmissionValue, int lightValue)
+    public Block(string blockName, int id, TransparencyEnum transparency, int lightEmissionValue, int lightValue)
     {
         this.BlockName = blockName;
+        this.ID = id;
         this.Transparency = transparency;
         this.LightEmissionValue = lightEmissionValue;
         this.LightValue = lightValue;
+        BlockTypes.Add(this.ID, this);
     }
 
     /// <summary>

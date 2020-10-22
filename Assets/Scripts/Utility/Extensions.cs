@@ -122,6 +122,16 @@ public static class Extensions
         return new Vector3(v3.x / sqr, v3.y / sqr, v3.z / sqr);
     }
 
+    /// <summary>
+    /// Converts a Vector3Int to a Vector2Int by removing the Y component.
+    /// </summary>
+    /// <param name="v3">The Vector3Int to convert.</param>
+    /// <returns>Returns the given Vector3Int as a Vector2 by removing the Y component.</returns>
+    public static Vector2Int RemoveY(this Vector3Int v3)
+    {
+        return new Vector2Int(v3.x, v3.z);
+    }
+
     /////////////////////////////////////////////////////////////////////////////////
     /// Vector3
     /////////////////////////////////////////////////////////////////////////////////
