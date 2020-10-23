@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public struct Block
 {
+    // TODO: Add more block types.
+    // TODO: Add support for liquid blocks.
     // Start of Block List
     public static Dictionary<int, Block> BlockTypes { get; private set; } = new Dictionary<int, Block>();
     public static Block Air = new Block("Air", 1, TransparencyEnum.Transparent, 0, 0);

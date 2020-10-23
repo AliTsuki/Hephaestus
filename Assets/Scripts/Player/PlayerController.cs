@@ -18,48 +18,153 @@ public class PlayerController : MonoBehaviour
         Climb
     }
 
+    /// <summary>
+    /// Reference to player controls input script.
+    /// </summary>
     public PlayerControls Controls { get; private set; }
-    private bool captureInput = true;
-    // Movement
-    [Header("Movement")]
-    public Transform GroundCheck;
-    public Transform HeadCheck;
-    public float CrouchSpeed = 2f;
-    public float NormalSpeed = 4f;
-    public float SprintSpeed = 6f;
-    public float Gravity = -9.81f;
-    public float JumpHeight = 1f;
-    public float JumpLateMarginTime = 0.1f;
-    public float AirMoveSpeed = 0.2f;
-    public float CollisionCheckDistance = 0.15f;
-    public bool isGrounded = false;
-    public bool isHeadColliding = false;
-    public float timeSinceLastGrounded = 0.0f;
-    private MovementModes currentMoveMode = MovementModes.Normal;
-    private Vector3 horizontalMoveInput;
-    private float verticalMoveInput = 0.0f;
-    private Vector3 moveDelta;
-    private Vector3 moveDeltaLast;
-    private float moveDeltaLastMagnitudeGrounded = 0.0f;
-    // Aim
-    [Header("Aim")]
-    public Camera Cam;
-    public CinemachineVirtualCamera VCam;
-    public float MouseSensitivity = 10f;
-    public bool InvertY = true;
-    private float xRotation = 0f;
-    private Vector2 aimInput;
-    private Vector2 aimDelta;
-    
-    // Block selection
-    private GameObject BlockSelectorGO;
-    public RaycastHit BlockSelectorHit { get; private set; }
-    public Vector3Int CurrentBlockSelectedPos { get; private set; } = new Vector3Int();
-    public Block CurrentBlockSelected { get; private set; }
-    public bool IsBlockSelected { get; private set; } = false;
-
-    // References
+    /// <summary>
+    /// Reference to the character controller.
+    /// </summary>
     private CharacterController cController;
+    /// <summary>
+    /// Should input be captured and applied to player character?
+    /// </summary>
+    private bool captureInput = true;
+
+    #region Movement
+    [Header("Movement")]
+    /// <summary>
+    /// The transform used to do a sphere check from to check if player is on ground.
+    /// </summary>
+    public Transform GroundCheck;
+    /// <summary>
+    /// The transform used to do a sphere check from to check if player is hitting their head on terrain.
+    /// </summary>
+    public Transform HeadCheck;
+    /// <summary>
+    /// The player's movement speed while crouching.
+    /// </summary>
+    public float CrouchSpeed = 2f;
+    /// <summary>
+    /// The player's speed while walking.
+    /// </summary>
+    public float NormalSpeed = 4f;
+    /// <summary>
+    /// The player's speed while sprinting.
+    /// </summary>
+    public float SprintSpeed = 6f;
+    /// <summary>
+    /// The downward force of gravity applied per second.
+    /// </summary>
+    public float Gravity = -9.81f;
+    /// <summary>
+    /// The maximum height of the player's jump.
+    /// </summary>
+    public float JumpHeight = 1f;
+    /// <summary>
+    /// The amount of time the player is still allowed to jump after their feet have left the ground.
+    /// </summary>
+    public float JumpLateMarginTime = 0.1f;
+    /// <summary>
+    /// The amount of control the player has over their movement direction while in the air.
+    /// </summary>
+    public float AirMoveSpeed = 0.2f;
+    /// <summary>
+    /// The distance to check for grounded and hitting head.
+    /// </summary>
+    public float CollisionCheckDistance = 0.15f;
+    /// <summary>
+    /// Is the player currently on the ground?
+    /// </summary>
+    public bool isGrounded = false;
+    /// <summary>
+    /// Is the player's head currently colliding with something?
+    /// </summary>
+    public bool isHeadColliding = false;
+    /// <summary>
+    /// The amount of time that has elapsed since the player was last on the ground.
+    /// </summary>
+    public float timeSinceLastGrounded = 0.0f;
+    /// <summary>
+    /// The current movement mode of the player.
+    /// </summary>
+    private MovementModes currentMoveMode = MovementModes.Normal;
+    /// <summary>
+    /// The amount of horizontal movement to add from input (WASD)
+    /// </summary>
+    private Vector3 horizontalMoveInput;
+    /// <summary>
+    /// The amount of vertical movement to add from input (Jump)
+    /// </summary>
+    private float verticalMoveInput = 0.0f;
+    /// <summary>
+    /// The change in movement.
+    /// </summary>
+    private Vector3 moveDelta;
+    /// <summary>
+    /// The change in movement from last calculated.
+    /// </summary>
+    private Vector3 moveDeltaLast;
+    /// <summary>
+    /// The change in magnitude of movement when last grounded.
+    /// </summary>
+    private float moveDeltaLastMagnitudeGrounded = 0.0f;
+    #endregion Movement
+
+    #region Aim
+    [Header("Aim")]
+    /// <summary>
+    /// Reference to the camera object for this player's vision.
+    /// </summary>
+    public Camera Cam;
+    /// <summary>
+    /// Reference to the CineVCam for this player, used for camera shake etc.
+    /// </summary>
+    public CinemachineVirtualCamera VCam;
+    /// <summary>
+    /// The sensitivity of mouse movement as applied to view rotation.
+    /// </summary>
+    public float MouseSensitivity = 10f;
+    /// <summary>
+    /// Should the y value for camera movement be inverted?
+    /// </summary>
+    public bool InvertY = true;
+    /// <summary>
+    /// The amount of horizontal rotation of the view from input.
+    /// </summary>
+    private float xRotation = 0f;
+    /// <summary>
+    /// The aim input to apply to camera rotation from input.
+    /// </summary>
+    private Vector2 aimInput;
+    /// <summary>
+    /// The change in aim from last.
+    /// </summary>
+    private Vector2 aimDelta;
+    #endregion Aim
+
+    #region Block Selection
+    /// <summary>
+    /// Reference to the block selector object.
+    /// </summary>
+    private GameObject BlockSelectorGO;
+    /// <summary>
+    /// The raycast hit used to place the block selector.
+    /// </summary>
+    public RaycastHit BlockSelectorHit { get; private set; }
+    /// <summary>
+    /// The current block selected position.
+    /// </summary>
+    public Vector3Int CurrentBlockSelectedPos { get; private set; } = new Vector3Int();
+    /// <summary>
+    /// The current value of the block selected.
+    /// </summary>
+    public Block CurrentBlockSelected { get; private set; }
+    /// <summary>
+    /// Is a block currently selected?
+    /// </summary>
+    public bool IsBlockSelected { get; private set; } = false;
+    #endregion Block Selection
 
 
     // This function is called when the object becomes enabled and active.
@@ -348,7 +453,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void ApplyToggleMenu()
     {
-        // TODO: Add pause menu
+        // TODO: Add pause menu.
     }
 
     /// <summary>

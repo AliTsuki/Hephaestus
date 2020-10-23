@@ -344,8 +344,8 @@ MonoBehaviour:
   ChunkMaterial: {fileID: 2100000, guid: cfdd9fa8541fa4949acb178d549eaa53, type: 2}
   ChunkSize: 16
   ChunksPerColumn: 16
-  StartingColumnRadius: 7
-  ActiveColumnRadius: 5
+  StartingColumnRadius: 11
+  ActiveColumnRadius: 9
   Seed: 0
   NoiseCombination: 2
   YMultiplier: 0.008

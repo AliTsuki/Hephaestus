@@ -103,6 +103,9 @@ public static class MeshBuilder
     /// <returns>Returns the mesh data created for the block.</returns>
     public static MeshData CreateMesh(Block block, Vector3Int internalPos, Vector3Int chunkPos)
     {
+        // TODO: Add support for blocks having different textures per face.
+        // TODO: Add support for block rotation so blocks with different faces can be placed in any orientation, or at least additional orientations.
+        // TODO: Add lighting data into UV2 for mesh and use it in shader to determine brightness of texture.
         MeshData meshData = new MeshData();
         bool bottomVis = CheckFaceVisibility(internalPos, chunkPos, Side.Bottom, out _);
         bool topVis = CheckFaceVisibility(internalPos, chunkPos, Side.Top, out _);
@@ -153,7 +156,7 @@ public static class MeshBuilder
     /// <returns>Returns true if that face is visible.</returns>
     private static bool CheckFaceVisibility(Vector3Int internalPos, Vector3Int chunkPos, Side side, out int lightingValue)
     {
-        // TODO: When getting face visibility, if face is visible also get lighting values from nearby block
+        // TODO: When getting face visibility, if face is visible also get lighting values from nearby block.
         lightingValue = 0;
         Vector3Int worldPos = internalPos.InternalPosToWorldPos(chunkPos);
         if(World.TryGetChunk(chunkPos, out Chunk chunk) == false)

@@ -2,6 +2,7 @@
 
 using UnityEngine;
 
+
 // https://forum.unity.com/threads/c-coroutines-in-static-functions.134546/
 // courtesy of: https://forum.unity.com/members/cykesdev.1703063/
 public class StaticCoroutine : MonoBehaviour

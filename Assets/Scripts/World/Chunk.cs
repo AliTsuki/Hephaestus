@@ -11,7 +11,7 @@ using UnityEngine;
 /// </summary>
 public class Chunk
 {
-    // TODO: Create a serializable object type that can hold all chunk info for loading/saving, look into ProtocolBuffers
+    // TODO: Create Separate mesh for water, transparent leaves/grass, and glass that use a different shader each. Water and leaves should have vertex displacement in shader to simulate waves/wind.
     #region Chunk Data
     /// <summary>
     /// The position of this chunk in chunk coordinate system.
@@ -266,11 +266,6 @@ public class Chunk
                     }
                     else
                     {
-                        // TODO: Set up abandoned block updates
-                        /// When cave/ore/structure gen can't update a block in a nearby chunk because it hasn't been generated,
-                        /// create the column/chunk to contain them and keep it in a list to be iterated over when chunk finishes normal generation,
-                        /// if that chunk ever gets generated, if it doesn't get generated then save teh abandoned block update list to file to read
-                        /// when the chunk does get generated if player heads back in that direction later.
                         World.AddUnloadedChunkBlockUpdate(new Block.BlockUpdate(point.WorldPosToInternalPos(), Block.Air));
                     }
                 }
@@ -283,7 +278,10 @@ public class Chunk
     /// </summary>
     private void GenerateOres()
     {
-        // TODO: Generate ores
+        // TODO: Generate ores...
+        // Maybe do something similar to cave worm generation, for each chunk, look at a noise map at the chunk location and remap result between min of that ore
+        // and max of that ore that should spawn in that chunk, also take into consideration chunk y value for how likely, then spawn an ore node and recursively
+        // set blocks to that ore type with some random chance each extra block added to not add more ore so a vein is created of a size given by the chance.
     }
 
     /// <summary>
@@ -291,7 +289,11 @@ public class Chunk
     /// </summary>
     private void GenerateStructures()
     {
-        // TODO: Generate structures
+        // TODO: Generate structures...
+        // Probably do somethign similar to cave worm generation, based on y value, do a noise check and use those values to place a certain number of trees / plants etc
+        // based on that noise on the surface of the chunk, do a node system similar to cave worm for large structures like dungeons or villages, have a starting node
+        // and neighbor nodes branching out to generate the structure. Maybe look into producing large structures on a world level instead of chunk level to avoid super
+        // large structures suddenly appearing when you load the chunk where the center node is located.
     }
 
     /// <summary>
@@ -313,7 +315,11 @@ public class Chunk
     /// </summary>
     private void CalculateLightingData()
     {
-        // TODO: Calculate lighting data
+        // TODO: Calculate lighting data...
+        // Probably do this on a column basis, have the very top blocks of the top chunk of the column set their light value to 16 if they are air to represent sunlight
+        // If a block has 16 lighting then set all blocks below to 16 and all blocks to the sides to 15, go down toward the bottom of the column row by row and recursively
+        // calculate lighting for each block, if block has a higher lighting value than what you are trying to set then don't change, if lower then raise to (current value - 1)
+        // and continue.
     }
 
     /// <summary>
@@ -431,7 +437,14 @@ public class Chunk
     /// <param name="block">The block to place.</param>
     public void SetBlock(Vector3Int internalPos, Block block)
     {
-        this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+        if(this.ChunkPos.y == 0 && internalPos.y == 0)
+        {
+            this.Blocks[internalPos.x, internalPos.y, internalPos.z] = Block.Bedrock;
+        }
+        else
+        {
+            this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+        }
     }
 
     /// <summary>
