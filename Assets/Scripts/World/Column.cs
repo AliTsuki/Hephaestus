@@ -11,11 +11,16 @@ public class Column
     /// <summary>
     /// The position of this column.
     /// </summary>
-    public Vector2Int ColumnPos { get; private set; }
+    public Vector2Int ColumnPos { get; private set; } = new Vector2Int();
     /// <summary>
     /// Array of all the chunks in this column.
     /// </summary>
     public Chunk[] Chunks { get; private set; } = new Chunk[GameManager.Instance.ChunksPerColumn];
+    /// <summary>
+    /// Has this column generated block data for its chunks?
+    /// </summary>
+    public bool HasGeneratedBlockData { get; private set; } = false;
+
 
     /// <summary>
     /// Specific Constructor: Creates a new column at the given position.
@@ -28,6 +33,20 @@ public class Column
         {
             this.Chunks[y] = new Chunk(new Vector3Int(this.ColumnPos.x, y, this.ColumnPos.y));
         }
+    }
+
+    /// <summary>
+    /// Specific Constructor: Creates a new column from the save data read from file.
+    /// </summary>
+    /// <param name="saveData">The save data to use in creating this column.</param>
+    public Column(SaveDataObjects.ColumnSaveData saveData)
+    {
+        this.ColumnPos = saveData.ColumnPos.ToVector2Int();
+        for(int i = 0; i < saveData.Chunks.Length; i++)
+        {
+            this.Chunks[i] = new Chunk(saveData.Chunks[i]);
+        }
+        this.HasGeneratedBlockData = saveData.HasGeneratedBlockData;
     }
 
     /// <summary>
@@ -57,10 +76,6 @@ public class Column
     {
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            if(SaveSystem.TryLoadChunkFromDrive(new Vector3Int(this.ColumnPos.x, y, this.ColumnPos.y), out Chunk chunk) == true)
-            {
-                this.Chunks[y] = chunk;
-            }
             if(this.Chunks[y].HasGeneratedChunkData == false)
             {
                 this.Chunks[y].GenerateChunkSurfaceData();
@@ -73,20 +88,20 @@ public class Column
     /// </summary>
     public void GenerateChunkBlockData()
     {
-        Vector3Int columnMinPos = new Vector3Int(this.ColumnPos.x, 0, this.ColumnPos.y).ChunkPosToWorldPos();
-        Parallel.For(columnMinPos.x, columnMinPos.x + GameManager.Instance.ChunkSize, x =>
+        if(this.HasGeneratedBlockData == false)
         {
-            Parallel.For(columnMinPos.z, columnMinPos.z + GameManager.Instance.ChunkSize, z =>
+            Vector3Int columnMinPos = new Vector3Int(this.ColumnPos.x, 0, this.ColumnPos.y).ChunkPosToWorldPos();
+            Parallel.For(columnMinPos.x, columnMinPos.x + GameManager.Instance.ChunkSize, x =>
             {
-                int closestAir = GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn;
-                int dirtDepth = Mathf.RoundToInt(GameManager.Instance.NoiseGeneratorBase.GetNoise(x, z).Remap(-1, 1, 2, 6));
-                for(int y = closestAir - 1; y >= 0; y--)
+                Parallel.For(columnMinPos.z, columnMinPos.z + GameManager.Instance.ChunkSize, z =>
                 {
-                    Vector3Int worldPos = new Vector3Int(x, y, z);
-                    Vector3Int internalPos = worldPos.WorldPosToInternalPos();
-                    if(this.TryGetChunk(worldPos.WorldPosToChunkPos().y, out Chunk chunk) == true)
+                    int closestAir = GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn;
+                    int dirtDepth = Mathf.RoundToInt(GameManager.Instance.NoiseGeneratorBase.GetNoise(x, z).Remap(-1, 1, 2, 6));
+                    for(int y = closestAir - 1; y >= 0; y--)
                     {
-                        if(chunk.HasGeneratedChunkData == false)
+                        Vector3Int worldPos = new Vector3Int(x, y, z);
+                        Vector3Int internalPos = worldPos.WorldPosToInternalPos();
+                        if(this.TryGetChunk(worldPos.WorldPosToChunkPos().y, out Chunk chunk) == true)
                         {
                             if(chunk.GetSurfaceData(internalPos) == 1)
                             {
@@ -124,16 +139,17 @@ public class Column
                             }
                         }
                     }
+                });
+            });
+            Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
+            {
+                if(this.Chunks[y].HasGeneratedChunkData == false)
+                {
+                    this.Chunks[y].GenerateChunkBlockData();
                 }
             });
-        });
-        Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
-        {
-            if(this.Chunks[y].HasGeneratedChunkData == false)
-            {
-                this.Chunks[y].GenerateChunkBlockData();
-            }
-        });
+            this.HasGeneratedBlockData = true;
+        }
     }
 
     /// <summary>
@@ -169,9 +185,11 @@ public class Column
     /// </summary>
     public void Degenerate()
     {
+        // TODO: Columns don't always save if you make changes and then walk far enough away for them to degenerate, but save consistently if you exit application...
+        SaveSystem.SaveColumnToDrive(this);
         for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
         {
-            this.Chunks[y].Degenerate();
+            World.AddActionToMainThreadQueue(this.Chunks[y].Degenerate);
         }
     }
 }

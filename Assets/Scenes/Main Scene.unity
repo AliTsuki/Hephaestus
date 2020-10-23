@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.15794683, g: 0.17588186, b: 0.20713201, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -199,7 +199,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1966699308}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &64760739
 MonoBehaviour:
@@ -231,8 +231,7 @@ MonoBehaviour:
     type: 3}
   m_RightClickAction: {fileID: -1647570102240606795, guid: 2f351af25f64f1540a69ef810150bd35,
     type: 3}
-  m_ScrollWheelAction: {fileID: 7605864398629364845, guid: 2f351af25f64f1540a69ef810150bd35,
-    type: 3}
+  m_ScrollWheelAction: {fileID: 0}
   m_TrackedDevicePositionAction: {fileID: 0}
   m_TrackedDeviceOrientationAction: {fileID: 0}
   m_DeselectOnBackgroundClick: 1
@@ -328,6 +327,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 732771b1fe756b744bf94215a3ed1808, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  WorldSaveName: World1
   Player: {fileID: 0}
   PlayerPrefab: {fileID: 5986110754849357676, guid: 9aa2f1afb1c699542b99ae7962201f25,
     type: 3}
@@ -344,8 +344,8 @@ MonoBehaviour:
   ChunkMaterial: {fileID: 2100000, guid: cfdd9fa8541fa4949acb178d549eaa53, type: 2}
   ChunkSize: 16
   ChunksPerColumn: 16
-  StartingColumnRadius: 11
-  ActiveColumnRadius: 9
+  StartingColumnRadius: 7
+  ActiveColumnRadius: 5
   Seed: 0
   NoiseCombination: 2
   YMultiplier: 0.008
@@ -643,7 +643,7 @@ RectTransform:
   - {fileID: 1035486301}
   - {fileID: 1847520279}
   m_Father: {fileID: 1966699308}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1288,8 +1288,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 766046581}
   - {fileID: 64760738}
+  - {fileID: 766046581}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

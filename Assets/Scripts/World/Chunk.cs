@@ -16,7 +16,7 @@ public class Chunk
     /// <summary>
     /// The position of this chunk in chunk coordinate system.
     /// </summary>
-    public Vector3Int ChunkPos { get; private set; }
+    public Vector3Int ChunkPos { get; private set; } = new Vector3Int();
     /// <summary>
     /// Array of integers corresponding to blocks, 0 is air, 1 is solid ground.
     /// </summary>
@@ -24,15 +24,15 @@ public class Chunk
     /// <summary>
     /// Array of blocks within this chunk.
     /// </summary>
-    private readonly Block[,,] blocks = new Block[GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize];
+    public Block[,,] Blocks { get; private set; } = new Block[GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize];
     /// <summary>
 	/// List of all the cave worms that started in this chunk.
 	/// </summary>
-	private readonly List<CaveWorm> caveWorms = new List<CaveWorm>();
+	public List<CaveWorm> CaveWorms { get; private set; } = new List<CaveWorm>();
     /// <summary>
     /// Queue of all block updates sent by neighbor chunks while this chunk was unloaded.
     /// </summary>
-    private readonly ConcurrentQueue<Block.BlockUpdateParameters> unloadedChunkBlockUpdates = new ConcurrentQueue<Block.BlockUpdateParameters>();
+    public ConcurrentQueue<Block.BlockUpdate> UnloadedChunkBlockUpdates { get; private set; } = new ConcurrentQueue<Block.BlockUpdate>();
     #endregion Chunk Data
 
     #region Game Object Data
@@ -118,12 +118,43 @@ public class Chunk
     }
 
     /// <summary>
+    /// Specific Constructor: Creates a new chunk from the save data read from file.
+    /// </summary>
+    /// <param name="saveData">The save data to use in creating this chunk.</param>
+    public Chunk(SaveDataObjects.ChunkSaveData saveData)
+    {
+        this.ChunkPos = saveData.ChunkPos.ToVector3Int();
+        if(saveData.HasGeneratedChunkData == true)
+        {
+            SaveDataObjects.BlockSaveData[,,] blockArray = saveData.Blocks.To3DArray();
+            for(int x = 0; x < GameManager.Instance.ChunkSize; x++)
+            {
+                for(int y = 0; y < GameManager.Instance.ChunkSize; y++)
+                {
+                    for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
+                    {
+                        this.Blocks[x, y, z] = new Block(blockArray[x, y, z]);
+                    }
+                }
+            }
+        }
+        if(saveData.HasUnloadedChunkBlockUpdates == true)
+        {
+            for(int i = 0; i < saveData.UnloadedChunkBlockUpdates.Length; i++)
+            {
+                this.UnloadedChunkBlockUpdates.Enqueue(new Block.BlockUpdate(saveData.UnloadedChunkBlockUpdates[i]));
+            }
+        }
+        this.HasGeneratedChunkData = saveData.HasGeneratedChunkData;
+    }
+
+    /// <summary>
     /// Adds a block update sent by neighbor chunks while this chunk was unloaded.
     /// </summary>
     /// <param name="blockUpdate"></param>
-    public void AddUnloadedChunkBlockUpdate(Block.BlockUpdateParameters blockUpdate)
+    public void AddUnloadedChunkBlockUpdate(Block.BlockUpdate blockUpdate)
     {
-        this.unloadedChunkBlockUpdates.Enqueue(blockUpdate);
+        this.UnloadedChunkBlockUpdates.Enqueue(blockUpdate);
     }
 
     /// <summary>
@@ -221,9 +252,9 @@ public class Chunk
             int posZ = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x + (posOffset * 3 * i), this.ChunkPos.y + (posOffset * 3 * i), (this.ChunkPos.z * this.ChunkPos.z) + (posOffset * 3 * i)).Remap(-1, 1, 0, GameManager.Instance.ChunkSize));
             Vector3Int newWormPos = new Vector3Int(posX, posY, posZ).InternalPosToWorldPos(this.ChunkPos);
             CaveWorm newWorm = new CaveWorm(newWormPos);
-            this.caveWorms.Add(newWorm);
+            this.CaveWorms.Add(newWorm);
         }
-        foreach(CaveWorm worm in this.caveWorms)
+        foreach(CaveWorm worm in this.CaveWorms)
         {
             foreach(CaveWorm.Segment segment in worm.Segments)
             {
@@ -240,7 +271,7 @@ public class Chunk
                         /// create the column/chunk to contain them and keep it in a list to be iterated over when chunk finishes normal generation,
                         /// if that chunk ever gets generated, if it doesn't get generated then save teh abandoned block update list to file to read
                         /// when the chunk does get generated if player heads back in that direction later.
-                        World.AddUnloadedChunkBlockUpdate(new Block.BlockUpdateParameters(point.WorldPosToInternalPos(), Block.Air));
+                        World.AddUnloadedChunkBlockUpdate(new Block.BlockUpdate(point.WorldPosToInternalPos(), Block.Air));
                     }
                 }
             }
@@ -268,9 +299,9 @@ public class Chunk
     /// </summary>
     private void DoUnloadedChunkBlockUpdates()
     {
-        while(this.unloadedChunkBlockUpdates.Count > 0)
+        while(this.UnloadedChunkBlockUpdates.Count > 0)
         {
-            if(this.unloadedChunkBlockUpdates.TryDequeue(out Block.BlockUpdateParameters blockUpdate))
+            if(this.UnloadedChunkBlockUpdates.TryDequeue(out Block.BlockUpdate blockUpdate))
             {
                 this.SetBlock(blockUpdate);
             }
@@ -369,6 +400,7 @@ public class Chunk
         {
             ObjectPooler.Destroy(this.ChunkGO);
             this.HasGeneratedGameObject = false;
+            this.HasAssignedMesh = false;
         }
     }
 
@@ -389,7 +421,7 @@ public class Chunk
     /// <returns>Returns the block at that position.</returns>
     public Block GetBlock(Vector3Int internalPos)
     {
-        return this.blocks[internalPos.x, internalPos.y, internalPos.z];
+        return this.Blocks[internalPos.x, internalPos.y, internalPos.z];
     }
 
     /// <summary>
@@ -399,14 +431,14 @@ public class Chunk
     /// <param name="block">The block to place.</param>
     public void SetBlock(Vector3Int internalPos, Block block)
     {
-        this.blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+        this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
     }
 
     /// <summary>
     /// Sets the block using the given block update parameters.
     /// </summary>
     /// <param name="blockUpdate">The block update parameters containing a world position and a block type.</param>
-    private void SetBlock(Block.BlockUpdateParameters blockUpdate)
+    private void SetBlock(Block.BlockUpdate blockUpdate)
     {
         this.SetBlock(blockUpdate.WorldPos.WorldPosToInternalPos(), blockUpdate.Block);
     }
@@ -418,7 +450,7 @@ public class Chunk
     /// <param name="block">The block to place.</param>
     public void PlaceBlock(Vector3Int internalPos, Block block)
     {
-        this.blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+        this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
         this.GenerateMeshData();
         if(internalPos.x == 0)
         {

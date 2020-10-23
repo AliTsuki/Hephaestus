@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+using static SaveDataObjects;
+
 
 /// <summary>
 /// Contains extension methods for system/unity structs.
@@ -211,5 +213,83 @@ public static class Extensions
         float slope = (outMax - outMin) / (inMax - inMin);
         float intercept = outMin - (slope * inMin);
         return (slope * input) + intercept;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /// Vector2IntSaveData
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Converts a Vector2IntSaveData to a Vector2Int.
+    /// </summary>
+    /// <param name="v2SO">The Vector2IntSaveData to convert to a Vector2Int.</param>
+    /// <returns>Returns a Vector2Int.</returns>
+    public static Vector2Int ToVector2Int(this Vector2IntSaveData v2SO)
+    {
+        return new Vector2Int(v2SO.x, v2SO.y);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /// Vector3IntSaveData
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Converts a Vector3IntSaveData to a Vector3Int.
+    /// </summary>
+    /// <param name="v3SO">The Vector3IntSaveData to convert to a Vector3Int.</param>
+    /// <returns>Returns a Vector3Int.</returns>
+    public static Vector3Int ToVector3Int(this Vector3IntSaveData v3SO)
+    {
+        return new Vector3Int(v3SO.x, v3SO.y, v3SO.z);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /// Generic Arrays
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Converts a three dimensional array to a single dimensional array with a length equal to the cube of the three dimensional array length of a single dimension.
+    /// </summary>
+    /// <typeparam name="T">They type of array.</typeparam>
+    /// <param name="singleArray">The three dimensional array to convert to a single dimensional array.</param>
+    /// <returns>Returns a single dimensional array equivalent to the given three dimensional array.</returns>
+    public static T[] ToSingleArray<T>(this T[,,] multiArray)
+    {
+        int length = multiArray.GetLength(0);
+        T[] singleArray = new T[length * length * length];
+        for(int x = 0; x < length; x++)
+        {
+            for(int y = 0; y < length; y++)
+            {
+                for(int z = 0; z < length; z++)
+                {
+                    singleArray[z + (y * length) + (x * length * length)] = multiArray[x, y, z];
+                }
+            }
+        }
+        return singleArray;
+    }
+
+    /// <summary>
+    /// Converts a single array to a three dimensional array with a length of each dimension equal to the cube root of the single array length.
+    /// </summary>
+    /// <typeparam name="T">They type of array.</typeparam>
+    /// <param name="singleArray">The single array to convert to a three dimensional array.</param>
+    /// <returns>Returns a three dimensional array equivalent to the given single dimensional array.</returns>
+    public static T[,,] To3DArray<T>(this T[] singleArray)
+    {
+        int length = Mathf.RoundToInt(Mathf.Pow(singleArray.Length, 1f / 3f));
+        T[,,] multiArray = new T[length, length, length];
+        for(int x = 0; x < length; x++)
+        {
+            for(int y = 0; y < length; y++)
+            {
+                for(int z = 0; z < length; z++)
+                {
+                    multiArray[x, y, z] = singleArray[z + (y * length) + (x * length * length)];
+                }
+            }
+        }
+        return multiArray;
     }
 }

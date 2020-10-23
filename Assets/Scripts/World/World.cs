@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
-using System.Threading.Tasks;
 
 using UnityEngine;
 
@@ -26,11 +25,11 @@ public static class World
     /// <summary>
     /// Queue of block update actions for the world thread to execute. Used to send block updates from main thread to world thread.
     /// </summary>
-    private static readonly ConcurrentQueue<Block.BlockUpdateParameters> blockUpdateQueue = new ConcurrentQueue<Block.BlockUpdateParameters>();
+    private static readonly ConcurrentQueue<Block.BlockUpdate> blockUpdateQueue = new ConcurrentQueue<Block.BlockUpdate>();
     /// <summary>
     /// Dictionary of all columns currently loaded in game world.
     /// </summary>
-    private static readonly Dictionary<Vector2Int, Column> columns = new Dictionary<Vector2Int, Column>();
+    private static readonly ConcurrentDictionary<Vector2Int, Column> columns = new ConcurrentDictionary<Vector2Int, Column>();
     #endregion World Data
 
     #region Player
@@ -110,7 +109,7 @@ public static class World
                     Logger.Log(e);
                 }
             }
-            columns.Clear();
+            Logger.WriteLogToFile();
         });
         worldThread.Start();
     }
@@ -125,13 +124,14 @@ public static class World
             // Do block updates in block update queue
             while(blockUpdateQueue.Count > 0)
             {
-                blockUpdateQueue.TryDequeue(out Block.BlockUpdateParameters blockUpdate);
+                blockUpdateQueue.TryDequeue(out Block.BlockUpdate blockUpdate);
                 UpdateBlock(blockUpdate);
             }
             // Degenerate old chunks and generate new chunks
             DegenerateDistantColumns();
             GenerateNextColumn();
             GenerateNewChunks();
+            Logger.WriteLogToFile();
         }
     }
 
@@ -158,7 +158,7 @@ public static class World
     /// Adds an action to the queue for the world thread to run.
     /// </summary>
     /// <param name="action">The action to add.</param>
-    public static void AddBlockUpdateToQueue(Block.BlockUpdateParameters blockUpdate)
+    public static void AddBlockUpdateToQueue(Block.BlockUpdate blockUpdate)
     {
         blockUpdateQueue.Enqueue(blockUpdate);
     }
@@ -167,12 +167,12 @@ public static class World
     /// Adds an block update to a chunk that hasn't loaded yet to run when the chunk does load later.
     /// </summary>
     /// <param name="blockUpdate"></param>
-    public static void AddUnloadedChunkBlockUpdate(Block.BlockUpdateParameters blockUpdate)
+    public static void AddUnloadedChunkBlockUpdate(Block.BlockUpdate blockUpdate)
     {
         Vector2Int columnPos = blockUpdate.WorldPos.WorldPosToChunkPos().RemoveY();
         if(TryGetColumn(columnPos, out _) == false)
         {
-            columns.Add(columnPos, new Column(columnPos));
+            columns.TryAdd(columnPos, new Column(columnPos));
         }
         if(TryGetChunk(blockUpdate.WorldPos.WorldPosToChunkPos(), out Chunk chunk) == true)
         {
@@ -194,14 +194,11 @@ public static class World
     /// </summary>
     public static void Quit()
     {
-        shouldWorldThreadRun = false;
         foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
-            foreach(Chunk chunk in column.Value.Chunks)
-            {
-                chunk.Degenerate();
-            }
+            column.Value.Degenerate();
         }
+        shouldWorldThreadRun = false;
     }
 
     /// <summary>
@@ -272,7 +269,7 @@ public static class World
     /// Updates the block of a chunk described by the given block update parameters.
     /// </summary>
     /// <param name="blockUpdate">The parameters of which block to update and what to update it to.</param>
-    private static void UpdateBlock(Block.BlockUpdateParameters blockUpdate)
+    private static void UpdateBlock(Block.BlockUpdate blockUpdate)
     {
         Vector3Int chunkPos = blockUpdate.WorldPos.WorldPosToChunkPos();
         Vector3Int internalPos = blockUpdate.WorldPos.WorldPosToInternalPos();
@@ -297,8 +294,8 @@ public static class World
         }
         foreach(Column column in columnsToRemove)
         {
-            AddActionToMainThreadQueue(column.Degenerate);
-            columns.Remove(column.ColumnPos);
+            column.Degenerate();
+            columns.TryRemove(column.ColumnPos, out _);
         }
         if(columnsToRemove.Count > 0)
         {
@@ -316,7 +313,7 @@ public static class World
         Column newColumn = GetNextColumnToGenerate();
         if(newColumn != null)
         {
-            columns.Add(newColumn.ColumnPos, newColumn);
+            columns.TryAdd(newColumn.ColumnPos, newColumn);
             newColumn.GenerateChunkSurfaceData();
             newColumn.GenerateChunkBlockData();
             stopwatch.Stop();
@@ -374,7 +371,11 @@ public static class World
             {
                 if(TryGetColumn(newColumnPos, out _) == false)
                 {
-                    return new Column(newColumnPos);
+                    if(SaveSystem.TryLoadColumnFromDrive(newColumnPos, out Column newColumn) == false)
+                    {
+                        newColumn = new Column(newColumnPos);
+                    }
+                    return newColumn;
                 }
             }
             if(Mathf.Abs(x) <= Mathf.Abs(y) && (x != y || x >= 0))
@@ -409,7 +410,11 @@ public static class World
                 Vector2Int newColumnPos = new Vector2Int(x, z);
                 if(Vector2Int.zero.ManhattanDistance(newColumnPos) <= GameManager.Instance.StartingColumnRadius)
                 {
-                    columns.Add(newColumnPos, new Column(newColumnPos));
+                    if(SaveSystem.TryLoadColumnFromDrive(newColumnPos, out Column newColumn) == false)
+                    {
+                        newColumn = new Column(newColumnPos);
+                    }
+                    columns.TryAdd(newColumnPos, newColumn);
                 }
             }
         }
@@ -419,22 +424,22 @@ public static class World
         // Loop through all chunks and generate chunk data.
         Logger.Log("Generating Chunk Data for Starting Columns...");
         individualStopwatch.Restart();
-        Parallel.ForEach(columns, column =>
+        foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
             column.Value.GenerateChunkSurfaceData();
             column.Value.GenerateChunkBlockData();
-        });
+        }
         individualStopwatch.Stop();
         Logger.Log($@"Successfully Generated Chunk Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------
         // Loop through all chunks and generate mesh data.
         Logger.Log("Generating Mesh Data and Game Objects for Starting Chunks...");
         individualStopwatch.Restart();
-        Parallel.ForEach(columns, column =>
+        foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
             column.Value.GenerateMeshData();
             AddActionToMainThreadQueue(column.Value.GenerateChunkGameObject);
-        });
+        }
         individualStopwatch.Stop();
         Logger.Log($@"Successfully Generated GameObjects and assigned Mesh Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------

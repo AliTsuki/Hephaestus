@@ -264,7 +264,7 @@ public class PlayerController : MonoBehaviour
             {
                 if(World.TryGetBlockFromWorldPos(this.CurrentBlockSelectedPos, out _) == true)
                 {
-                    World.AddBlockUpdateToQueue(new Block.BlockUpdateParameters(this.CurrentBlockSelectedPos, Block.Air));
+                    World.AddBlockUpdateToQueue(new Block.BlockUpdate(this.CurrentBlockSelectedPos, Block.Air));
                 }
             }
         }
@@ -289,7 +289,7 @@ public class PlayerController : MonoBehaviour
                 {
                     if(World.TryGetBlockFromWorldPos(blockSelectedPos, out _) == true)
                     {
-                        World.AddBlockUpdateToQueue(new Block.BlockUpdateParameters(blockSelectedPos, Block.Stone));
+                        World.AddBlockUpdateToQueue(new Block.BlockUpdate(blockSelectedPos, Block.Stone));
                     }
                 }
             }

@@ -10,18 +10,18 @@ public struct Block
 {
     // Start of Block List
     public static Dictionary<int, Block> BlockTypes { get; private set; } = new Dictionary<int, Block>();
-    public static Block Air = new Block("Air", 0, TransparencyEnum.Transparent, 0, 0);
-    public static Block Grass = new Block("Grass", 1, TransparencyEnum.Opaque, 0, 0);
-    public static Block Dirt = new Block("Dirt", 2, TransparencyEnum.Opaque, 0, 0);
-    public static Block Stone = new Block("Stone", 3, TransparencyEnum.Opaque, 0, 0);
-    public static Block Bedrock = new Block("Bedrock", 4, TransparencyEnum.Opaque, 0, 0);
+    public static Block Air = new Block("Air", 1, TransparencyEnum.Transparent, 0, 0);
+    public static Block Grass = new Block("Grass", 2, TransparencyEnum.Opaque, 0, 0);
+    public static Block Dirt = new Block("Dirt", 3, TransparencyEnum.Opaque, 0, 0);
+    public static Block Stone = new Block("Stone", 4, TransparencyEnum.Opaque, 0, 0);
+    public static Block Bedrock = new Block("Bedrock", 5, TransparencyEnum.Opaque, 0, 0);
     // End of Block List
 
 
     /// <summary>
     /// Struct containing information to update a block.
     /// </summary>
-    public struct BlockUpdateParameters
+    public struct BlockUpdate
     {
         /// <summary>
         /// The world position of this block update.
@@ -37,10 +37,20 @@ public struct Block
         /// </summary>
         /// <param name="worldPos">The world position of this block update.</param>
         /// <param name="block">The block are we setting at the given position.</param>
-        public BlockUpdateParameters(Vector3Int worldPos, Block block)
+        public BlockUpdate(Vector3Int worldPos, Block block)
         {
             this.WorldPos = worldPos;
             this.Block = block;
+        }
+
+        /// <summary>
+        /// Specific Constructor: Creates a new block update from the save data read from file.
+        /// </summary>
+        /// <param name="saveData">The save data to use in creating this block update.</param>
+        public BlockUpdate(SaveDataObjects.BlockUpdateSaveData saveData)
+        {
+            this.WorldPos = saveData.WorldPos.ToVector3Int();
+            this.Block = BlockTypes[saveData.ID];
         }
     }
 
@@ -91,6 +101,19 @@ public struct Block
         this.LightEmissionValue = lightEmissionValue;
         this.LightValue = lightValue;
         BlockTypes.Add(this.ID, this);
+    }
+
+    /// <summary>
+    /// Specific Constructor: Creates a new block from the save data read from file.
+    /// </summary>
+    /// <param name="saveData">The save data to use in creating this block.</param>
+    public Block(SaveDataObjects.BlockSaveData saveData)
+    {
+        this.BlockName = BlockTypes[saveData.ID].BlockName;
+        this.ID = saveData.ID;
+        this.Transparency = BlockTypes[saveData.ID].Transparency;
+        this.LightEmissionValue = BlockTypes[saveData.ID].LightEmissionValue;
+        this.LightValue = BlockTypes[saveData.ID].LightValue;
     }
 
     /// <summary>
