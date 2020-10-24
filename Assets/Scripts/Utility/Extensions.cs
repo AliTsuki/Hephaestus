@@ -292,4 +292,28 @@ public static class Extensions
         }
         return multiArray;
     }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /// Vector2[]
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Rotates UVs a set amount.
+    /// </summary>
+    /// <param name="uvs">The uvs to rotate.</param>
+    /// <returns>Returns the given uvs rotated by the amount given.</returns>
+    public static Vector2[] RotateUVs(this Vector2[] uvs, int amount)
+    {
+        Vector2[] newArray = uvs;
+        for(int i = 0; i < amount; i++)
+        {
+            Vector2[] tempArray = new Vector2[4];
+            tempArray[0] = newArray[1];
+            tempArray[1] = newArray[3];
+            tempArray[2] = newArray[0];
+            tempArray[3] = newArray[2];
+            newArray = tempArray;
+        }
+        return newArray;
+    }
 }

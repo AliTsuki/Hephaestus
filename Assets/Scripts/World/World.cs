@@ -30,6 +30,10 @@ public static class World
     /// Dictionary of all columns currently loaded in game world.
     /// </summary>
     private static readonly ConcurrentDictionary<Vector2Int, Column> columns = new ConcurrentDictionary<Vector2Int, Column>();
+    /// <summary>
+    /// Random number generator used to set up blocks.
+    /// </summary>
+    public static readonly System.Random random = new System.Random(GameManager.Instance.Seed);
     #endregion World Data
 
     #region Player

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -12,11 +13,11 @@ public struct Block
     // TODO: Add support for liquid blocks.
     // Start of Block List
     public static Dictionary<int, Block> BlockTypes { get; private set; } = new Dictionary<int, Block>();
-    public static Block Air = new Block("Air", 1, TransparencyEnum.Transparent, 0, 0);
-    public static Block Grass = new Block("Grass", 2, TransparencyEnum.Opaque, 0, 0);
-    public static Block Dirt = new Block("Dirt", 3, TransparencyEnum.Opaque, 0, 0);
-    public static Block Stone = new Block("Stone", 4, TransparencyEnum.Opaque, 0, 0);
-    public static Block Bedrock = new Block("Bedrock", 5, TransparencyEnum.Opaque, 0, 0);
+    public static Block Air = new Block("Air", 1, TransparencyEnum.Transparent, 0, 0, 0, (RandomFacesEnum)0b000000);
+    public static Block Grass = new Block("Grass", 2, TransparencyEnum.Opaque, 0, 0, UniqueFacesEnum.Bottom | UniqueFacesEnum.Front | UniqueFacesEnum.Back | UniqueFacesEnum.Right | UniqueFacesEnum.Left, (RandomFacesEnum)0b000011, bottomTextureName: "2", frontTextureName: "1", backTextureName: "1", rightTextureName: "1", leftTextureName: "1");
+    public static Block Dirt = new Block("Dirt", 3, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
+    public static Block Stone = new Block("Stone", 4, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
+    public static Block Bedrock = new Block("Bedrock", 5, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
     // End of Block List
 
 
@@ -66,6 +67,14 @@ public struct Block
     /// </summary>
     public int ID { get; private set; }
     /// <summary>
+    /// Which of this block's faces textures should be different from the main texture for this block.
+    /// </summary>
+    public UniqueFacesEnum UniqueFaces { get; private set; }
+    /// <summary>
+    /// Which of this block's faces can have their UVs randomly rotated.
+    /// </summary>
+    public RandomFacesEnum RandomFaces { get; private set; }
+    /// <summary>
     /// The transparency of this block type.
     /// </summary>
     public TransparencyEnum Transparency { get; private set; }
@@ -77,6 +86,34 @@ public struct Block
     /// The amount of light this block receives.
     /// </summary>
     public int LightValue { get; private set; }
+    /// <summary>
+    /// The suffix for this block's unique top face texture.
+    /// </summary>
+    public string TopTextureName { get; private set; }
+    /// <summary>
+    /// The suffix for this block's unique bottom face texture.
+    /// </summary>
+    public string BottomTextureName { get; private set; }
+    /// <summary>
+    /// The suffix for this block's unique front face texture.
+    /// </summary>
+    public string FrontTextureName { get; private set; }
+    /// <summary>
+    /// The suffix for this block's unique back face texture.
+    /// </summary>
+    public string BackTextureName { get; private set; }
+    /// <summary>
+    /// The suffix for this block's unique right face texture.
+    /// </summary>
+    public string RightTextureName { get; private set; }
+    /// <summary>
+    /// The suffix for this block's unique left face texture.
+    /// </summary>
+    public string LeftTextureName { get; private set; }
+    /// <summary>
+    /// Random number assigned to this block.
+    /// </summary>
+    public int RandomNumber { get; private set; }
     #endregion Block Data
 
     /// <summary>
@@ -89,19 +126,52 @@ public struct Block
         Opaque,
     }
 
+    [Flags]
+    public enum UniqueFacesEnum
+    {
+        None = 0,
+        Top = 1<<0,
+        Bottom = 1<<1,
+        Front = 1<<2,
+        Back = 1<<3,
+        Left = 1<<4,
+        Right = 1<<5
+    }
+
+    [Flags]
+    public enum RandomFacesEnum
+    {
+        None = 0,
+        Top = 1 << 0,
+        Bottom = 1 << 1,
+        Front = 1 << 2,
+        Back = 1 << 3,
+        Left = 1 << 4,
+        Right = 1 << 5
+    }
+
 
     /// <summary>
     /// Specific Constructor: Creates a new block with the given block name and transparency.
     /// </summary>
     /// <param name="blockName">The name to give this block.</param>
     /// <param name="transparency">The transparency value to give this block.</param>
-    public Block(string blockName, int id, TransparencyEnum transparency, int lightEmissionValue, int lightValue)
+    public Block(string blockName, int id, TransparencyEnum transparency, int lightEmissionValue, int lightValue, UniqueFacesEnum uniqueFaces, RandomFacesEnum randomFaces, string topTextureName = "", string bottomTextureName = "", string frontTextureName = "", string backTextureName = "", string rightTextureName = "", string leftTextureName = "")
     {
         this.BlockName = blockName;
         this.ID = id;
         this.Transparency = transparency;
         this.LightEmissionValue = lightEmissionValue;
         this.LightValue = lightValue;
+        this.UniqueFaces = uniqueFaces;
+        this.RandomFaces = randomFaces;
+        this.TopTextureName = topTextureName;
+        this.BottomTextureName = bottomTextureName;
+        this.FrontTextureName = frontTextureName;
+        this.BackTextureName = backTextureName;
+        this.RightTextureName = rightTextureName;
+        this.LeftTextureName = leftTextureName;
+        this.RandomNumber = World.random.Next(0, 4);
         BlockTypes.Add(this.ID, this);
     }
 
@@ -116,6 +186,15 @@ public struct Block
         this.Transparency = BlockTypes[saveData.ID].Transparency;
         this.LightEmissionValue = BlockTypes[saveData.ID].LightEmissionValue;
         this.LightValue = BlockTypes[saveData.ID].LightValue;
+        this.UniqueFaces = BlockTypes[saveData.ID].UniqueFaces;
+        this.RandomFaces = BlockTypes[saveData.ID].RandomFaces;
+        this.TopTextureName = BlockTypes[saveData.ID].TopTextureName;
+        this.BottomTextureName = BlockTypes[saveData.ID].BottomTextureName;
+        this.FrontTextureName = BlockTypes[saveData.ID].FrontTextureName;
+        this.BackTextureName = BlockTypes[saveData.ID].BackTextureName;
+        this.RightTextureName = BlockTypes[saveData.ID].RightTextureName;
+        this.LeftTextureName = BlockTypes[saveData.ID].LeftTextureName;
+        this.RandomNumber = World.random.Next(0, 4);
     }
 
     /// <summary>

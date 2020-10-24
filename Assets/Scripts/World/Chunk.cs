@@ -327,6 +327,7 @@ public class Chunk
     /// </summary>
     public void GenerateMeshData()
     {
+        ConcurrentQueue<MeshData> meshDatas = new ConcurrentQueue<MeshData>();
         if(this.meshDataMutex.WaitOne())
         {
             this.ClearMeshData();
