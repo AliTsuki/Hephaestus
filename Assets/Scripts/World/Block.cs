@@ -13,11 +13,11 @@ public struct Block
     // TODO: Add support for liquid blocks.
     // Start of Block List
     public static Dictionary<int, Block> BlockTypes { get; private set; } = new Dictionary<int, Block>();
-    public static Block Air = new Block("Air", 1, TransparencyEnum.Transparent, 0, 0, 0, (RandomFacesEnum)0b000000);
-    public static Block Grass = new Block("Grass", 2, TransparencyEnum.Opaque, 0, 0, UniqueFacesEnum.Bottom | UniqueFacesEnum.Front | UniqueFacesEnum.Back | UniqueFacesEnum.Right | UniqueFacesEnum.Left, (RandomFacesEnum)0b000011, bottomTextureName: "2", frontTextureName: "1", backTextureName: "1", rightTextureName: "1", leftTextureName: "1");
-    public static Block Dirt = new Block("Dirt", 3, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
-    public static Block Stone = new Block("Stone", 4, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
-    public static Block Bedrock = new Block("Bedrock", 5, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
+    public static Block Air { get; private set; } = new Block("Air", 1, TransparencyEnum.Transparent, 0, 0, 0, (RandomFacesEnum)0b000000);
+    public static Block Grass { get; private set; } = new Block("Grass", 2, TransparencyEnum.Opaque, 0, 0, UniqueFacesEnum.Bottom | UniqueFacesEnum.Front | UniqueFacesEnum.Back | UniqueFacesEnum.Right | UniqueFacesEnum.Left, (RandomFacesEnum)0b000011, bottomTextureName: "2", frontTextureName: "1", backTextureName: "1", rightTextureName: "1", leftTextureName: "1");
+    public static Block Dirt { get; private set; } = new Block("Dirt", 3, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
+    public static Block Stone { get; private set; } = new Block("Stone", 4, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
+    public static Block Bedrock { get; private set; } = new Block("Bedrock", 5, TransparencyEnum.Opaque, 0, 0, 0, (RandomFacesEnum)0b111111);
     // End of Block List
 
 
@@ -130,12 +130,12 @@ public struct Block
     public enum UniqueFacesEnum
     {
         None = 0,
-        Top = 1<<0,
-        Bottom = 1<<1,
-        Front = 1<<2,
-        Back = 1<<3,
-        Left = 1<<4,
-        Right = 1<<5
+        Top = 1 << 0,
+        Bottom = 1 << 1,
+        Front = 1 << 2,
+        Back = 1 << 3,
+        Right = 1 << 4,
+        Left = 1 << 5,
     }
 
     [Flags]
@@ -146,8 +146,8 @@ public struct Block
         Bottom = 1 << 1,
         Front = 1 << 2,
         Back = 1 << 3,
-        Left = 1 << 4,
-        Right = 1 << 5
+        Right = 1 << 4,
+        Left = 1 << 5,
     }
 
 

@@ -38,6 +38,14 @@
                     "interactions": ""
                 },
                 {
+                    "name": "SelectBlock",
+                    "type": "Button",
+                    "id": "7dad422c-52ae-42bb-8657-40b87a6845a6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
                     "name": "Sprint",
                     "type": "Button",
                     "id": "197187ca-3450-4a1c-8268-ff3999a5ce46",
@@ -307,6 +315,17 @@
                     "processors": "",
                     "groups": "Main Control Scheme",
                     "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4354d9dd-7e22-4de5-ac86-cb56065c9ed9",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Main Control Scheme",
+                    "action": "SelectBlock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

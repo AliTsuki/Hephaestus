@@ -11,6 +11,7 @@ using UnityEngine;
 /// </summary>
 public static class SaveSystem
 {
+    // TODO: Column 0_0 using exponentially more space when saved than all other columns, need to figure out why
     /// <summary>
     /// The path for world saves.
     /// </summary>

@@ -31,12 +31,12 @@ public static class MeshBuilder
     {
         0,2,1,3,1,2
     };
-    private static readonly List<Vector3> frontFaceVerts = new List<Vector3>
+    private static readonly List<Vector3> frontFaceVerts = new List<Vector3>()
     {
-        new Vector3(0,0,0),
         new Vector3(0,0,1),
-        new Vector3(0,1,0),
-        new Vector3(0,1,1)
+        new Vector3(1,0,1),
+        new Vector3(0,1,1),
+        new Vector3(1,1,1)
     };
     private static readonly List<int> frontFaceTriangles = new List<int>()
     {
@@ -44,10 +44,10 @@ public static class MeshBuilder
     };
     private static readonly List<Vector3> backFaceVerts = new List<Vector3>()
     {
+        new Vector3(0,0,0),
         new Vector3(1,0,0),
-        new Vector3(1,0,1),
-        new Vector3(1,1,0),
-        new Vector3(1,1,1)
+        new Vector3(0,1,0),
+        new Vector3(1,1,0)
     };
     private static readonly List<int> backFaceTriangles = new List<int>()
     {
@@ -55,26 +55,27 @@ public static class MeshBuilder
     };
     private static readonly List<Vector3> rightFaceVerts = new List<Vector3>()
     {
-        new Vector3(0,0,1),
+        new Vector3(1,0,0),
         new Vector3(1,0,1),
-        new Vector3(0,1,1),
+        new Vector3(1,1,0),
         new Vector3(1,1,1)
     };
     private static readonly List<int> rightFaceTriangles = new List<int>()
     {
-        0,1,2,3,2,1
+        0,2,1,3,1,2
     };
-    private static readonly List<Vector3> leftFaceVerts = new List<Vector3>()
+    private static readonly List<Vector3> leftFaceVerts = new List<Vector3>
     {
         new Vector3(0,0,0),
-        new Vector3(1,0,0),
+        new Vector3(0,0,1),
         new Vector3(0,1,0),
-        new Vector3(1,1,0)
+        new Vector3(0,1,1)
     };
     private static readonly List<int> leftFaceTriangles = new List<int>()
     {
-        0,2,1,3,1,2
+        0,1,2,3,2,1
     };
+
     private static readonly Vector2[] defaultUVs = new Vector2[]
     {
         new Vector2(0, 0),
@@ -116,6 +117,7 @@ public static class MeshBuilder
         if(topVis)
         {
             string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Top) == Block.UniqueFacesEnum.Top) ? block.BlockName + "_" + block.TopTextureName : block.BlockName;
+            // TODO: When rotating UVs randomly grab the value from the noise map for block generation instead and get rid of the Block.RandomNumber field.
             Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Top) == Block.RandomFacesEnum.Top) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName);
             meshData.Merge(new MeshData(topFaceVerts, topFaceTriangles, uvs, defaultUVs));
         }
@@ -129,30 +131,66 @@ public static class MeshBuilder
         // Front Face
         if(frontVis)
         {
-            string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Front) == Block.UniqueFacesEnum.Front) ? block.BlockName + "_" + block.FrontTextureName : block.BlockName;
-            Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Front) == Block.RandomFacesEnum.Front) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
-            meshData.Merge(new MeshData(frontFaceVerts, frontFaceTriangles, uvs, defaultUVs));
+            if(block.BlockName == "Grass" && World.TryGetBlockFromWorldPos(internalPos.InternalPosToWorldPos(chunkPos) + new Vector3Int(0, -1, 1), out Block neighborBlock) == true && neighborBlock.BlockName == "Grass")
+            {
+                string uvName = block.BlockName;
+                Vector2[] uvs = UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber);
+                meshData.Merge(new MeshData(frontFaceVerts, frontFaceTriangles, uvs, defaultUVs));
+            }
+            else
+            {
+                string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Front) == Block.UniqueFacesEnum.Front) ? block.BlockName + "_" + block.FrontTextureName : block.BlockName;
+                Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Front) == Block.RandomFacesEnum.Front) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
+                meshData.Merge(new MeshData(frontFaceVerts, frontFaceTriangles, uvs, defaultUVs));
+            }
         }
         // Back Face
         if(backVis)
         {
-            string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Back) == Block.UniqueFacesEnum.Back) ? block.BlockName + "_" + block.BackTextureName : block.BlockName;
-            Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Back) == Block.RandomFacesEnum.Back) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
-            meshData.Merge(new MeshData(backFaceVerts, backFaceTriangles, uvs, defaultUVs));
+            if(block.BlockName == "Grass" && World.TryGetBlockFromWorldPos(internalPos.InternalPosToWorldPos(chunkPos) + new Vector3Int(0, -1, -1), out Block neighborBlock) == true && neighborBlock.BlockName == "Grass")
+            {
+                string uvName = block.BlockName;
+                Vector2[] uvs = UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber);
+                meshData.Merge(new MeshData(backFaceVerts, backFaceTriangles, uvs, defaultUVs));
+            }
+            else
+            {
+                string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Back) == Block.UniqueFacesEnum.Back) ? block.BlockName + "_" + block.BackTextureName : block.BlockName;
+                Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Back) == Block.RandomFacesEnum.Back) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
+                meshData.Merge(new MeshData(backFaceVerts, backFaceTriangles, uvs, defaultUVs));
+            }
         }
         // Right Face
         if(rightVis)
         {
-            string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Right) == Block.UniqueFacesEnum.Right) ? block.BlockName + "_" + block.RightTextureName : block.BlockName;
-            Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Right) == Block.RandomFacesEnum.Right) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
-            meshData.Merge(new MeshData(rightFaceVerts, rightFaceTriangles, uvs, defaultUVs));
+            if(block.BlockName == "Grass" && World.TryGetBlockFromWorldPos(internalPos.InternalPosToWorldPos(chunkPos) + new Vector3Int(1, -1, 0), out Block neighborBlock) == true && neighborBlock.BlockName == "Grass")
+            {
+                string uvName = block.BlockName;
+                Vector2[] uvs = UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber);
+                meshData.Merge(new MeshData(rightFaceVerts, rightFaceTriangles, uvs, defaultUVs));
+            }
+            else
+            {
+                string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Right) == Block.UniqueFacesEnum.Right) ? block.BlockName + "_" + block.RightTextureName : block.BlockName;
+                Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Right) == Block.RandomFacesEnum.Right) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
+                meshData.Merge(new MeshData(rightFaceVerts, rightFaceTriangles, uvs, defaultUVs));
+            }
         }
         // Left Face
         if(leftVis)
         {
-            string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Left) == Block.UniqueFacesEnum.Left) ? block.BlockName + "_" + block.LeftTextureName : block.BlockName;
-            Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Left) == Block.RandomFacesEnum.Left) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
-            meshData.Merge(new MeshData(leftFaceVerts, leftFaceTriangles, uvs, defaultUVs));
+            if(block.BlockName == "Grass" && World.TryGetBlockFromWorldPos(internalPos.InternalPosToWorldPos(chunkPos) + new Vector3Int(-1, -1, 0), out Block neighborBlock) == true && neighborBlock.BlockName == "Grass")
+            {
+                string uvName = block.BlockName;
+                Vector2[] uvs = UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber);
+                meshData.Merge(new MeshData(leftFaceVerts, leftFaceTriangles, uvs, defaultUVs));
+            }
+            else
+            {
+                string uvName = ((block.UniqueFaces & Block.UniqueFacesEnum.Left) == Block.UniqueFacesEnum.Left) ? block.BlockName + "_" + block.LeftTextureName : block.BlockName;
+                Vector2[] uvs = ((block.RandomFaces & Block.RandomFacesEnum.Left) == Block.RandomFacesEnum.Left) ? UVMap.GetUVs(uvName).RotateUVs(block.RandomNumber) : UVMap.GetUVs(uvName).RotateUVs(3);
+                meshData.Merge(new MeshData(leftFaceVerts, leftFaceTriangles, uvs, defaultUVs));
+            }
         }
         meshData.OffsetPosition(new Vector3(internalPos.x - 0.5f, internalPos.y - 0.5f, internalPos.z - 0.5f));
         return meshData;
@@ -168,7 +206,6 @@ public static class MeshBuilder
     private static bool CheckFaceVisibility(Vector3Int internalPos, Vector3Int chunkPos, Side side, out int lightingValue)
     {
         // TODO: When getting face visibility, if face is visible also get lighting values from nearby block.
-        // TODO: Change front to z+ and right to x+...
         lightingValue = 0;
         Vector3Int worldPos = internalPos.InternalPosToWorldPos(chunkPos);
         if(World.TryGetChunk(chunkPos, out Chunk chunk) == false)
@@ -213,15 +250,15 @@ public static class MeshBuilder
         }
         else if(side == Side.Front)
         {
-            if(internalPos.x > 0)
+            if(internalPos.z < GameManager.Instance.ChunkSize - 1)
             {
-                Block block = chunk.GetBlock(internalPos + new Vector3Int(-1, 0, 0));
+                Block block = chunk.GetBlock(internalPos + new Vector3Int(0, 0, 1));
                 return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
             }
-            else // internalPos.x == 0
+            else // internalPos.z == GameManager.Instance.ChunkSize - 1
             {
                 Vector3Int frontNeighborWorldPos = worldPos;
-                frontNeighborWorldPos += new Vector3Int(-1, 0, 0);
+                frontNeighborWorldPos += new Vector3Int(0, 0, 1);
                 if(World.TryGetBlockFromWorldPos(frontNeighborWorldPos, out Block block))
                 {
                     return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
@@ -231,15 +268,15 @@ public static class MeshBuilder
         }
         else if(side == Side.Back)
         {
-            if(internalPos.x < GameManager.Instance.ChunkSize - 1)
+            if(internalPos.z > 0)
             {
-                Block block = chunk.GetBlock(internalPos + new Vector3Int(1, 0, 0));
+                Block block = chunk.GetBlock(internalPos + new Vector3Int(0, 0, -1));
                 return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
             }
-            else // internalPos.x == GameManager.Instance.ChunkSize - 1
+            else // internalPos.z == 0
             {
                 Vector3Int backNeighborWorldPos = worldPos;
-                backNeighborWorldPos += new Vector3Int(1, 0, 0);
+                backNeighborWorldPos += new Vector3Int(0, 0, -1);
                 if(World.TryGetBlockFromWorldPos(backNeighborWorldPos, out Block block))
                 {
                     return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
@@ -249,15 +286,15 @@ public static class MeshBuilder
         }
         else if(side == Side.Right)
         {
-            if(internalPos.z < GameManager.Instance.ChunkSize - 1)
+            if(internalPos.x < GameManager.Instance.ChunkSize - 1)
             {
-                Block block = chunk.GetBlock(internalPos + new Vector3Int(0, 0, 1));
+                Block block = chunk.GetBlock(internalPos + new Vector3Int(1, 0, 0));
                 return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
             }
-            else // internalPos.z == GameManager.Instance.ChunkSize - 1
+            else // internalPos.x == GameManager.Instance.ChunkSize - 1
             {
                 Vector3Int rightNeighborWorldPos = worldPos;
-                rightNeighborWorldPos += new Vector3Int(0, 0, 1);
+                rightNeighborWorldPos += new Vector3Int(1, 0, 0);
                 if(World.TryGetBlockFromWorldPos(rightNeighborWorldPos, out Block block))
                 {
                     return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
@@ -267,15 +304,15 @@ public static class MeshBuilder
         }
         else if(side == Side.Left)
         {
-            if(internalPos.z > 0)
+            if(internalPos.x > 0)
             {
-                Block block = chunk.GetBlock(internalPos + new Vector3Int(0, 0, -1));
+                Block block = chunk.GetBlock(internalPos + new Vector3Int(-1, 0, 0));
                 return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;
             }
-            else// internalPos.z == 0
+            else// internalPos.x == 0
             {
                 Vector3Int leftNeighborWorldPos = worldPos;
-                leftNeighborWorldPos += new Vector3Int(0, 0, -1);
+                leftNeighborWorldPos += new Vector3Int(-1, 0, 0);
                 if(World.TryGetBlockFromWorldPos(leftNeighborWorldPos, out Block block))
                 {
                     return block.Transparency == Block.TransparencyEnum.Transparent || block.Transparency == Block.TransparencyEnum.SemiTransparent;

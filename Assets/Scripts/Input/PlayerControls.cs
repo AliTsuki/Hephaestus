@@ -51,6 +51,14 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """"
                 },
                 {
+                    ""name"": ""SelectBlock"",
+                    ""type"": ""Button"",
+                    ""id"": ""7dad422c-52ae-42bb-8657-40b87a6845a6"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
                     ""name"": ""Sprint"",
                     ""type"": ""Button"",
                     ""id"": ""197187ca-3450-4a1c-8268-ff3999a5ce46"",
@@ -322,6 +330,17 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4354d9dd-7e22-4de5-ac86-cb56065c9ed9"",
+                    ""path"": ""<Mouse>/middleButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Main Control Scheme"",
+                    ""action"": ""SelectBlock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -574,6 +593,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         m_Gameplay_Aim = m_Gameplay.FindAction("Aim", throwIfNotFound: true);
         m_Gameplay_Attack = m_Gameplay.FindAction("Attack", throwIfNotFound: true);
         m_Gameplay_Interact = m_Gameplay.FindAction("Interact", throwIfNotFound: true);
+        m_Gameplay_SelectBlock = m_Gameplay.FindAction("SelectBlock", throwIfNotFound: true);
         m_Gameplay_Sprint = m_Gameplay.FindAction("Sprint", throwIfNotFound: true);
         m_Gameplay_Crouch = m_Gameplay.FindAction("Crouch", throwIfNotFound: true);
         m_Gameplay_Jump = m_Gameplay.FindAction("Jump", throwIfNotFound: true);
@@ -641,6 +661,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputAction m_Gameplay_Aim;
     private readonly InputAction m_Gameplay_Attack;
     private readonly InputAction m_Gameplay_Interact;
+    private readonly InputAction m_Gameplay_SelectBlock;
     private readonly InputAction m_Gameplay_Sprint;
     private readonly InputAction m_Gameplay_Crouch;
     private readonly InputAction m_Gameplay_Jump;
@@ -654,6 +675,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         public InputAction @Aim => m_Wrapper.m_Gameplay_Aim;
         public InputAction @Attack => m_Wrapper.m_Gameplay_Attack;
         public InputAction @Interact => m_Wrapper.m_Gameplay_Interact;
+        public InputAction @SelectBlock => m_Wrapper.m_Gameplay_SelectBlock;
         public InputAction @Sprint => m_Wrapper.m_Gameplay_Sprint;
         public InputAction @Crouch => m_Wrapper.m_Gameplay_Crouch;
         public InputAction @Jump => m_Wrapper.m_Gameplay_Jump;
@@ -680,6 +702,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Interact.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnInteract;
                 @Interact.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnInteract;
                 @Interact.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnInteract;
+                @SelectBlock.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSelectBlock;
+                @SelectBlock.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSelectBlock;
+                @SelectBlock.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSelectBlock;
                 @Sprint.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSprint;
                 @Sprint.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSprint;
                 @Sprint.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSprint;
@@ -711,6 +736,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @Interact.started += instance.OnInteract;
                 @Interact.performed += instance.OnInteract;
                 @Interact.canceled += instance.OnInteract;
+                @SelectBlock.started += instance.OnSelectBlock;
+                @SelectBlock.performed += instance.OnSelectBlock;
+                @SelectBlock.canceled += instance.OnSelectBlock;
                 @Sprint.started += instance.OnSprint;
                 @Sprint.performed += instance.OnSprint;
                 @Sprint.canceled += instance.OnSprint;
@@ -826,6 +854,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         void OnAim(InputAction.CallbackContext context);
         void OnAttack(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
+        void OnSelectBlock(InputAction.CallbackContext context);
         void OnSprint(InputAction.CallbackContext context);
         void OnCrouch(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);

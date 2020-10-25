@@ -58,7 +58,9 @@ Pos: {(GameManager.Instance.Player.PC.IsBlockSelected ? GameManager.Instance.Pla
 Face: {(GameManager.Instance.Player.PC.IsBlockSelected ? GameManager.Instance.Player.PC.BlockSelectorHit.normal.ToString() : na)}
 Rounded: {(GameManager.Instance.Player.PC.IsBlockSelected ? GameManager.Instance.Player.PC.CurrentBlockSelectedPos.ToString() : na)}
 Chunk: {(GameManager.Instance.Player.PC.IsBlockSelected ? GameManager.Instance.Player.PC.CurrentBlockSelectedPos.WorldPosToChunkPos().ToString() : na)}
-Block: {(GameManager.Instance.Player.PC.IsBlockSelected ? GameManager.Instance.Player.PC.CurrentBlockSelected.BlockName : na)}";
+Block: {(GameManager.Instance.Player.PC.IsBlockSelected ? GameManager.Instance.Player.PC.CurrentBlockSelected.BlockName : na)}
+INVENTORY-------------
+Block: {GameManager.Instance.Player.PC.BlockToPlace.BlockName}";
         }
     }
 }

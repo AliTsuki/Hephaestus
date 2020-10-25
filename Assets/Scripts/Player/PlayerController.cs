@@ -164,6 +164,10 @@ public class PlayerController : MonoBehaviour
     /// Is a block currently selected?
     /// </summary>
     public bool IsBlockSelected { get; private set; } = false;
+    /// <summary>
+    /// Which block to place on right click.
+    /// </summary>
+    public Block BlockToPlace { get; private set; }
     #endregion Block Selection
 
 
@@ -235,6 +239,8 @@ public class PlayerController : MonoBehaviour
         this.Controls.Gameplay.Attack.canceled += this.Attack_canceled;
         this.Controls.Gameplay.Interact.performed += this.Interact_performed;
         this.Controls.Gameplay.Interact.canceled += this.Interact_canceled;
+        this.Controls.Gameplay.SelectBlock.performed += this.SelectBlock_performed;
+        this.Controls.Gameplay.SelectBlock.canceled += this.SelectBlock_canceled;
         this.Controls.Gameplay.Sprint.performed += this.Sprint_performed;
         this.Controls.Gameplay.Sprint.canceled += this.Sprint_canceled;
         this.Controls.Gameplay.Crouch.performed += this.Crouch_performed;
@@ -243,6 +249,7 @@ public class PlayerController : MonoBehaviour
         this.Controls.Gameplay.ToggleMenu.performed += this.ToggleMenu_performed;
         this.Controls.Gameplay.DEBUGLOCKCURSORTOGGLE.performed += this.DEBUGLOCKCURSORTOGGLE_performed;
         Cursor.visible = false;
+        this.BlockToPlace = Block.Stone;
     }
 
     /// <summary>
@@ -394,7 +401,7 @@ public class PlayerController : MonoBehaviour
                 {
                     if(World.TryGetBlockFromWorldPos(blockSelectedPos, out _) == true)
                     {
-                        World.AddBlockUpdateToQueue(new Block.BlockUpdate(blockSelectedPos, Block.Stone));
+                        World.AddBlockUpdateToQueue(new Block.BlockUpdate(blockSelectedPos, this.BlockToPlace));
                     }
                 }
             }
@@ -402,6 +409,17 @@ public class PlayerController : MonoBehaviour
         else
         {
             
+        }
+    }
+
+    /// <summary>
+    /// Selects a new block to place down.
+    /// </summary>
+    private void SelectBlock()
+    {
+        if(this.IsBlockSelected == true)
+        {
+            this.BlockToPlace = this.CurrentBlockSelected;
         }
     }
 
@@ -601,6 +619,19 @@ public class PlayerController : MonoBehaviour
         {
             this.ApplyInteract(false);
         }
+    }
+
+    private void SelectBlock_performed(InputAction.CallbackContext context)
+    {
+        if(this.captureInput == true)
+        {
+            this.SelectBlock();
+        }
+    }
+
+    private void SelectBlock_canceled(InputAction.CallbackContext context)
+    {
+        
     }
 
     private void Sprint_performed(InputAction.CallbackContext context)
