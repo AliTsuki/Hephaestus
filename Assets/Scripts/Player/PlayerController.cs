@@ -249,7 +249,7 @@ public class PlayerController : MonoBehaviour
         this.Controls.Gameplay.ToggleMenu.performed += this.ToggleMenu_performed;
         this.Controls.Gameplay.DEBUGLOCKCURSORTOGGLE.performed += this.DEBUGLOCKCURSORTOGGLE_performed;
         Cursor.visible = false;
-        this.BlockToPlace = Block.Stone;
+        this.BlockToPlace = new Block(BlockType.Stone);
     }
 
     /// <summary>
@@ -376,7 +376,7 @@ public class PlayerController : MonoBehaviour
             {
                 if(World.TryGetBlockFromWorldPos(this.CurrentBlockSelectedPos, out _) == true)
                 {
-                    World.AddBlockUpdateToQueue(new Block.BlockUpdate(this.CurrentBlockSelectedPos, Block.Air));
+                    World.AddBlockUpdateToQueue(new Block.BlockUpdate(this.CurrentBlockSelectedPos, new Block(BlockType.Air)));
                 }
             }
         }

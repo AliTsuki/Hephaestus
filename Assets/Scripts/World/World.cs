@@ -30,10 +30,6 @@ public static class World
     /// Dictionary of all columns currently loaded in game world.
     /// </summary>
     private static readonly ConcurrentDictionary<Vector2Int, Column> columns = new ConcurrentDictionary<Vector2Int, Column>();
-    /// <summary>
-    /// Random number generator used to set up blocks.
-    /// </summary>
-    public static readonly System.Random random = new System.Random(GameManager.Instance.Seed);
     #endregion World Data
 
     #region Player
@@ -45,6 +41,10 @@ public static class World
     /// The current chunk position of the chunk that contains the player.
     /// </summary>
     private static Vector3Int playerCurrentChunkPos = new Vector3Int();
+    /// <summary>
+    /// The current column position of the column that contains the player.
+    /// </summary>
+    private static Vector2Int playerCurrentColumnPos = new Vector2Int();
     /// <summary>
     /// The forward direction of the player.
     /// </summary>
@@ -65,7 +65,8 @@ public static class World
     /// </summary>
     private static bool hasPlayerSpawned = false;
     #endregion Flags
-
+    
+    
     /// <summary>
     /// Struct containing world save data.
     /// </summary>
@@ -125,16 +126,24 @@ public static class World
     {
         if(hasPlayerSpawned == true)
         {
-            // Do block updates in block update queue
             while(blockUpdateQueue.Count > 0)
             {
                 blockUpdateQueue.TryDequeue(out Block.BlockUpdate blockUpdate);
-                UpdateBlock(blockUpdate);
+                ApplyBlockUpdate(blockUpdate);
             }
-            // Degenerate old chunks and generate new chunks
-            DegenerateDistantColumns();
-            GenerateNextColumn();
-            GenerateNewChunks();
+            DegenerateDistantColumn();
+            while(blockUpdateQueue.Count > 0)
+            {
+                blockUpdateQueue.TryDequeue(out Block.BlockUpdate blockUpdate);
+                ApplyBlockUpdate(blockUpdate);
+            }
+            GenerateNewColumn();
+            while(blockUpdateQueue.Count > 0)
+            {
+                blockUpdateQueue.TryDequeue(out Block.BlockUpdate blockUpdate);
+                ApplyBlockUpdate(blockUpdate);
+            }
+            GenerateNewChunk();
             Logger.WriteLogToFile();
         }
     }
@@ -148,6 +157,7 @@ public static class World
         if(hasPlayerSpawned == true)
         {
             playerCurrentChunkPos = GameManager.Instance.Player.transform.position.RoundToInt().WorldPosToChunkPos();
+            playerCurrentColumnPos = playerCurrentChunkPos.RemoveY();
             playerCurrentForward = GameManager.Instance.Player.transform.forward;
         }
         // Do actions in main thread queue
@@ -170,7 +180,7 @@ public static class World
     /// <summary>
     /// Adds an block update to a chunk that hasn't loaded yet to run when the chunk does load later.
     /// </summary>
-    /// <param name="blockUpdate"></param>
+    /// <param name="blockUpdate">The block update to add to a chunk to be performed later.</param>
     public static void AddUnloadedChunkBlockUpdate(Block.BlockUpdate blockUpdate)
     {
         Vector2Int columnPos = blockUpdate.WorldPos.WorldPosToChunkPos().RemoveY();
@@ -181,6 +191,24 @@ public static class World
         if(TryGetChunk(blockUpdate.WorldPos.WorldPosToChunkPos(), out Chunk chunk) == true)
         {
             chunk.AddUnloadedChunkBlockUpdate(blockUpdate);
+        }
+    }
+
+    /// <summary>
+    /// Adds block updates to a an unloaded chunk in bulk.
+    /// </summary>
+    /// <param name="chunkPos">The chunk position to send block updates to.</param>
+    /// <param name="blockUpdates">The list of block updates.</param>
+    public static void AddUnloadedChunkBlockUpdateBulk(Vector3Int chunkPos, List<Block.BlockUpdate> blockUpdates)
+    {
+        Vector2Int columnPos = chunkPos.RemoveY();
+        if(TryGetColumn(columnPos, out _) == false)
+        {
+            columns.TryAdd(columnPos, new Column(columnPos));
+        }
+        if(TryGetChunk(chunkPos, out Chunk chunk) == true)
+        {
+            chunk.AddUnloadedChunkBlockUpdateBulk(blockUpdates);
         }
     }
 
@@ -198,11 +226,12 @@ public static class World
     /// </summary>
     public static void Quit()
     {
+		shouldWorldThreadRun = false;
         foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
-            column.Value.Degenerate();
+            column.Value.Degenerate(false);
         }
-        shouldWorldThreadRun = false;
+        columns.Clear();
     }
 
     /// <summary>
@@ -257,14 +286,14 @@ public static class World
     {
         Vector3Int chunkPos = worldPos.WorldPosToChunkPos();
         Vector3Int internalPos = worldPos.WorldPosToInternalPos();
-        if(TryGetChunk(chunkPos, out Chunk chunk) == true)
+        if(TryGetChunk(chunkPos, out Chunk chunk) == true && chunk.HasGeneratedChunkData == true)
         {
             block = chunk.GetBlock(internalPos);
             return true;
         }
         else
         {
-            block = new Block();
+            block = default;
             return false;
         }
     }
@@ -273,11 +302,11 @@ public static class World
     /// Updates the block of a chunk described by the given block update parameters.
     /// </summary>
     /// <param name="blockUpdate">The parameters of which block to update and what to update it to.</param>
-    private static void UpdateBlock(Block.BlockUpdate blockUpdate)
+    private static void ApplyBlockUpdate(Block.BlockUpdate blockUpdate)
     {
         Vector3Int chunkPos = blockUpdate.WorldPos.WorldPosToChunkPos();
         Vector3Int internalPos = blockUpdate.WorldPos.WorldPosToInternalPos();
-        if(TryGetChunk(chunkPos, out Chunk chunk) == true)
+        if(TryGetChunk(chunkPos, out Chunk chunk) == true && chunk.HasGeneratedChunkData == true)
         {
             chunk.PlaceBlock(internalPos, blockUpdate.Block);
         }
@@ -286,74 +315,36 @@ public static class World
     /// <summary>
     /// Checks if columns are too far from player and degenerates them.
     /// </summary>
-    private static void DegenerateDistantColumns()
+    private static void DegenerateDistantColumn()
     {
-        List<Column> columnsToRemove = new List<Column>();
+        Column columnToRemove = null;
         foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
             if(Vector2Int.Distance(column.Value.ColumnPos, new Vector2Int(playerCurrentChunkPos.x, playerCurrentChunkPos.z)) > GameManager.Instance.StartingColumnRadius + 1)
             {
-                columnsToRemove.Add(column.Value);
+                columnToRemove = column.Value;
+                break;
             }
         }
-        foreach(Column column in columnsToRemove)
+        if(columnToRemove != null)
         {
-            column.Degenerate();
-            columns.TryRemove(column.ColumnPos, out _);
-        }
-        if(columnsToRemove.Count > 0)
-        {
-            Logger.Log($@"% DEGENERATE: Removed {columnsToRemove.Count} distant columns!");
+            columnToRemove.Degenerate(true);
+            columns.TryRemove(columnToRemove.ColumnPos, out _);
         }
     }
 
     /// <summary>
     /// Generates new columns around player.
     /// </summary>
-    private static void GenerateNextColumn()
+    private static void GenerateNewColumn()
     {
-        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-        stopwatch.Start();
         Column newColumn = GetNextColumnToGenerate();
         if(newColumn != null)
         {
             columns.TryAdd(newColumn.ColumnPos, newColumn);
-            newColumn.GenerateChunkSurfaceData();
+            // TODO: Chunk/column generation at edge of world is inconsistent. Starting chunks generate just fine, but new columns/chunks added while exploring don't
+            // generate except a handful in the distance, check GenerateNewColumn and GenerateNewChunk to see why.
             newColumn.GenerateChunkBlockData();
-            stopwatch.Stop();
-            long elapsedMS = stopwatch.ElapsedMilliseconds;
-            Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate new column!");
-        }
-    }
-
-    /// <summary>
-    /// Generates new chunks around player.
-    /// </summary>
-    private static void GenerateNewChunks()
-    {
-        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-        stopwatch.Start();
-        List<Chunk> chunksToGenerate = new List<Chunk>();
-        foreach(KeyValuePair<Vector2Int, Column> column in columns)
-        {
-            foreach(Chunk chunk in column.Value.Chunks)
-            {
-                if(Vector3Int.Distance(chunk.ChunkPos, playerCurrentChunkPos) <= GameManager.Instance.StartingColumnRadius + 1 && chunk.HasGeneratedChunkData == true && chunk.HasGeneratedMeshData == false && chunk.HasGeneratedGameObject == false)
-                {
-                    chunksToGenerate.Add(chunk);
-                }
-            }
-        }
-        foreach(Chunk chunk in chunksToGenerate)
-        {
-            chunk.GenerateMeshData();
-            AddActionToMainThreadQueue(chunk.GenerateChunkGameObject);
-        }
-        stopwatch.Stop();
-        long elapsedMS = stopwatch.ElapsedMilliseconds;
-        if(chunksToGenerate.Count > 0)
-        {
-            Logger.Log($@"* GENERATE: Took {elapsedMS.ToString("N", CultureInfo.InvariantCulture)} ms to generate {chunksToGenerate.Count} new chunks at a rate of {elapsedMS / chunksToGenerate.Count} ms per chunk!");
         }
     }
 
@@ -365,12 +356,11 @@ public static class World
     {
         Vector3Int forward = new Vector3(playerCurrentForward.x, 0, playerCurrentForward.z).normalized.RoundToInt();
         Vector2Int forwardNormal = new Vector2Int(forward.x, forward.z);
-        Vector2Int playerCurrentColumnPos = new Vector2Int(playerCurrentChunkPos.x, playerCurrentChunkPos.z);
         int x = 0;
-        int y = 0;
+        int z = 0;
         for(int i = 0; i < GameManager.Instance.ActiveColumnRadius * GameManager.Instance.ActiveColumnRadius; ++i)
         {
-            Vector2Int newColumnPos = new Vector2Int(x + playerCurrentColumnPos.x, y + playerCurrentColumnPos.y);
+            Vector2Int newColumnPos = new Vector2Int(x, z) + playerCurrentColumnPos;
             if(newColumnPos.ManhattanDistance(playerCurrentColumnPos) < 2 || Vector2.Dot(forwardNormal, (newColumnPos - playerCurrentColumnPos).Normalize()) > 0.5f)
             {
                 if(TryGetColumn(newColumnPos, out _) == false)
@@ -382,16 +372,43 @@ public static class World
                     return newColumn;
                 }
             }
-            if(Mathf.Abs(x) <= Mathf.Abs(y) && (x != y || x >= 0))
+            if(Mathf.Abs(x) <= Mathf.Abs(z) && (x != z || x >= 0))
             {
-                x += (y >= 0) ? 1 : -1;
+                x += (z >= 0) ? 1 : -1;
             }
             else
             {
-                y += (x >= 0) ? -1 : 1;
+                z += (x >= 0) ? -1 : 1;
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Generates new chunks around player.
+    /// </summary>
+    private static void GenerateNewChunk()
+    {
+        Chunk chunkToGenerate = null;
+        for(int x = -GameManager.Instance.ActiveColumnRadius + 1; x < GameManager.Instance.ActiveColumnRadius; x++)
+        {
+            for(int y = -GameManager.Instance.ActiveColumnRadius + 1; y < GameManager.Instance.ActiveColumnRadius; y++)
+            {
+                for(int z = -GameManager.Instance.ActiveColumnRadius + 1; z < GameManager.Instance.ActiveColumnRadius; z++)
+                {
+                    Vector3Int newChunkPos = new Vector3Int(x, y, z) + playerCurrentChunkPos;
+                    if(TryGetChunk(newChunkPos, out Chunk chunk) == true && Vector3Int.Distance(newChunkPos, playerCurrentChunkPos) <= GameManager.Instance.ActiveColumnRadius && chunk.HasGeneratedChunkData == true && chunk.HasGeneratedMeshData == false)
+                    {
+                        chunkToGenerate = chunk;
+                        break;
+                    }
+                }
+            }
+        }
+        if(chunkToGenerate != null)
+        {
+            chunkToGenerate.GenerateMeshData();
+        }
     }
 
     /// <summary>
@@ -401,7 +418,7 @@ public static class World
     {
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         System.Diagnostics.Stopwatch individualStopwatch = new System.Diagnostics.Stopwatch();
-        stopwatch.Start();
+        stopwatch.Restart();
         Logger.Log("Generating Starting Columns...");
         //------------------------------------------------------------------------------------------
         // Instantiate Starting Chunks.
@@ -423,18 +440,17 @@ public static class World
             }
         }
         individualStopwatch.Stop();
-        Logger.Log($@"Successfully Initialized Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
+        Logger.Log($@"Successfully Initialized Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N0", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------
         // Loop through all chunks and generate chunk data.
         Logger.Log("Generating Chunk Data for Starting Columns...");
         individualStopwatch.Restart();
         foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
-            column.Value.GenerateChunkSurfaceData();
             column.Value.GenerateChunkBlockData();
         }
         individualStopwatch.Stop();
-        Logger.Log($@"Successfully Generated Chunk Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
+        Logger.Log($@"Successfully Generated Chunk Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N0", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------
         // Loop through all chunks and generate mesh data.
         Logger.Log("Generating Mesh Data and Game Objects for Starting Chunks...");
@@ -442,13 +458,12 @@ public static class World
         foreach(KeyValuePair<Vector2Int, Column> column in columns)
         {
             column.Value.GenerateMeshData();
-            AddActionToMainThreadQueue(column.Value.GenerateChunkGameObject);
         }
         individualStopwatch.Stop();
-        Logger.Log($@"Successfully Generated GameObjects and assigned Mesh Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms!");
+        Logger.Log($@"Successfully Generated GameObjects and assigned Mesh Data for Starting Columns! Took {individualStopwatch.ElapsedMilliseconds.ToString("N0", CultureInfo.InvariantCulture)} ms!");
         //------------------------------------------------------------------------------------------
         stopwatch.Stop();
-        Logger.Log($@"Took {stopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms to generate {columns.Count} columns at a rate of {stopwatch.ElapsedMilliseconds / (long)columns.Count} ms per Column or {stopwatch.ElapsedMilliseconds / ((long)columns.Count * GameManager.Instance.ChunksPerColumn)} ms per Chunk!");
+        Logger.Log($@"Took {stopwatch.ElapsedMilliseconds.ToString("N0", CultureInfo.InvariantCulture)} ms to generate {columns.Count} columns at a rate of {stopwatch.ElapsedMilliseconds / (long)columns.Count} ms per Column or {stopwatch.ElapsedMilliseconds / ((long)columns.Count * GameManager.Instance.ChunksPerColumn)} ms per Chunk!");
         HasStartingAreaGenerated = true;
     }
 
@@ -457,8 +472,6 @@ public static class World
     /// </summary>
     private static void GetPlayerStartPos()
     {
-        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-        stopwatch.Start();
         Logger.Log($@"Trying to find player start position...");
         playerStartPos = new Vector3Int(0, (GameManager.Instance.ChunksPerColumn * GameManager.Instance.ChunkSize) - 1, 0);
         while(CanPlayerSpawnHere(playerStartPos, out bool reachedOutOfBounds) == false)
@@ -477,7 +490,6 @@ public static class World
             }
         }
         playerStartPos += new Vector3Int(0, 1, 0);
-        Logger.Log($@"Took {stopwatch.ElapsedMilliseconds.ToString("N", CultureInfo.InvariantCulture)} ms to find a player start position!");
         Logger.Log($@"Player start position found: {playerStartPos}");
         AddActionToMainThreadQueue(PlacePlayerInWorld);
     }
@@ -492,17 +504,20 @@ public static class World
     {
         if(TryGetBlockFromWorldPos(worldPos, out Block block) == true)
         {
-            if(block.Transparency == Block.TransparencyEnum.Opaque)
+            BlockType blockType = BlockType.BlockTypes[block.ID];
+            if(blockType.Transparency == BlockType.TransparencyEnum.Opaque)
             {
                 Vector3Int worldPosPlus1 = worldPos + new Vector3Int(0, 1, 0);
                 if(TryGetBlockFromWorldPos(worldPosPlus1, out Block blockPlus1) == true)
                 {
-                    if(blockPlus1.Transparency == Block.TransparencyEnum.Transparent)
+                    BlockType blockPlus1Type = BlockType.BlockTypes[blockPlus1.ID];
+                    if(blockPlus1Type.Transparency == BlockType.TransparencyEnum.Transparent)
                     {
                         Vector3Int worldPosPlus2 = worldPos + new Vector3Int(0, 2, 0);
                         if(TryGetBlockFromWorldPos(worldPosPlus2, out Block blockPlus2) == true)
                         {
-                            if(blockPlus2.Transparency == Block.TransparencyEnum.Transparent)
+                            BlockType blockPlus2Type = BlockType.BlockTypes[blockPlus2.ID];
+                            if(blockPlus2Type.Transparency == BlockType.TransparencyEnum.Transparent)
                             {
                                 reachedOutOfBounds = false;
                                 return true;

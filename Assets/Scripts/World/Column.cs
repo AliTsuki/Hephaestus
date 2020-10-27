@@ -57,7 +57,7 @@ public class Column
     /// <returns>Returns true if a chunk exists at that location.</returns>
     public bool TryGetChunk(int chunkPosY, out Chunk chunk)
     {
-        if(chunkPosY >= 0 && chunkPosY < this.Chunks.Length)
+        if(chunkPosY >= 0 && chunkPosY < GameManager.Instance.ChunksPerColumn)
         {
             chunk = this.Chunks[chunkPosY];
             return true;
@@ -67,20 +67,6 @@ public class Column
             chunk = null;
             return false;
         }
-    }
-
-    /// <summary>
-    /// Generates chunk surface data for all chunks in this column.
-    /// </summary>
-    public void GenerateChunkSurfaceData()
-    {
-        Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
-        {
-            if(this.Chunks[y].HasGeneratedChunkData == false)
-            {
-                this.Chunks[y].GenerateChunkSurfaceData();
-            }
-        });
     }
 
     /// <summary>
@@ -107,7 +93,7 @@ public class Column
                             {
                                 if(y == 0)
                                 {
-                                    chunk.SetBlock(internalPos, Block.Bedrock);
+                                    chunk.SetBlock(internalPos, new Block(BlockType.Bedrock));
                                 }
                                 else
                                 {
@@ -115,39 +101,36 @@ public class Column
                                     {
                                         if(closestAir - y <= 1)
                                         {
-                                            chunk.SetBlock(internalPos, Block.Grass);
+                                            chunk.SetBlock(internalPos, new Block(BlockType.Grass));
                                         }
                                         else if(closestAir - y <= dirtDepth)
                                         {
-                                            chunk.SetBlock(internalPos, Block.Dirt);
+                                            chunk.SetBlock(internalPos, new Block(BlockType.Dirt));
                                         }
                                         else
                                         {
-                                            chunk.SetBlock(internalPos, Block.Stone);
+                                            chunk.SetBlock(internalPos, new Block(BlockType.Stone));
                                         }
                                     }
                                     else
                                     {
-                                        chunk.SetBlock(internalPos, Block.Stone);
+                                        chunk.SetBlock(internalPos, new Block(BlockType.Stone));
                                     }
                                 }
                             }
                             else
                             {
                                 closestAir = y;
-                                chunk.SetBlock(internalPos, Block.Air);
+                                chunk.SetBlock(internalPos, new Block(BlockType.Air));
                             }
                         }
                     }
                 });
             });
-            Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
+            for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
             {
-                if(this.Chunks[y].HasGeneratedChunkData == false)
-                {
-                    this.Chunks[y].GenerateChunkBlockData();
-                }
-            });
+                this.Chunks[y].GenerateChunkBlockData();
+            }
             this.HasGeneratedBlockData = true;
         }
     }
@@ -159,37 +142,27 @@ public class Column
     {
         Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
         {
-            if(this.Chunks[y].HasGeneratedMeshData == false)
-            {
-                this.Chunks[y].GenerateMeshData();
-            }
+            this.Chunks[y].GenerateMeshData();
         });
-    }
-
-    /// <summary>
-    /// Generates game objects for all chunks in this column.
-    /// </summary>
-    public void GenerateChunkGameObject()
-    {
-        for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
-        {
-            if(this.Chunks[y].HasGeneratedGameObject == false)
-            {
-                this.Chunks[y].GenerateChunkGameObject();
-            }
-        }
     }
 
     /// <summary>
     /// Degenerates all chunks in this column.
     /// </summary>
-    public void Degenerate()
+    public void Degenerate(bool calledFromWorldThread)
     {
-        // TODO: Columns don't always save if you make changes and then walk far enough away for them to degenerate, but save consistently if you exit application...
         SaveSystem.SaveColumnToDrive(this);
         for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
         {
-            World.AddActionToMainThreadQueue(this.Chunks[y].Degenerate);
+            if(calledFromWorldThread == true)
+            {
+                World.AddActionToMainThreadQueue(this.Chunks[y].Degenerate);
+            }
+            else
+            {
+                this.Chunks[y].Degenerate();
+            }
         }
+        this.Chunks = null;
     }
 }

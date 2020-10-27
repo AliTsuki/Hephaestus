@@ -292,6 +292,7 @@ public class GameManager : MonoBehaviour
     private void OnApplicationQuit()
     {
         World.Quit();
+        ObjectPooler.Quit();
         Logger.Quit();
     }
 

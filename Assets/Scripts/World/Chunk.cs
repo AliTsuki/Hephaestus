@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 using UnityEngine;
 
@@ -17,10 +16,6 @@ public class Chunk
     /// The position of this chunk in chunk coordinate system.
     /// </summary>
     public Vector3Int ChunkPos { get; private set; } = new Vector3Int();
-    /// <summary>
-    /// Array of integers corresponding to blocks, 0 is air, 1 is solid ground.
-    /// </summary>
-    private readonly int[,,] surfaceData = new int[GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize];
     /// <summary>
     /// Array of blocks within this chunk.
     /// </summary>
@@ -86,12 +81,12 @@ public class Chunk
     /// </summary>
     private static readonly Dictionary<ChunkNeighbors, Vector3Int> chunkNeighborPositions = new Dictionary<ChunkNeighbors, Vector3Int>()
     {
-        { ChunkNeighbors.XPos, new Vector3Int( 1,  0,  0)},
-        { ChunkNeighbors.XNeg, new Vector3Int(-1,  0,  0)},
-        { ChunkNeighbors.YPos, new Vector3Int( 0,  1,  0)},
-        { ChunkNeighbors.YNeg, new Vector3Int( 0, -1,  0)},
-        { ChunkNeighbors.ZPos, new Vector3Int( 0,  0,  1)},
-        { ChunkNeighbors.ZNeg, new Vector3Int( 0,  0, -1)},
+        { ChunkNeighbors.Top, new Vector3Int( 0,  1,  0)},
+        { ChunkNeighbors.Bottom, new Vector3Int( 0, -1,  0)},
+        { ChunkNeighbors.Front, new Vector3Int( 0,  0,  1)},
+        { ChunkNeighbors.Back, new Vector3Int( 0,  0, -1)},
+        { ChunkNeighbors.Right, new Vector3Int( 1,  0,  0)},
+        { ChunkNeighbors.Left, new Vector3Int(-1,  0,  0)},
     };
 
     /// <summary>
@@ -99,12 +94,12 @@ public class Chunk
     /// </summary>
     private enum ChunkNeighbors
     {
-        XPos,
-        XNeg,
-        YPos,
-        YNeg,
-        ZPos,
-        ZNeg
+        Top,
+        Bottom,
+        Front,
+        Back,
+        Right,
+        Left,
     }
 
 
@@ -151,77 +146,22 @@ public class Chunk
     /// <summary>
     /// Adds a block update sent by neighbor chunks while this chunk was unloaded.
     /// </summary>
-    /// <param name="blockUpdate"></param>
+    /// <param name="blockUpdate">The block update to apply when this chunk loads.</param>
     public void AddUnloadedChunkBlockUpdate(Block.BlockUpdate blockUpdate)
     {
         this.UnloadedChunkBlockUpdates.Enqueue(blockUpdate);
     }
 
     /// <summary>
-    /// Generates surface data for this chunk.
+    /// Adds a list of block updates sent by neighbor chunks while this chunk was unloaded.
     /// </summary>
-    public void GenerateChunkSurfaceData()
+    /// <param name="blockUpdates">The list of block updates to apply when this chunk loads.</param>
+    public void AddUnloadedChunkBlockUpdateBulk(List<Block.BlockUpdate> blockUpdates)
     {
-        Parallel.For(0, GameManager.Instance.ChunkSize, x =>
+        foreach(Block.BlockUpdate blockUpdate in blockUpdates)
         {
-            Parallel.For(0, GameManager.Instance.ChunkSize, y =>
-            {
-                Parallel.For(0, GameManager.Instance.ChunkSize, z =>
-                {
-                    Vector3Int internalPos = new Vector3Int(x, y, z);
-                    Vector3Int worldPos = internalPos.InternalPosToWorldPos(this.ChunkPos);
-                    float value;
-                    if(worldPos.y == 0)
-                    {
-                        value = -50;
-                    }
-                    else
-                    {
-                        float noise1 = GameManager.Instance.NoiseGeneratorBase.GetNoise(worldPos.x, worldPos.y, worldPos.z);
-                        float noise2 = GameManager.Instance.NoiseGeneratorRidged.GetNoise(worldPos.x, worldPos.y, worldPos.z);
-                        if(GameManager.Instance.InvertBase == true)
-                        {
-                            noise1 *= -1;
-                        }
-                        if(GameManager.Instance.InvertRidged == true)
-                        {
-                            noise2 *= -1;
-                        }
-                        noise1.Remap(-1, 1, 0, 1);
-                        noise2.Remap(-1, 1, 0, 1);
-                        if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Min)
-                        {
-                            value = Mathf.Min(noise1, noise2);
-                        }
-                        else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Max)
-                        {
-                            value = Mathf.Max(noise1, noise2);
-                        }
-                        else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Average)
-                        {
-                            value = (noise1 + noise2) / 2f;
-                        }
-                        else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Just1)
-                        {
-                            value = noise1;
-                        }
-                        else
-                        {
-                            value = noise2;
-                        }
-                        value += GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize));
-                    }
-                    if(value >= GameManager.Instance.CutoffValue)
-                    {
-                        this.surfaceData[x, y, z] = 0;
-                    }
-                    else
-                    {
-                        this.surfaceData[x, y, z] = 1;
-                    }
-                });
-            });
-        });
+            this.UnloadedChunkBlockUpdates.Enqueue(blockUpdate);
+        }
     }
 
     /// <summary>
@@ -234,8 +174,8 @@ public class Chunk
         this.GenerateStructures();
         this.DoUnloadedChunkBlockUpdates();
         this.CalculateLightingData();
-        this.HasGeneratedChunkData = true;
         this.UpdateNeighborChunkMeshData();
+        this.HasGeneratedChunkData = true;
     }
 
     /// <summary>
@@ -254,21 +194,34 @@ public class Chunk
             CaveWorm newWorm = new CaveWorm(newWormPos);
             this.CaveWorms.Add(newWorm);
         }
+        Dictionary<Vector3Int, List<Block.BlockUpdate>> chunkUpdates = new Dictionary<Vector3Int, List<Block.BlockUpdate>>();
         foreach(CaveWorm worm in this.CaveWorms)
         {
             foreach(CaveWorm.Segment segment in worm.Segments)
             {
                 foreach(Vector3Int point in segment.Points)
                 {
-                    if(World.TryGetChunk(point.WorldPosToChunkPos(), out Chunk chunk) == true && chunk.HasGeneratedChunkData == true)
+                    Vector3Int chunkPos = point.WorldPosToChunkPos();
+                    if(chunkUpdates.ContainsKey(chunkPos) == true)
                     {
-                        chunk.SetBlock(point.WorldPosToInternalPos(), Block.Air);
+                        chunkUpdates[chunkPos].Add(new Block.BlockUpdate(point.WorldPosToInternalPos(), new Block(BlockType.Air)));
                     }
                     else
                     {
-                        World.AddUnloadedChunkBlockUpdate(new Block.BlockUpdate(point.WorldPosToInternalPos(), Block.Air));
+                        chunkUpdates.Add(chunkPos, new List<Block.BlockUpdate>() { new Block.BlockUpdate(point.WorldPosToInternalPos(), new Block(BlockType.Air)) });
                     }
                 }
+            }
+        }
+        foreach(KeyValuePair<Vector3Int, List<Block.BlockUpdate>> chunkUpdate in chunkUpdates)
+        {
+            if(World.TryGetChunk(chunkUpdate.Key, out Chunk chunk) == true && chunk.HasGeneratedChunkData == true)
+            {
+                chunk.SetBlockBulk(chunkUpdate.Value);
+            }
+            else
+            {
+                World.AddUnloadedChunkBlockUpdateBulk(chunkUpdate.Key, chunkUpdate.Value);
             }
         }
     }
@@ -305,7 +258,7 @@ public class Chunk
         {
             if(this.UnloadedChunkBlockUpdates.TryDequeue(out Block.BlockUpdate blockUpdate))
             {
-                this.SetBlock(blockUpdate);
+                this.ApplyBlockUpdate(blockUpdate);
             }
         }
     }
@@ -327,31 +280,38 @@ public class Chunk
     /// </summary>
     public void GenerateMeshData()
     {
-        ConcurrentQueue<MeshData> meshDatas = new ConcurrentQueue<MeshData>();
-        if(this.meshDataMutex.WaitOne())
+        if(this.HasGeneratedChunkData == true)
         {
-            this.ClearMeshData();
-            for(int x = 0; x < GameManager.Instance.ChunkSize; x++)
+            ConcurrentQueue<MeshData> meshDatas = new ConcurrentQueue<MeshData>();
+            if(this.meshDataMutex.WaitOne())
             {
-                for(int y = 0; y < GameManager.Instance.ChunkSize; y++)
+                this.ClearMeshData();
+                for(int x = 0; x < GameManager.Instance.ChunkSize; x++)
                 {
-                    for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
+                    for(int y = 0; y < GameManager.Instance.ChunkSize; y++)
                     {
-                        Vector3Int internalPos = new Vector3Int(x, y, z);
-                        Block block = this.GetBlock(internalPos);
-                        if(block.Transparency == Block.TransparencyEnum.Opaque)
+                        for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
                         {
-                            this.meshData.Merge(block.CreateMesh(internalPos, this.ChunkPos));
+                            Vector3Int internalPos = new Vector3Int(x, y, z);
+                            Block block = this.GetBlock(internalPos);
+                            if(BlockType.BlockTypes[block.ID].Transparency == BlockType.TransparencyEnum.Opaque)
+                            {
+                                this.meshData.Merge(block.CreateMesh(internalPos, this.ChunkPos));
+                            }
                         }
                     }
                 }
+                this.HasGeneratedMeshData = true;
             }
-            this.HasGeneratedMeshData = true;
-        }
-        this.meshDataMutex.ReleaseMutex();
-        if(this.HasGeneratedGameObject)
-        {
-            World.AddActionToMainThreadQueue(this.AssignMesh);
+            this.meshDataMutex.ReleaseMutex();
+            if(this.HasGeneratedGameObject == true)
+            {
+                World.AddActionToMainThreadQueue(this.AssignMesh);
+            }
+            else
+            {
+                World.AddActionToMainThreadQueue(this.GenerateChunkGameObject);
+            }
         }
     }
 
@@ -403,22 +363,74 @@ public class Chunk
     /// </summary>
     public void Degenerate()
     {
-        if(this.ChunkGO != null)
+        if(this.HasGeneratedGameObject == true)
         {
             ObjectPooler.Destroy(this.ChunkGO);
+            this.Blocks = null;
+            this.CaveWorms = null;
+            this.UnloadedChunkBlockUpdates = null;
+            this.HasGeneratedChunkData = false;
+            this.HasGeneratedMeshData = false;
             this.HasGeneratedGameObject = false;
             this.HasAssignedMesh = false;
         }
     }
 
     /// <summary>
-    /// Gets the surface data at the given position in internal coordinate system.
+    /// Gets surface data for this chunk.
     /// </summary>
-    /// <param name="internalPos">The position within the chunk's internal coordinate system to get from.</param>
-    /// <returns>Returns the surface data at that position.</returns>
     public int GetSurfaceData(Vector3Int internalPos)
     {
-        return this.surfaceData[internalPos.x, internalPos.y, internalPos.z];
+        Vector3Int worldPos = internalPos.InternalPosToWorldPos(this.ChunkPos);
+        float value;
+        if(worldPos.y == 0)
+        {
+            value = -50;
+        }
+        else
+        {
+            float noise1 = GameManager.Instance.NoiseGeneratorBase.GetNoise(worldPos.x, worldPos.y, worldPos.z);
+            float noise2 = GameManager.Instance.NoiseGeneratorRidged.GetNoise(worldPos.x, worldPos.y, worldPos.z);
+            if(GameManager.Instance.InvertBase == true)
+            {
+                noise1 *= -1;
+            }
+            if(GameManager.Instance.InvertRidged == true)
+            {
+                noise2 *= -1;
+            }
+            noise1.Remap(-1, 1, 0, 1);
+            noise2.Remap(-1, 1, 0, 1);
+            if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Min)
+            {
+                value = Mathf.Min(noise1, noise2);
+            }
+            else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Max)
+            {
+                value = Mathf.Max(noise1, noise2);
+            }
+            else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Average)
+            {
+                value = (noise1 + noise2) / 2f;
+            }
+            else if(GameManager.Instance.NoiseCombination == GameManager.NoiseCombinationEnum.Just1)
+            {
+                value = noise1;
+            }
+            else
+            {
+                value = noise2;
+            }
+            value += GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize));
+        }
+        if(value >= GameManager.Instance.CutoffValue)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
     }
 
     /// <summary>
@@ -432,19 +444,42 @@ public class Chunk
     }
 
     /// <summary>
-    /// Sets the block at the given position in internal coordinate system to the given block. Used by world generator.
+    /// Sets the block at the given position in internal coordinate system to the given block.
     /// </summary>
     /// <param name="internalPos">The position in internal coordinate system to set the block.</param>
     /// <param name="block">The block to place.</param>
     public void SetBlock(Vector3Int internalPos, Block block)
     {
-        if(this.ChunkPos.y == 0 && internalPos.y == 0)
+        if((this.ChunkPos.y == 0 && internalPos.y == 0) == false)
         {
-            this.Blocks[internalPos.x, internalPos.y, internalPos.z] = Block.Bedrock;
+            this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
         }
         else
         {
-            this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+            if(BlockType.Bedrock.ID == block.ID)
+            {
+                this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets multiple blocks at once.
+    /// </summary>
+    /// <param name="blockUpdates">The list of block updates to apply to this chunk.</param>
+    public void SetBlockBulk(List<Block.BlockUpdate> blockUpdates)
+    {
+        foreach(Block.BlockUpdate blockUpdate in blockUpdates)
+        {
+            if(blockUpdate.WorldPos.y > 0)
+            {
+                Vector3Int internalPos = blockUpdate.WorldPos.WorldPosToInternalPos();
+                this.SetBlock(internalPos, blockUpdate.Block);
+            }
+        }
+        if(this.HasGeneratedMeshData == true)
+        {
+            this.GenerateMeshData();
         }
     }
 
@@ -452,7 +487,7 @@ public class Chunk
     /// Sets the block using the given block update parameters.
     /// </summary>
     /// <param name="blockUpdate">The block update parameters containing a world position and a block type.</param>
-    private void SetBlock(Block.BlockUpdate blockUpdate)
+    private void ApplyBlockUpdate(Block.BlockUpdate blockUpdate)
     {
         this.SetBlock(blockUpdate.WorldPos.WorldPosToInternalPos(), blockUpdate.Block);
     }
@@ -464,31 +499,34 @@ public class Chunk
     /// <param name="block">The block to place.</param>
     public void PlaceBlock(Vector3Int internalPos, Block block)
     {
-        this.Blocks[internalPos.x, internalPos.y, internalPos.z] = block;
-        this.GenerateMeshData();
+        this.SetBlock(internalPos, block);
+        if(this.HasGeneratedMeshData == true)
+        {
+            this.GenerateMeshData();
+        }
         if(internalPos.x == 0)
         {
-            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.XNeg);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Left);
         }
         else if(internalPos.x == GameManager.Instance.ChunkSize - 1)
         {
-            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.XPos);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Right);
         }
         if(internalPos.y == 0)
         {
-            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.YNeg);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Bottom);
         }
         else if(internalPos.y == GameManager.Instance.ChunkSize - 1)
         {
-            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.YPos);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Top);
         }
         if(internalPos.z == 0)
         {
-            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.ZNeg);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Back);
         }
         else if(internalPos.z == GameManager.Instance.ChunkSize - 1)
         {
-            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.ZPos);
+            this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Front);
         }
     }
 
@@ -500,12 +538,9 @@ public class Chunk
     {
         foreach(KeyValuePair<ChunkNeighbors, Vector3Int> chunkNeighborPosition in chunkNeighborPositions)
         {
-            if(World.TryGetChunk(this.ChunkPos + chunkNeighborPosition.Value, out Chunk chunk))
+            if(World.TryGetChunk(this.ChunkPos + chunkNeighborPosition.Value, out Chunk chunk) && chunk.HasGeneratedChunkData == true && chunk.HasGeneratedMeshData == true)
             {
-                if(chunk.HasGeneratedMeshData)
-                {
-                    chunk.GenerateMeshData();
-                }
+                chunk.GenerateMeshData();
             }
         }
     }
@@ -516,12 +551,9 @@ public class Chunk
     /// <param name="neighbor">Which neighbor should be updated.</param>
     private void UpdateSpecificNeighborChunkMeshData(ChunkNeighbors neighbor)
     {
-        if(World.TryGetChunk(this.ChunkPos + chunkNeighborPositions[neighbor], out Chunk chunk))
+        if(World.TryGetChunk(this.ChunkPos + chunkNeighborPositions[neighbor], out Chunk chunk) && chunk.HasGeneratedChunkData == true && chunk.HasGeneratedMeshData == true)
         {
-            if(chunk.HasGeneratedMeshData)
-            {
-                chunk.GenerateMeshData();
-            }
+            chunk.GenerateMeshData();
         }
     }
 }
