@@ -9,6 +9,7 @@ public class BlockType
 {
     // TODO: Add more block types.
     // TODO: Add support for liquid blocks.
+    // TODO: Have block types in a separate file (JSON?) and read them from file and match them up with textures and set IDs consecutively, maybe save the ID-BlockType index in file in case block types change between saves
     /// <summary>
     /// Contains a list of all the block types available.
     /// </summary>
@@ -17,10 +18,27 @@ public class BlockType
     #region Block List
     public static BlockType ERROR { get; private set; } = new BlockType("ERROR", 0, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b000000);
     public static BlockType Air { get; private set; } = new BlockType("Air", 1, TransparencyEnum.Transparent, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b000000);
-    public static BlockType Grass { get; private set; } = new BlockType("Grass", 2, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b111110, (RandomFacesEnum)0b000011, bottomTextureName: "2", frontTextureName: "1", backTextureName: "1", rightTextureName: "1", leftTextureName: "1");
-    public static BlockType Dirt { get; private set; } = new BlockType("Dirt", 3, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
-    public static BlockType Stone { get; private set; } = new BlockType("Stone", 4, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
-    public static BlockType Bedrock { get; private set; } = new BlockType("Bedrock", 5, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Bedrock { get; private set; } = new BlockType("Bedrock", 2, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Stone { get; private set; } = new BlockType("Stone", 3, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType BrownOre { get; private set; } = new BlockType("BrownOre", 4, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType RedOre { get; private set; } = new BlockType("RedOre", 5, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType OrangeOre { get; private set; } = new BlockType("OrangeOre", 6, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType YellowOre { get; private set; } = new BlockType("YellowOre", 7, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType GreenOre { get; private set; } = new BlockType("GreenOre", 8, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType BlueOre { get; private set; } = new BlockType("BlueOre", 9, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType PurpleOre { get; private set; } = new BlockType("PurpleOre", 10, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Obsidian { get; private set; } = new BlockType("Obsidian", 11, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Cobblestone { get; private set; } = new BlockType("Cobblestone", 12, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Dirt { get; private set; } = new BlockType("Dirt", 13, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Gravel { get; private set; } = new BlockType("Gravel", 14, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Sand { get; private set; } = new BlockType("Sand", 15, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Clay { get; private set; } = new BlockType("Clay", 16, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Grass { get; private set; } = new BlockType("Grass", 17, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b111110, (RandomFacesEnum)0b000011, bottomTextureName: "Bottom", frontTextureName: "Side", backTextureName: "Side", rightTextureName: "Side", leftTextureName: "Side");
+    public static BlockType Snow { get; private set; } = new BlockType("Snow", 18, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Leaves { get; private set; } = new BlockType("Leaves", 19, TransparencyEnum.SemiTransparent, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Logs { get; private set; } = new BlockType("Logs", 20, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b111100, (RandomFacesEnum)0b000011, frontTextureName: "Side", backTextureName: "Side", rightTextureName: "Side", leftTextureName: "Side");
+    public static BlockType WoodPlanks { get; private set; } = new BlockType("WoodPlanks", 21, TransparencyEnum.Opaque, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
+    public static BlockType Water { get; private set; } = new BlockType("Water", 22, TransparencyEnum.SemiTransparent, 0, (UniqueFacesEnum)0b000000, (RandomFacesEnum)0b111111);
     #endregion Block List
 
     #region Block Data

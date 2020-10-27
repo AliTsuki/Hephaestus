@@ -180,6 +180,7 @@ public class Chunk
     /// </summary>
     private void GenerateCaves()
     {
+        // TODO: Base number of caves off Y value of chunk so fewer caves generate the higher you go.
         int posOffset = 1000;
         int numWorms = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x, this.ChunkPos.y, this.ChunkPos.z).Remap(-1, 1, GameManager.Instance.MinimumCaveWorms, GameManager.Instance.MaximumCaveWorms));
         for(int i = 0; i < numWorms; i++)
@@ -229,9 +230,12 @@ public class Chunk
     private void GenerateOres()
     {
         // TODO: Generate ores...
-        // Maybe do something similar to cave worm generation, for each chunk, look at a noise map at the chunk location and remap result between min of that ore
-        // and max of that ore that should spawn in that chunk, also take into consideration chunk y value for how likely, then spawn an ore node and recursively
-        // set blocks to that ore type with some random chance each extra block added to not add more ore so a vein is created of a size given by the chance.
+        // Check ore noise map at chunk pos, remap value to specific min and max for each ore type (base min/max off chunk Y value), use that value as number of veins to produce in this chunk,
+        // Loop through amount of veins and check ore position noise map three times, remap values to within chunk bounds, use those values to set center point of each vein,
+        // Run ore gen method for each vein, recursively check position on each side (Z+, Z-, Y+....) and check a noise map at each one to determine if point should be added to vein,
+        // Every time a point is added subtract from total cost of ore vein, once cost reaches 0 stop generating ore, once all points are determined run set block method with
+        // ore updates or addunloadedchunkblockupdates for neighbor chunks yet to generate.
+        
     }
 
     /// <summary>
@@ -277,7 +281,7 @@ public class Chunk
     /// </summary>
     public void GenerateMeshData()
     {
-        // TODO: Optimize chunk GenerateMeshData, consider compute shader or find a way to multithread it
+        // TODO: Optimize chunk GenerateMeshData, consider compute shader or find a way to multi-thread it
         if(this.HasGeneratedChunkData == true)
         {
             ConcurrentQueue<MeshData> meshDatas = new ConcurrentQueue<MeshData>();
