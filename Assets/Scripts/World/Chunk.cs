@@ -19,7 +19,7 @@ public class Chunk
     /// <summary>
     /// Array of blocks within this chunk.
     /// </summary>
-    public Block[,,] Blocks { get; private set; } = new Block[GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize, GameManager.Instance.ChunkSize];
+    public Block[,,] Blocks { get; private set; } = new Block[GameManager.ChunkSize, GameManager.ChunkSize, GameManager.ChunkSize];
     /// <summary>
 	/// List of all the cave worms that started in this chunk.
 	/// </summary>
@@ -122,11 +122,11 @@ public class Chunk
         if(saveData.HasGeneratedChunkData == true)
         {
             SaveDataObjects.BlockSaveData[,,] blockArray = saveData.Blocks.To3DArray();
-            for(int x = 0; x < GameManager.Instance.ChunkSize; x++)
+            for(int x = 0; x < GameManager.ChunkSize; x++)
             {
-                for(int y = 0; y < GameManager.Instance.ChunkSize; y++)
+                for(int y = 0; y < GameManager.ChunkSize; y++)
                 {
-                    for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
+                    for(int z = 0; z < GameManager.ChunkSize; z++)
                     {
                         this.Blocks[x, y, z] = new Block(blockArray[x, y, z]);
                     }
@@ -144,23 +144,20 @@ public class Chunk
     }
 
     /// <summary>
-    /// Adds a block update sent by neighbor chunks while this chunk was unloaded.
-    /// </summary>
-    /// <param name="blockUpdate">The block update to apply when this chunk loads.</param>
-    public void AddUnloadedChunkBlockUpdate(Block.BlockUpdate blockUpdate)
-    {
-        this.UnloadedChunkBlockUpdates.Enqueue(blockUpdate);
-    }
-
-    /// <summary>
     /// Adds a list of block updates sent by neighbor chunks while this chunk was unloaded.
     /// </summary>
     /// <param name="blockUpdates">The list of block updates to apply when this chunk loads.</param>
-    public void AddUnloadedChunkBlockUpdateBulk(List<Block.BlockUpdate> blockUpdates)
+    public void AddUnloadedChunkBlockUpdates(List<Block.BlockUpdate> blockUpdates)
     {
         foreach(Block.BlockUpdate blockUpdate in blockUpdates)
         {
             this.UnloadedChunkBlockUpdates.Enqueue(blockUpdate);
+        }
+        if(this.HasGeneratedChunkData == true)
+        {
+            this.DoUnloadedChunkBlockUpdates();
+            this.CalculateLightingData();
+            this.UpdateNeighborChunkMeshData();
         }
     }
 
@@ -187,9 +184,9 @@ public class Chunk
         int numWorms = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x, this.ChunkPos.y, this.ChunkPos.z).Remap(-1, 1, GameManager.Instance.MinimumCaveWorms, GameManager.Instance.MaximumCaveWorms));
         for(int i = 0; i < numWorms; i++)
         {
-            int posX = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise((this.ChunkPos.x * this.ChunkPos.x) + (posOffset * 1 * i), this.ChunkPos.y + (posOffset * 1 * i), this.ChunkPos.z + (posOffset * 1 * i)).Remap(-1, 1, 0, GameManager.Instance.ChunkSize));
-            int posY = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x + (posOffset * 2 * i), (this.ChunkPos.y * this.ChunkPos.y) + (posOffset * 2 * i), this.ChunkPos.z + (posOffset * 2 * i)).Remap(-1, 1, 0, GameManager.Instance.ChunkSize));
-            int posZ = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x + (posOffset * 3 * i), this.ChunkPos.y + (posOffset * 3 * i), (this.ChunkPos.z * this.ChunkPos.z) + (posOffset * 3 * i)).Remap(-1, 1, 0, GameManager.Instance.ChunkSize));
+            int posX = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise((this.ChunkPos.x * this.ChunkPos.x) + (posOffset * 1 * i), this.ChunkPos.y + (posOffset * 1 * i), this.ChunkPos.z + (posOffset * 1 * i)).Remap(-1, 1, 0, GameManager.ChunkSize));
+            int posY = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x + (posOffset * 2 * i), (this.ChunkPos.y * this.ChunkPos.y) + (posOffset * 2 * i), this.ChunkPos.z + (posOffset * 2 * i)).Remap(-1, 1, 0, GameManager.ChunkSize));
+            int posZ = Mathf.RoundToInt(GameManager.Instance.CaveWormPositionNoiseGenerator.GetNoise(this.ChunkPos.x + (posOffset * 3 * i), this.ChunkPos.y + (posOffset * 3 * i), (this.ChunkPos.z * this.ChunkPos.z) + (posOffset * 3 * i)).Remap(-1, 1, 0, GameManager.ChunkSize));
             Vector3Int newWormPos = new Vector3Int(posX, posY, posZ).InternalPosToWorldPos(this.ChunkPos);
             CaveWorm newWorm = new CaveWorm(newWormPos);
             this.CaveWorms.Add(newWorm);
@@ -217,11 +214,11 @@ public class Chunk
         {
             if(World.TryGetChunk(chunkUpdate.Key, out Chunk chunk) == true && chunk.HasGeneratedChunkData == true)
             {
-                chunk.SetBlockBulk(chunkUpdate.Value);
+                chunk.SetBlock(chunkUpdate.Value);
             }
             else
             {
-                World.AddUnloadedChunkBlockUpdateBulk(chunkUpdate.Key, chunkUpdate.Value);
+                World.AddUnloadedChunkBlockUpdates(chunkUpdate.Key, chunkUpdate.Value);
             }
         }
     }
@@ -280,17 +277,18 @@ public class Chunk
     /// </summary>
     public void GenerateMeshData()
     {
+        // TODO: Optimize chunk GenerateMeshData, consider compute shader or find a way to multithread it
         if(this.HasGeneratedChunkData == true)
         {
             ConcurrentQueue<MeshData> meshDatas = new ConcurrentQueue<MeshData>();
             if(this.meshDataMutex.WaitOne())
             {
                 this.ClearMeshData();
-                for(int x = 0; x < GameManager.Instance.ChunkSize; x++)
+                for(int x = 0; x < GameManager.ChunkSize; x++)
                 {
-                    for(int y = 0; y < GameManager.Instance.ChunkSize; y++)
+                    for(int y = 0; y < GameManager.ChunkSize; y++)
                     {
-                        for(int z = 0; z < GameManager.Instance.ChunkSize; z++)
+                        for(int z = 0; z < GameManager.ChunkSize; z++)
                         {
                             Vector3Int internalPos = new Vector3Int(x, y, z);
                             Block block = this.GetBlock(internalPos);
@@ -421,7 +419,7 @@ public class Chunk
             {
                 value = noise2;
             }
-            value += GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.Instance.ChunksPerColumn / 2 * GameManager.Instance.ChunkSize));
+            value += GameManager.Instance.YMultiplier * (worldPos.y - (GameManager.ChunksPerColumn / 2 * GameManager.ChunkSize));
         }
         if(value >= GameManager.Instance.CutoffValue)
         {
@@ -467,7 +465,7 @@ public class Chunk
     /// Sets multiple blocks at once.
     /// </summary>
     /// <param name="blockUpdates">The list of block updates to apply to this chunk.</param>
-    public void SetBlockBulk(List<Block.BlockUpdate> blockUpdates)
+    public void SetBlock(List<Block.BlockUpdate> blockUpdates)
     {
         foreach(Block.BlockUpdate blockUpdate in blockUpdates)
         {
@@ -508,7 +506,7 @@ public class Chunk
         {
             this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Left);
         }
-        else if(internalPos.x == GameManager.Instance.ChunkSize - 1)
+        else if(internalPos.x == GameManager.ChunkSize - 1)
         {
             this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Right);
         }
@@ -516,7 +514,7 @@ public class Chunk
         {
             this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Bottom);
         }
-        else if(internalPos.y == GameManager.Instance.ChunkSize - 1)
+        else if(internalPos.y == GameManager.ChunkSize - 1)
         {
             this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Top);
         }
@@ -524,7 +522,7 @@ public class Chunk
         {
             this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Back);
         }
-        else if(internalPos.z == GameManager.Instance.ChunkSize - 1)
+        else if(internalPos.z == GameManager.ChunkSize - 1)
         {
             this.UpdateSpecificNeighborChunkMeshData(ChunkNeighbors.Front);
         }

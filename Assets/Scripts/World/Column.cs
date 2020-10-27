@@ -15,7 +15,7 @@ public class Column
     /// <summary>
     /// Array of all the chunks in this column.
     /// </summary>
-    public Chunk[] Chunks { get; private set; } = new Chunk[GameManager.Instance.ChunksPerColumn];
+    public Chunk[] Chunks { get; private set; } = new Chunk[GameManager.ChunksPerColumn];
     /// <summary>
     /// Has this column generated block data for its chunks?
     /// </summary>
@@ -29,7 +29,7 @@ public class Column
     public Column(Vector2Int columnPos)
     {
         this.ColumnPos = columnPos;
-        for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
+        for(int y = 0; y < GameManager.ChunksPerColumn; y++)
         {
             this.Chunks[y] = new Chunk(new Vector3Int(this.ColumnPos.x, y, this.ColumnPos.y));
         }
@@ -57,7 +57,7 @@ public class Column
     /// <returns>Returns true if a chunk exists at that location.</returns>
     public bool TryGetChunk(int chunkPosY, out Chunk chunk)
     {
-        if(chunkPosY >= 0 && chunkPosY < GameManager.Instance.ChunksPerColumn)
+        if(chunkPosY >= 0 && chunkPosY < GameManager.ChunksPerColumn)
         {
             chunk = this.Chunks[chunkPosY];
             return true;
@@ -72,67 +72,65 @@ public class Column
     /// <summary>
     /// Generates chunk block data for all chunks in this column.
     /// </summary>
-    public void GenerateChunkBlockData()
+    public void GenerateBlockData()
     {
-        if(this.HasGeneratedBlockData == false)
+        // TODO: Optimize Column/Chunk GenerateBlockData methods
+        Vector3Int columnMinPos = new Vector3Int(this.ColumnPos.x, 0, this.ColumnPos.y).ChunkPosToWorldPos();
+        Parallel.For(columnMinPos.x, columnMinPos.x + GameManager.ChunkSize, x =>
         {
-            Vector3Int columnMinPos = new Vector3Int(this.ColumnPos.x, 0, this.ColumnPos.y).ChunkPosToWorldPos();
-            Parallel.For(columnMinPos.x, columnMinPos.x + GameManager.Instance.ChunkSize, x =>
+            Parallel.For(columnMinPos.z, columnMinPos.z + GameManager.ChunkSize, z =>
             {
-                Parallel.For(columnMinPos.z, columnMinPos.z + GameManager.Instance.ChunkSize, z =>
+                int closestAir = GameManager.ChunkSize * GameManager.ChunksPerColumn;
+                int dirtDepth = Mathf.RoundToInt(GameManager.Instance.NoiseGeneratorBase.GetNoise(x, z).Remap(-1, 1, 2, 6));
+                for(int y = closestAir - 1; y >= 0; y--)
                 {
-                    int closestAir = GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn;
-                    int dirtDepth = Mathf.RoundToInt(GameManager.Instance.NoiseGeneratorBase.GetNoise(x, z).Remap(-1, 1, 2, 6));
-                    for(int y = closestAir - 1; y >= 0; y--)
+                    Vector3Int worldPos = new Vector3Int(x, y, z);
+                    Vector3Int internalPos = worldPos.WorldPosToInternalPos();
+                    if(this.TryGetChunk(worldPos.WorldPosToChunkPos().y, out Chunk chunk) == true)
                     {
-                        Vector3Int worldPos = new Vector3Int(x, y, z);
-                        Vector3Int internalPos = worldPos.WorldPosToInternalPos();
-                        if(this.TryGetChunk(worldPos.WorldPosToChunkPos().y, out Chunk chunk) == true)
+                        if(chunk.GetSurfaceData(internalPos) == 1)
                         {
-                            if(chunk.GetSurfaceData(internalPos) == 1)
+                            if(y == 0)
                             {
-                                if(y == 0)
+                                chunk.SetBlock(internalPos, new Block(BlockType.Bedrock));
+                            }
+                            else
+                            {
+                                if(y >= GameManager.ChunkSize * GameManager.ChunksPerColumn / 2)
                                 {
-                                    chunk.SetBlock(internalPos, new Block(BlockType.Bedrock));
-                                }
-                                else
-                                {
-                                    if(y >= GameManager.Instance.ChunkSize * GameManager.Instance.ChunksPerColumn / 2)
+                                    if(closestAir - y <= 1)
                                     {
-                                        if(closestAir - y <= 1)
-                                        {
-                                            chunk.SetBlock(internalPos, new Block(BlockType.Grass));
-                                        }
-                                        else if(closestAir - y <= dirtDepth)
-                                        {
-                                            chunk.SetBlock(internalPos, new Block(BlockType.Dirt));
-                                        }
-                                        else
-                                        {
-                                            chunk.SetBlock(internalPos, new Block(BlockType.Stone));
-                                        }
+                                        chunk.SetBlock(internalPos, new Block(BlockType.Grass));
+                                    }
+                                    else if(closestAir - y <= dirtDepth)
+                                    {
+                                        chunk.SetBlock(internalPos, new Block(BlockType.Dirt));
                                     }
                                     else
                                     {
                                         chunk.SetBlock(internalPos, new Block(BlockType.Stone));
                                     }
                                 }
-                            }
-                            else
-                            {
-                                closestAir = y;
-                                chunk.SetBlock(internalPos, new Block(BlockType.Air));
+                                else
+                                {
+                                    chunk.SetBlock(internalPos, new Block(BlockType.Stone));
+                                }
                             }
                         }
+                        else
+                        {
+                            closestAir = y;
+                            chunk.SetBlock(internalPos, new Block(BlockType.Air));
+                        }
                     }
-                });
+                }
             });
-            for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
-            {
-                this.Chunks[y].GenerateChunkBlockData();
-            }
-            this.HasGeneratedBlockData = true;
+        });
+        for(int y = 0; y < GameManager.ChunksPerColumn; y++)
+        {
+            this.Chunks[y].GenerateChunkBlockData();
         }
+        this.HasGeneratedBlockData = true;
     }
 
     /// <summary>
@@ -140,7 +138,7 @@ public class Column
     /// </summary>
     public void GenerateMeshData()
     {
-        Parallel.For(0, GameManager.Instance.ChunksPerColumn, y =>
+        Parallel.For(0, GameManager.ChunksPerColumn, y =>
         {
             this.Chunks[y].GenerateMeshData();
         });
@@ -152,7 +150,7 @@ public class Column
     public void Degenerate(bool calledFromWorldThread)
     {
         SaveSystem.SaveColumnToDrive(this);
-        for(int y = 0; y < GameManager.Instance.ChunksPerColumn; y++)
+        for(int y = 0; y < GameManager.ChunksPerColumn; y++)
         {
             if(calledFromWorldThread == true)
             {

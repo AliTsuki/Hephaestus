@@ -216,7 +216,7 @@ public static class MeshBuilder
         }
         if(side == Side.Top)
         {
-            if(internalPos.y < GameManager.Instance.ChunkSize - 1)
+            if(internalPos.y < GameManager.ChunkSize - 1)
             {
                 Block block = chunk.GetBlock(internalPos + new Vector3Int(0, 1, 0));
                 BlockType blockType = BlockType.BlockTypes[block.ID];
@@ -256,7 +256,7 @@ public static class MeshBuilder
         }
         else if(side == Side.Front)
         {
-            if(internalPos.z < GameManager.Instance.ChunkSize - 1)
+            if(internalPos.z < GameManager.ChunkSize - 1)
             {
                 Block block = chunk.GetBlock(internalPos + new Vector3Int(0, 0, 1));
                 BlockType blockType = BlockType.BlockTypes[block.ID];
@@ -296,7 +296,7 @@ public static class MeshBuilder
         }
         else if(side == Side.Right)
         {
-            if(internalPos.x < GameManager.Instance.ChunkSize - 1)
+            if(internalPos.x < GameManager.ChunkSize - 1)
             {
                 Block block = chunk.GetBlock(internalPos + new Vector3Int(1, 0, 0));
                 BlockType blockType = BlockType.BlockTypes[block.ID];

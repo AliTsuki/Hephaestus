@@ -85,19 +85,15 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// The size in blocks of each chunk. Chunks are this many blocks cubed.
     /// </summary>
-    public int ChunkSize = 16;
+    public const int ChunkSize = 16;
     /// <summary>
     /// The number of chunks to generate per column.
     /// </summary>
-    public int ChunksPerColumn = 16;
+    public const int ChunksPerColumn = 16;
     /// <summary>
     /// The amount of chunks generated for the starting area is this value doubled minus 1 then cubed.
     /// </summary>
-    public int StartingColumnRadius = 11;
-    /// <summary>
-    /// The radius of chunks to generate continously as the player explores the world.
-    /// </summary>
-    public int ActiveColumnRadius = 9;
+    public int ActiveColumnRadius = 11;
     #endregion Chunk Settings
 
     #region Terrain Noise Settings
@@ -279,20 +275,22 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame.
     private void Update()
     {
-        World.MainThreadUpdate();
+        
     }
 
     // Fixed update is called a fixed number of times per second.
     private void FixedUpdate()
     {
-        
+        World.MainThreadUpdate();
     }
 
     // OnApplicationQuit is called before the application is quit.
     private void OnApplicationQuit()
     {
+        Logger.Log($@"Stopping...");
         World.Quit();
         ObjectPooler.Quit();
+        Logger.Log($@"Stopped!");
         Logger.Quit();
     }
 

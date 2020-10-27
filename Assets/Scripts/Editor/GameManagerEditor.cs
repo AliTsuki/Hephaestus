@@ -38,9 +38,6 @@ public class GameManagerEditor : Editor
 		this.gm.LevelGeometryLayerMask = EditorGUILayout.LayerField("Level Geometry Layer Mask:", this.gm.LevelGeometryLayerMask);
 		this.gm.ChunkPrefab = (GameObject)EditorGUILayout.ObjectField("Chunk Prefab:", this.gm.ChunkPrefab, typeof(GameObject), false);
 		this.gm.ChunkMaterial = (Material)EditorGUILayout.ObjectField("Chunk Material:", this.gm.ChunkMaterial, typeof(Material), false);
-		this.gm.ChunkSize = EditorGUILayout.IntField("Chunk Size:", this.gm.ChunkSize);
-		this.gm.ChunksPerColumn = EditorGUILayout.IntField("Chunks Per Column:", this.gm.ChunksPerColumn);
-		this.gm.StartingColumnRadius = EditorGUILayout.IntField("Starting Column Radius:", this.gm.StartingColumnRadius);
 		this.gm.ActiveColumnRadius = EditorGUILayout.IntField("Active Column Radius:", this.gm.ActiveColumnRadius);
 
 		// Noise Settings

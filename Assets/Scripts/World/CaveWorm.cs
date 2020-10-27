@@ -77,7 +77,7 @@ public class CaveWorm
             Vector3 newWormDir = new Vector3(dirX, dirY, dirZ).normalized;
             int radius = Mathf.RoundToInt(((dirX + dirY + dirZ) / 3f).Remap(-1, 1, GameManager.Instance.MinimumCaveWormRadius, GameManager.Instance.MaximumCaveWormRadius));
             Vector3Int newSegmentPos = (this.Segments[currentSegment].WorldPos + (newWormDir * radius)).RoundToInt();
-            if(Vector2.Distance(this.Segments[0].WorldPos.RemoveY(), newSegmentPos.RemoveY()) < GameManager.Instance.MaxWormChunkDistance * GameManager.Instance.ChunkSize)
+            if(Vector2.Distance(this.Segments[0].WorldPos.RemoveY(), newSegmentPos.RemoveY()) < GameManager.Instance.MaxWormChunkDistance * GameManager.ChunkSize)
             {
                 this.Segments.Add(new Segment(newSegmentPos, radius));
             }
